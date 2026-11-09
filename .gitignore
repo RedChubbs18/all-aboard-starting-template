@@ -38,3 +38,9 @@ prisma/seed.local.json
 # Editor
 .vscode/
 
+
+# Licensed brand fonts: local only, never commit (licence forbids redistribution; see docs/DECISIONS.md D18)
+public/fonts/*.woff2
+public/fonts/*.woff
+public/fonts/*.otf
+public/fonts/*.ttf
