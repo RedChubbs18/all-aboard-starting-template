@@ -158,6 +158,10 @@ if (!Array.isArray(templates)) {
     }
     if (!Array.isArray(t.dependsOn) || !t.dependsOn.every((d) => typeof d === 'string')) fail(`${where}: dependsOn must be an array`);
     if (typeof t.gating !== 'boolean') fail(`${where}: gating must be boolean`);
+    for (const flag of ['optional', 'autoCompleteOnOpen']) {
+      if (t[flag] !== undefined && typeof t[flag] !== 'boolean') fail(`${where}: ${flag} must be boolean`);
+    }
+    if (t.optional === true && t.gating) fail(`${where}: optional tasks must not be gating`);
     if (t.adapterKey !== null && !ADAPTERS.includes(t.adapterKey)) fail(`${where}: bad adapterKey ${t.adapterKey}`);
     if (t.contentSlug !== null && !contentSlugs.has(t.contentSlug)) fail(`${where}: contentSlug '${t.contentSlug}' not in content.json`);
     if (t.condition !== null && !isStr(t.condition)) fail(`${where}: condition must be null or a string`);
@@ -206,6 +210,10 @@ if (!Array.isArray(templates)) {
     if (t.adapterKey === 'itrequest' && !ancestors(t.key).has('colleague-file-id-created')) {
       fail(`dependency rule: ${t.key} (IT request) must depend on colleague-file-id-created`);
     }
+  }
+  // F3: buddy tasks only start once the guest account exists.
+  for (const t of tplByKey.values()) {
+    if (t.owner === 'BUDDY' && !ancestors(t.key).has('guest-sign-in')) fail(`dependency rule: ${t.key} (BUDDY) must depend on guest-sign-in`);
   }
   const mustDepend = [
     ['order-photo-id-pass', ['photo-check-passed', 'confirm-day-0-arrangements']],

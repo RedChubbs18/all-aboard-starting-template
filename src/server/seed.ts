@@ -73,6 +73,8 @@ const toTemplateInput = (t: SeedTemplate): TemplateInput => ({
   teamId: t.teamKey ?? t.teamId ?? null,
   adapterKey: t.adapterKey ?? null,
   gating: t.gating,
+  optional: t.optional,
+  autoCompleteOnOpen: t.autoCompleteOnOpen,
   contentSlug: t.contentSlug ?? null,
   condition: t.condition ?? null,
   sortOrder: t.sortOrder,

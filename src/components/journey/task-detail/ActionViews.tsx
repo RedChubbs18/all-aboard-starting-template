@@ -203,6 +203,7 @@ const home = (xs: string[]) => xs.filter((x) => x.startsWith(HOME_PREFIX)).map((
 export function OrderView({ data, onChanged }: Props) {
   const d = data.detail as Extract<Detail, { kind: "order" }>;
   const isHome = d.mode === "home";
+  const isPeripherals = d.mode === "peripherals";
   const [device, setDevice] = useState<"MAC" | "WINDOWS" | "">(d.choice?.device ?? "");
   const [items, setItems] = useState<string[]>([]);
   const [confirm, setConfirm] = useState(false);
@@ -210,33 +211,39 @@ export function OrderView({ data, onChanged }: Props) {
   const { post, busy } = usePost();
   const toast = useToast();
   const canAct = data.task.canAct && data.task.status !== "LOCKED" && data.task.status !== "DONE";
-  const needDevice = !isHome || !d.choice;
+  // F12: the primary device task asks only for Mac or Windows; peripherals are their own optional task.
+  const needDevice = d.mode === "device" || (isHome && !d.choice);
   const options: readonly string[] = isHome ? HOME_ITEMS : PERIPHERAL_OPTIONS;
 
   if (data.task.status === "DONE" && d.choice) {
     return (
       <Card className="space-y-2" aria-live="polite">
         <p className="flex items-center gap-2 font-semibold text-brand-strong">
-          <PackageCheck aria-hidden className="size-5" /> {isHome ? "Home working order confirmed" : "Device choice confirmed"}
+          <PackageCheck aria-hidden className="size-5" /> {isHome ? "Home working order confirmed" : isPeripherals ? "Peripherals confirmed" : "Device choice confirmed"}
         </p>
-        <p>
-          Device: <strong>{d.choice.device === "MAC" ? "Mac" : "Windows"}</strong>
-        </p>
-        {visible(d.choice.peripherals).length > 0 && <p>Day 0 peripherals: {visible(d.choice.peripherals).join(", ")}</p>}
-        {home(d.choice.peripherals).length > 0 && <p>Home working items: {home(d.choice.peripherals).join(", ")}</p>}
+        {!isPeripherals && (
+          <p>
+            Device: <strong>{d.choice.device === "MAC" ? "Mac" : "Windows"}</strong>
+          </p>
+        )}
+        {!isHome && !isPeripherals ? null : isHome ? (
+          home(d.choice.peripherals).length > 0 && <p>Home working items: {home(d.choice.peripherals).join(", ")}</p>
+        ) : (
+          <p>Day 0 peripherals: {visible(d.choice.peripherals).length > 0 ? visible(d.choice.peripherals).join(", ") : "none"}</p>
+        )}
         <p className="text-sm text-muted">Collect from: {d.choice.collectionPoint}. Reference {d.choice.ref}.</p>
       </Card>
     );
   }
   const toggle = (x: string) => setItems((l) => (l.includes(x) ? l.filter((y) => y !== x) : [...l, x]));
-  const ready = (!needDevice || !!device) && (!isHome || items.length > 0);
+  const ready = (!needDevice || !!device) && (!isHome || items.length > 0) && (!isPeripherals || !!d.choice);
 
   async function submit() {
     setError(null);
-    const r = await post("/api/starter/equipment", { taskId: data.task.id, device: device || undefined, peripherals: items });
+    const r = await post("/api/starter/equipment", { taskId: data.task.id, device: device || undefined, peripherals: d.mode === "device" ? undefined : items });
     if (r.ok) {
       setConfirm(false);
-      toast.success(isHome ? "Home working order sent" : "Device choice confirmed");
+      toast.success(isHome ? "Home working order sent" : isPeripherals ? "Peripherals confirmed" : "Device choice confirmed");
       await onChanged();
     } else setError(r.error ?? "Couldn't send your order");
   }
@@ -245,7 +252,7 @@ export function OrderView({ data, onChanged }: Props) {
     <div className="space-y-4">
       {needDevice && (
         <fieldset disabled={!canAct}>
-          <legend className="font-semibold">Which laptop would you like?</legend>
+          <legend className="font-semibold">Which laptop would you like? (Mac or Windows)</legend>
           <div className="mt-2 grid grid-cols-2 gap-2">
             {(["MAC", "WINDOWS"] as const).map((v) => (
               <label key={v} className={cn("flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-md border-2 p-3 font-semibold", device === v ? "border-dark-green bg-brand-tint" : "border-line bg-card")}>
@@ -256,32 +263,36 @@ export function OrderView({ data, onChanged }: Props) {
           </div>
         </fieldset>
       )}
-      <fieldset disabled={!canAct}>
-        <legend className="font-semibold">{isHome ? "Which home working items do you need?" : "Which peripherals would you like on Day 0?"}</legend>
-        <div className="mt-2 grid gap-2 sm:grid-cols-2">
-          {options.map((o) => (
-            <label key={o} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-line bg-card p-3 hover:bg-brand-tint">
-              <input type="checkbox" className="size-5 accent-[var(--color-brand)]" checked={items.includes(o)} onChange={() => toggle(o)} />
-              {o}
-            </label>
-          ))}
-        </div>
-      </fieldset>
+      {d.mode !== "device" && (
+        <fieldset disabled={!canAct}>
+          <legend className="font-semibold">{isHome ? "Which home working items do you need?" : "Which peripherals would you like on Day 0? (optional)"}</legend>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            {options.map((o) => (
+              <label key={o} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-line bg-card p-3 hover:bg-brand-tint">
+                <input type="checkbox" className="size-5 accent-[var(--color-brand)]" checked={items.includes(o)} onChange={() => toggle(o)} />
+                {o}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
       {canAct && (
         <>
           <Button size="lg" className="w-full" aria-disabled={!ready} onClick={() => ready && setConfirm(true)}>
             Review and confirm
           </Button>
-          {!ready && <p className="text-sm text-muted">{isHome ? "Choose at least one item." : "Choose a laptop to continue."}</p>}
+          {!ready && <p className="text-sm text-muted">{isHome ? "Choose at least one item." : isPeripherals ? "Choose your primary device first." : "Choose a laptop to continue."}</p>}
         </>
       )}
       <Sheet open={confirm} onClose={() => setConfirm(false)} title="Confirm your order" variant="dialog">
         <p>Please check this is right. You can&apos;t change it here once it is sent.</p>
         <ul className="mt-3 list-disc space-y-1 pl-5">
           {needDevice && <li>Laptop: {device === "MAC" ? "Mac" : "Windows"}</li>}
-          <li>
-            {isHome ? "Home working items" : "Peripherals"}: {items.length ? items.join(", ") : "none"}
-          </li>
+          {d.mode !== "device" && (
+            <li>
+              {isHome ? "Home working items" : "Peripherals"}: {items.length ? items.join(", ") : "none"}
+            </li>
+          )}
         </ul>
         {error && (
           <div className="mt-3">
@@ -375,6 +386,12 @@ export function Day0View({ data, onChanged }: Props) {
           <dd>{formatDateTime(day0.whenAt)}</dd>
           <dt className="font-semibold">Ask for</dt>
           <dd>{day0.who}</dd>
+          {day0.notes && (
+            <>
+              <dt className="font-semibold">Notes</dt>
+              <dd>{day0.notes}</dd>
+            </>
+          )}
         </dl>
         <p className="text-sm">{day0.confirmedAt ? <span className="font-semibold text-brand-strong">Confirmed {formatDateTime(day0.confirmedAt)}</span> : "Not confirmed yet."}</p>
       </Card>

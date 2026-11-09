@@ -1,8 +1,9 @@
+import { isVettingFailed } from "@/domain/engine";
 import { stageIndex, type JourneyState, type TaskState } from "@/domain/types";
 import { getAdapter } from "@/adapters/registry";
-import { STAGE_META } from "@/components/journey/derive";
+import { STAGE_META, tallyStages } from "@/components/journey/derive";
 import type { FirstAdvantageSummary, JourneyDto, PersonDto, TaskDto, ViewerRelation } from "@/components/journey/types";
-import { canActOnTask } from "@/lib/auth/access";
+import { canActOnTask, taskVisibleInScope, viewScope, type ViewScope } from "@/lib/auth/access";
 import { hasAnyRole, parseRoles, type SessionUser } from "@/lib/auth/roles";
 import { prisma } from "@/server/db";
 import { STAGES } from "@/domain/types";
@@ -19,8 +20,11 @@ export const toPerson = (u: UserRow): PersonDto => ({
   bio: u.bio,
 });
 
-/** Plain-words reason a task is locked. */
-export function lockedReason(j: JourneyState, t: TaskState): string | null {
+/** F7: placeholder P&P phone number (synthetic). */
+export const PNP_PHONE = "0800 000 0000 (example)";
+
+/** Plain-words reason a task is locked. For starters, hidden (manager, buddy, P&P) steps are summarised, never named. */
+export function lockedReason(j: JourneyState, t: TaskState, scope: ViewScope = "FULL"): string | null {
   if (t.status !== "LOCKED") return null;
   const at = stageIndex(j.currentStage);
   if (stageIndex(t.stage) > at) {
@@ -29,12 +33,22 @@ export function lockedReason(j: JourneyState, t: TaskState): string | null {
   }
   const waiting = t.dependsOn
     .map((k) => j.tasks.find((x) => x.key === k))
-    .filter((d): d is TaskState => !!d && d.applicable && d.status !== "DONE");
-  if (waiting.length) return `Waiting for: ${waiting.map((d) => d.title).join(", ")}`;
+    .filter((d): d is TaskState => !!d && d.applicable && d.status !== "DONE" && !d.optional);
+  if (waiting.length) {
+    if (scope === "STARTER") {
+      if (t.key === "confirm-day-0-arrangements") return "Your line manager will share your first-day details here.";
+      const shown = waiting.filter((d) => d.owner === "STARTER" || d.owner === "SYSTEM").map((d) => d.title);
+      const hidden = waiting.filter((d) => d.owner !== "STARTER" && d.owner !== "SYSTEM");
+      const extra = hidden.length ? (hidden.some((d) => d.owner === "LM") ? "your line manager" : "your team") : null;
+      return `Waiting for: ${[...shown, ...(extra ? [extra] : [])].join(", ")}`;
+    }
+    return `Waiting for: ${waiting.map((d) => d.title).join(", ")}`;
+  }
   return "Waiting for an earlier step.";
 }
 
 export function toTaskDto(j: JourneyState, t: TaskState, user: SessionUser): TaskDto {
+  const scope = viewScope(user, j);
   return {
     id: t.id,
     key: t.key,
@@ -49,12 +63,14 @@ export function toTaskDto(j: JourneyState, t: TaskState, user: SessionUser): Tas
     blockedReason: t.blockedReason,
     dependsOn: t.dependsOn,
     gating: t.gating,
+    optional: !!t.optional,
+    autoCompleteOnOpen: !!t.autoCompleteOnOpen,
     contentSlug: t.contentSlug,
     adapterKey: t.adapterKey,
     source: t.source,
-    canAct: j.status === "active" && canActOnTask(user, j, t.owner),
+    canAct: j.status === "active" && canActOnTask(user, j, t.owner, t.key, t.adapterKey) && !(scope === "STARTER" && isVettingFailed(j)),
     applicable: t.applicable,
-    lockedReason: lockedReason(j, t),
+    lockedReason: lockedReason(j, t, scope),
   };
 }
 
@@ -91,6 +107,8 @@ export async function buildJourneyDto(j: JourneyState, user: SessionUser): Promi
     if (!u) throw new Error(`User ${id} missing`);
     return toPerson(u);
   };
+  const scope = viewScope(user, j);
+  const vettingBlocked = scope === "STARTER" && isVettingFailed(j);
   const [pnp, firstadvantage] = await Promise.all([pnpContact(), firstAdvantageSummary(j.id)]);
   return {
     id: j.id,
@@ -105,7 +123,10 @@ export async function buildJourneyDto(j: JourneyState, user: SessionUser): Promi
     pnp,
     viewerRelation: relationOf(user, j),
     viewerIsStarter: j.starterId === user.id,
-    tasks: j.tasks.filter((t) => t.applicable).map((t) => toTaskDto(j, t, user)),
+    tasks: vettingBlocked ? [] : j.tasks.filter((t) => t.applicable && taskVisibleInScope(scope, user, j, t)).map((t) => toTaskDto(j, t, user)),
     firstadvantage,
+    overall: tallyStages(j.tasks),
+    vettingFailed: vettingBlocked,
+    pnpPhone: PNP_PHONE,
   };
 }

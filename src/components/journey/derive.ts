@@ -5,7 +5,7 @@
  */
 import { STAGES, stageIndex, type Stage } from "@/domain/types";
 import { formatDayMonth, formatLongDate, isOverdue } from "./format";
-import type { TaskDto } from "./types";
+import type { StageTally, TaskDto } from "./types";
 
 export const STAGE_META: Record<Stage, { label: string; shortLabel: string; description: string }> = {
   CONDITIONAL_OFFER: { label: "Conditional offer", shortLabel: "Offer", description: "You've accepted your offer" },
@@ -60,12 +60,40 @@ export interface JourneyView {
 
 export interface ViewInput {
   tasks: TaskDto[];
+  /** Server tally over every owner's tasks (starter view hides non-starter tasks but progress still counts them). */
+  overall?: Record<Stage, StageTally>;
+  viewerIsStarter?: boolean;
   currentStage: Stage;
   status: "active" | "completed" | "exited";
 }
 
 /** Tasks the starter should see: `applicable=false` tasks never appear (FR-4.5). */
 export const visibleTasks = (tasks: TaskDto[]) => tasks.filter((t) => t.applicable !== false);
+
+/** Tally applicable, non-optional tasks per stage. */
+export function tallyStages(tasks: Pick<TaskDto, "stage" | "status" | "gating" | "optional" | "applicable">[]): Record<Stage, StageTally> {
+  return Object.fromEntries(
+    STAGES.map((s) => {
+      const st = tasks.filter((t) => t.stage === s && t.applicable !== false && !t.optional);
+      const g = st.filter((t) => t.gating);
+      return [s, { done: st.filter((t) => t.status === "DONE").length, total: st.length, gatingDone: g.filter((t) => t.status === "DONE").length, gatingTotal: g.length }];
+    }),
+  ) as Record<Stage, StageTally>;
+}
+
+/** Overall percent for a journey from a tally (used server-side for the buddy summary card). */
+export function overallPercent(tally: Record<Stage, StageTally>, currentStage: Stage, status: "active" | "completed" | "exited"): number {
+  const completed = status === "completed";
+  const at = stageIndex(currentStage);
+  const stages = STAGES.map((k, i) => ({
+    state: (completed || i < at ? "done" : i === at ? "current" : "locked") as StageState,
+    doneCount: tally[k].done,
+    totalCount: tally[k].total,
+    gatingDone: tally[k].gatingDone,
+    gatingTotal: tally[k].gatingTotal,
+  }));
+  return displayPercent(computeProgress(stages, completed), completed);
+}
 
 const ratio = (done: number, total: number, state: StageState): number => {
   if (total === 0) return state === "done" ? 1 : 0;
@@ -90,13 +118,16 @@ export const displayPercent = (progress: number, completed: boolean) => {
 };
 
 export function deriveView(input: ViewInput, now: Date = new Date()): JourneyView {
-  const tasks = visibleTasks(input.tasks);
+  const all = visibleTasks(input.tasks);
+  // Optional tasks never count; a starter's forecast only counts the starter's own tasks (D20).
+  const tasks = all.filter((t) => !t.optional && (!input.viewerIsStarter || t.owner === "STARTER"));
   const completed = input.status === "completed";
   const at = stageIndex(input.currentStage);
 
   const stages: TrackStage[] = STAGES.map((key, i) => {
     const st = tasks.filter((t) => t.stage === key);
     const gating = st.filter((t) => t.gating);
+    const ov = input.overall?.[key];
     const state: StageState = completed || i < at ? "done" : i === at ? "current" : "locked";
     const prev = i > 0 ? STAGE_META[STAGES[i - 1]].label : null;
     return {
@@ -105,13 +136,16 @@ export function deriveView(input: ViewInput, now: Date = new Date()): JourneyVie
       state,
       doneCount: st.filter((t) => t.status === "DONE").length,
       totalCount: st.length,
-      gatingDone: gating.filter((t) => t.status === "DONE").length,
-      gatingTotal: gating.length,
+      gatingDone: ov ? ov.gatingDone : gating.filter((t) => t.status === "DONE").length,
+      gatingTotal: ov ? ov.gatingTotal : gating.length,
       unlockHint: state === "locked" && prev ? `Unlocks when ${prev} tasks are done.` : undefined,
     };
   });
 
-  const progress = computeProgress(stages, completed);
+  const progress = computeProgress(
+    input.overall ? stages.map((s) => ({ ...s, doneCount: input.overall![s.key].done, totalCount: input.overall![s.key].total })) : stages,
+    completed,
+  );
   const open = tasks.filter((t) => t.status !== "DONE");
 
   const rank = (t: TaskDto) => (t.status === "BLOCKED" ? 2 : isOverdue(t.dueDate, now) ? 0 : 1);
@@ -207,4 +241,16 @@ export function forecastSentence(v: JourneyView): string {
   if (v.remainingCount === 0) return "All done.";
   const finish = v.projectedFinish ? ` Projected finish ${formatDayMonth(v.projectedFinish)}.` : "";
   return `${plural(v.remainingCount, "task", "tasks")} to go.${finish}`;
+}
+
+/**
+ * F6: the next task to open after finishing `current`. Only the starter's own, actionable, non-optional
+ * tasks; the same stage first, then by stage order, then due date.
+ */
+export function nextActionableTask(tasks: TaskDto[], current: Pick<TaskDto, "id" | "stage"> & { owner?: TaskDto["owner"] }): TaskDto | null {
+  const rank = (t: TaskDto) => (t.stage === current.stage ? -1 : stageIndex(t.stage));
+  const candidates = visibleTasks(tasks)
+    .filter((t) => t.id !== current.id && t.owner === (current.owner ?? "STARTER") && !t.optional && t.canAct && (t.status === "TODO" || t.status === "IN_PROGRESS"))
+    .sort((a, b) => rank(a) - rank(b) || new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+  return candidates[0] ?? null;
 }

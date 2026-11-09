@@ -1,6 +1,10 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "@/lib/auth/client";
+import { nextActionableTask } from "@/components/journey/derive";
+import type { JourneyResponse } from "@/components/journey/types";
 import { RoleGate } from "@/components/shell/RoleGate";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
@@ -15,6 +19,25 @@ function TaskPage({ id }: { id: string }) {
   const { data, error, loading, reload } = useApi<TaskDetailResponse>(`/api/starter/tasks/${id}`);
   const journeyStore = useJourney(data?.journey.id ?? null);
   const toast = useToast();
+  const router = useRouter();
+  const { apiFetch } = useSession();
+  const opened = useRef<string | null>(null);
+
+  // F4: reading/info tasks complete when the colleague opens them (once per visit).
+  const t = data?.task;
+  const eligible = !!t && t.autoCompleteOnOpen && t.canAct && data!.journey.viewerIsStarter && (t.status === "TODO" || t.status === "IN_PROGRESS");
+  useEffect(() => {
+    if (!eligible || !t || opened.current === t.id) return;
+    opened.current = t.id;
+    void (async () => {
+      const r = await apiFetch(`/api/starter/tasks/${t.id}/open`, { method: "POST" });
+      if (r.ok && ((await r.json().catch(() => ({}))) as { completed?: boolean }).completed) {
+        toast.success(`Marked as read: ${t.title}`);
+        reload();
+        await journeyStore.reload();
+      }
+    })();
+  }, [eligible, t, apiFetch, toast, reload, journeyStore]);
 
   if (loading) {
     return (
@@ -40,8 +63,21 @@ function TaskPage({ id }: { id: string }) {
   async function onComplete() {
     const r = await journeyStore.complete(data!.task.id);
     if (r.ok) {
-      toast.success(`Task done: ${data!.task.title}`);
-      reload();
+      // F6: move on to the next actionable task (same stage first), or back to the journey.
+      let next = null;
+      try {
+        const res = await apiFetch(`/api/starter/journey?journeyId=${encodeURIComponent(data!.journey.id)}`);
+        if (res.ok) next = nextActionableTask(((await res.json()) as JourneyResponse).journey.tasks, data!.task);
+      } catch {
+        /* fall back to the journey */
+      }
+      if (next) {
+        toast.success(`Done. Next: ${next.title}`);
+        router.push(`/journey/task/${next.id}`);
+      } else {
+        toast.success("Done. Nothing else to do right now.");
+        router.push(data!.journey.viewerIsStarter ? "/journey" : `/journey?journeyId=${encodeURIComponent(data!.journey.id)}`);
+      }
     } else toast.error(r.error ?? "Couldn't save that. Please try again.");
   }
 

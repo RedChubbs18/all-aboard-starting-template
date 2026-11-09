@@ -1,12 +1,13 @@
 "use client";
 
 import { controlClass } from "@/components/ui/Field";
-import { Pencil } from "lucide-react";
+import { Lock, Pencil } from "lucide-react";
 import { useId, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
+import { formatLongDate } from "./format";
 import { useSession } from "@/lib/auth/client";
 import type { GoalHorizon } from "@/domain/types";
 
@@ -21,6 +22,8 @@ interface Props {
   journeyId: string;
   goals: GoalItem[];
   canEdit: boolean;
+  /** D21 / F8: ISO start date while the starter's goals are locked (read-only with lock icons). */
+  lockedUntil?: string | null;
   onChanged: () => void | Promise<void>;
 }
 
@@ -73,7 +76,7 @@ function AddGoal({ horizon, journeyId, onAdded }: { horizon: "30" | "60" | "90";
   );
 }
 
-function GoalRow({ goal, canEdit, onChanged }: { goal: GoalItem; canEdit: boolean; onChanged: () => void | Promise<void> }) {
+function GoalRow({ goal, canEdit, locked, onChanged }: { goal: GoalItem; canEdit: boolean; locked?: boolean; onChanged: () => void | Promise<void> }) {
   const { apiFetch } = useSession();
   const toast = useToast();
   const [editing, setEditing] = useState(false);
@@ -118,7 +121,12 @@ function GoalRow({ goal, canEdit, onChanged }: { goal: GoalItem; canEdit: boolea
         </form>
       ) : (
         <>
-          <span className={done ? "flex-1 text-muted line-through" : "flex-1"}>{goal.text}</span>
+          {locked ? (
+            <input value={goal.text} readOnly disabled aria-label={`Goal (locked until your first day): ${goal.text}`} className={`${controlClass} flex-1`} />
+          ) : (
+            <span className={done ? "flex-1 text-muted line-through" : "flex-1"}>{goal.text}</span>
+          )}
+          {locked && <Lock aria-hidden className="mt-3 size-5 shrink-0 text-muted" strokeWidth={1.8} />}
           {canEdit && (
             <Button variant="ghost" size="icon" aria-label={`Edit goal: ${goal.text}`} onClick={() => setEditing(true)}>
               <Pencil aria-hidden className="size-5" />
@@ -131,14 +139,23 @@ function GoalRow({ goal, canEdit, onChanged }: { goal: GoalItem; canEdit: boolea
 }
 
 /** FR-4.9 30-60-90 goals (starter can add, edit and tick) and FR-5.1 cascaded goals (read-only). */
-export function GoalsPanel({ journeyId, goals, canEdit, onChanged }: Props) {
+export function GoalsPanel({ journeyId, goals, canEdit, lockedUntil, onChanged }: Props) {
   const cascaded = goals.filter((g) => g.horizon === "CASCADED");
   return (
     <div className="space-y-4">
-      {!canEdit && (
-        <Alert tone="info">
-          <p>These goals are read-only for you.</p>
+      {lockedUntil ? (
+        <Alert tone="info" title="Your goals are locked for now">
+          <p className="flex items-start gap-1.5">
+            <Lock aria-hidden className="mt-0.5 size-4 shrink-0" />
+            You can edit your goals from your first day ({formatLongDate(lockedUntil)}).
+          </p>
         </Alert>
+      ) : (
+        !canEdit && (
+          <Alert tone="info">
+            <p>These goals are read-only for you.</p>
+          </Alert>
+        )
       )}
       {HORIZONS.map((h) => {
         const list = goals.filter((g) => g.horizon === h.key);
@@ -148,11 +165,11 @@ export function GoalsPanel({ journeyId, goals, canEdit, onChanged }: Props) {
               {h.label}
             </h2>
             {list.length === 0 ? (
-              <p className="mt-2 text-muted">No goals yet. Agree a few with your line manager.</p>
+              <p className="mt-2 text-muted">{lockedUntil ? "No goals yet. You can add yours from your first day." : "No goals yet. Agree a few with your line manager."}</p>
             ) : (
               <ul className="mt-2 space-y-2">
                 {list.map((g) => (
-                  <GoalRow key={`${g.id}:${g.text}:${g.done}`} goal={g} canEdit={canEdit} onChanged={onChanged} />
+                  <GoalRow key={`${g.id}:${g.text}:${g.done}`} goal={g} canEdit={canEdit} locked={!!lockedUntil} onChanged={onChanged} />
                 ))}
               </ul>
             )}

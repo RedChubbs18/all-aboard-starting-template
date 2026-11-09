@@ -5,6 +5,8 @@ import { useMemo, useState } from "react";
 import type { Owner, Stage } from "@/domain/types";
 import { Alert } from "@/components/ui/Alert";
 import { cn } from "@/components/ui/cn";
+import { chatLink } from "@/lib/teams";
+import { ButtonLink } from "@/components/ui/Button";
 import { ContactCard } from "@/components/ui/ContactCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { deriveView } from "./derive";
@@ -58,6 +60,33 @@ export function JourneyView({ data, onComplete, pendingId, lastCompletedTitle, r
           </EmptyState>
         </div>
         {journey.pnp && <ContactCard name={journey.pnp.name} role="People & Places" upn={journey.pnp.upn} photoUrl={journey.pnp.photoUrl} bio={null} variant="compact" />}
+      </section>
+    );
+  }
+
+  if (journey.vettingFailed && viewerIsStarter && journey.status === "active") {
+    // F7: nothing else is available until People & Places have resolved the vetting issue.
+    return (
+      <section aria-labelledby="vetting-issue-h" className="space-y-4">
+        <Alert tone="danger" live="alert" title="There is an issue with your vetting">
+          <p id="vetting-issue-h" className="font-semibold">
+            There is an issue with your vetting. Please contact the number below.
+          </p>
+          <p className="mt-2 text-lg font-bold">
+            <a href={`tel:${(journey.pnpPhone ?? "0800 000 0000").replace(/[^0-9+]/g, "")}`} className="underline underline-offset-2">
+              {journey.pnpPhone ?? "0800 000 0000 (example)"}
+            </a>
+          </p>
+        </Alert>
+        {journey.pnp && (
+          <>
+            <ContactCard name={journey.pnp.name} role="People & Places" upn={journey.pnp.upn} photoUrl={journey.pnp.photoUrl} bio={null} variant="compact" />
+            <ButtonLink href={chatLink(journey.pnp.upn)} external variant="secondary" className="w-full">
+              Chat to People &amp; Places on Teams
+              <span className="sr-only"> (opens in a new tab)</span>
+            </ButtonLink>
+          </>
+        )}
       </section>
     );
   }

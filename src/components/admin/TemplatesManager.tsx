@@ -19,6 +19,8 @@ export interface TemplateRow {
   teamId: string | null;
   adapterKey: string | null;
   gating: boolean;
+  optional: boolean;
+  autoCompleteOnOpen: boolean;
   contentSlug: string | null;
   condition: string | null;
   sortOrder: number;
@@ -40,7 +42,7 @@ const CONDITIONS = ["induction-not-booked", "pev-steps-incomplete", "photo-check
 
 const blank = (): TemplateRow => ({
   id: "", key: "", title: "", description: "", stage: "PEV", owner: "STARTER", type: "ACTION", dueOffsetDays: 0,
-  dependsOn: [], source: "CORE", teamId: null, adapterKey: null, gating: false, contentSlug: null, condition: null, sortOrder: 0, active: true,
+  dependsOn: [], source: "CORE", teamId: null, adapterKey: null, gating: false, optional: false, autoCompleteOnOpen: false, contentSlug: null, condition: null, sortOrder: 0, active: true,
 });
 
 /** FR-AD.1. `readOnly` is for P&P (they may view templates but not change them). */
@@ -228,6 +230,14 @@ export function TemplatesManager({ readOnly = false }: { readOnly?: boolean }) {
             <label className="flex min-h-11 items-center gap-2">
               <input type="checkbox" className="size-5" checked={editing.gating} onChange={(e) => set("gating", e.target.checked)} />
               Gating (must be done before the next stage opens)
+            </label>
+            <label className="flex min-h-11 items-center gap-2">
+              <input type="checkbox" className="size-5" checked={editing.optional} onChange={(e) => { set("optional", e.target.checked); if (e.target.checked) set("gating", false); }} />
+              Optional (never gating, not counted in progress)
+            </label>
+            <label className="flex min-h-11 items-center gap-2">
+              <input type="checkbox" className="size-5" checked={editing.autoCompleteOnOpen} onChange={(e) => set("autoCompleteOnOpen", e.target.checked)} />
+              Complete when the colleague opens it (read-only information tasks)
             </label>
             <label className="flex min-h-11 items-center gap-2">
               <input type="checkbox" className="size-5" checked={editing.active} onChange={(e) => set("active", e.target.checked)} />

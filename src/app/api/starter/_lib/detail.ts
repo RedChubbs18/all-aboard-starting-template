@@ -18,7 +18,7 @@ export async function anchorDaysFor(journeyId: string): Promise<string> {
 
 export async function loadDay0(journeyId: string): Promise<Day0Dto | null> {
   const d = await prisma.day0Arrangement.findUnique({ where: { journeyId } });
-  return d ? { where: d.where, whenAt: d.whenAt.toISOString(), who: d.who, confirmedAt: d.confirmedAt?.toISOString() ?? null } : null;
+  return d ? { where: d.where, whenAt: d.whenAt.toISOString(), who: d.who, notes: d.notes, confirmedAt: d.confirmedAt?.toISOString() ?? null } : null;
 }
 
 /** Link-outs (FR-1.9, FR-4.2). All example.test placeholders: no real systems. */
@@ -48,6 +48,10 @@ async function detailFor(journey: JourneyState, t: TaskState, bodyMd: string): P
   const jid = journey.id;
   const k = t.key;
 
+  if (k === "choose-peripherals" && t.adapterKey === "equipment") {
+    const eq = await getAdapter("equipment");
+    return { kind: "order", mode: "peripherals", choice: await eq.getChoice(jid) };
+  }
   if (k === "upload-pass-photo") {
     const pass = await getAdapter("pass");
     const review = journey.tasks.find((x) => x.key === "photo-check-passed")?.status === "BLOCKED";
@@ -121,7 +125,7 @@ async function detailFor(journey: JourneyState, t: TaskState, bodyMd: string): P
   return { kind: "none" };
 }
 
-export async function buildTaskDetail(journey: JourneyState, t: TaskState): Promise<Pick<TaskDetailResponse, "content" | "detail" | "links" | "waitingFor">> {
+export async function buildTaskDetail(journey: JourneyState, t: TaskState, hideOtherOwners = false): Promise<Pick<TaskDetailResponse, "content" | "detail" | "links" | "waitingFor">> {
   let content: TaskDetailResponse["content"] = null;
   if (t.contentSlug) {
     const c = await prisma.contentItem.findUnique({ where: { slug: t.contentSlug } });
@@ -135,7 +139,8 @@ export async function buildTaskDetail(journey: JourneyState, t: TaskState): Prom
     t.status === "LOCKED"
       ? t.dependsOn
           .map((key) => journey.tasks.find((x) => x.key === key))
-          .filter((d): d is TaskState => !!d && d.applicable && d.status !== "DONE")
+          .filter((d): d is TaskState => !!d && d.applicable && d.status !== "DONE" && !d.optional)
+          .filter((d) => !hideOtherOwners || d.owner === "STARTER" || d.owner === "SYSTEM")
           .map((d) => ({ key: d.key, title: d.title }))
       : [];
   return { content, detail, links: LINKS[t.key] ?? [], waitingFor };

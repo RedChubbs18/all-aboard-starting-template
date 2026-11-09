@@ -37,17 +37,20 @@ export function canManageJourney(user: Pick<SessionUser, "id" | "roles">, j: Jou
  *  - STARTER: own journey's STARTER tasks. BUDDY: BUDDY-owned tasks on their starter only
  *    (e.g. "say hello"); everything else about the starter is read-only.
  *  - SYSTEM tasks change only through integrations (applyIntegrationStatus), except PNP/ADMIN.
+ *  - F10: IT request tasks (LM-owned, `itrequest` adapter) can also be completed by the journey's buddy (pass `adapterKey`).
  *  - D12: `photo-check-override` is PNP-owned, but the journey's LM may complete it too (pass `taskKey`).
  */
 export const PHOTO_OVERRIDE_TASK_KEY = "photo-check-override";
 
-export function canActOnTask(user: Pick<SessionUser, "id" | "roles">, j: JourneyRef, owner: Owner, taskKey?: string): boolean {
+export const IT_REQUEST_ADAPTER_KEY = "itrequest";
+
+export function canActOnTask(user: Pick<SessionUser, "id" | "roles">, j: JourneyRef, owner: Owner, taskKey?: string, adapterKey?: string | null): boolean {
   if (hasAnyRole(user, "PNP", "ADMIN")) return true;
   if (taskKey === PHOTO_OVERRIDE_TASK_KEY) return hasAnyRole(user, "LM") && j.lmId === user.id;
   if (owner === "SYSTEM" || owner === "PNP") return false;
   if (hasAnyRole(user, "LM") && j.lmId === user.id && (owner === "LM" || owner === "STARTER" || owner === "BUDDY")) return true;
   if (hasAnyRole(user, "STARTER") && j.starterId === user.id && owner === "STARTER") return true;
-  if (hasAnyRole(user, "BUDDY") && j.buddyId === user.id && owner === "BUDDY") return true;
+  if (hasAnyRole(user, "BUDDY") && j.buddyId === user.id && (owner === "BUDDY" || (owner === "LM" && adapterKey === IT_REQUEST_ADAPTER_KEY))) return true;
   return false;
 }
 
@@ -59,4 +62,30 @@ export function journeyScopeWhere(user: Pick<SessionUser, "id" | "roles">): Pris
   if (hasAnyRole(user, "BUDDY")) or.push({ buddyId: user.id });
   if (hasAnyRole(user, "STARTER")) or.push({ starterId: user.id });
   return or.length ? { OR: or } : { id: "__none__" };
+}
+
+/**
+ * How much of a journey the viewer sees (D20, D22):
+ *  - FULL: PNP/ADMIN and the journey's LM (every task).
+ *  - STARTER: the starter's own tasks plus SYSTEM status rows. LM, BUDDY and PNP tasks are hidden.
+ *  - BUDDY: only the tasks the buddy can act on (their BUDDY tasks, plus IT requests). No starter task detail.
+ */
+export type ViewScope = "FULL" | "STARTER" | "BUDDY";
+
+export function viewScope(user: Pick<SessionUser, "id" | "roles">, j: JourneyRef): ViewScope {
+  if (canManageJourney(user, j)) return "FULL";
+  if (j.starterId === user.id) return "STARTER";
+  if (j.buddyId === user.id) return "BUDDY";
+  return "FULL";
+}
+
+export function taskVisibleInScope(
+  scope: ViewScope,
+  user: Pick<SessionUser, "id" | "roles">,
+  j: JourneyRef,
+  t: { owner: Owner; key: string; adapterKey?: string | null },
+): boolean {
+  if (scope === "FULL") return true;
+  if (scope === "STARTER") return t.owner === "STARTER" || t.owner === "SYSTEM";
+  return canActOnTask(user, j, t.owner, t.key, t.adapterKey);
 }

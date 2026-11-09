@@ -58,6 +58,8 @@ export function toTaskState(r: JourneyRow["tasks"][number]): TaskState {
     source: r.source as TaskState["source"],
     adapterKey: r.adapterKey,
     gating: r.gating,
+    optional: r.optional,
+    autoCompleteOnOpen: r.autoCompleteOnOpen,
     contentSlug: r.contentSlug,
     condition: r.condition,
     applicable: r.applicable,
@@ -101,6 +103,8 @@ const taskData = (t: TaskState) => ({
   source: t.source,
   adapterKey: t.adapterKey,
   gating: t.gating,
+  optional: !!t.optional,
+  autoCompleteOnOpen: !!t.autoCompleteOnOpen,
   contentSlug: t.contentSlug,
   condition: t.condition,
   applicable: t.applicable,
@@ -235,6 +239,8 @@ export async function createJourneyForStarter(input: CreateJourneyInput, db: Pri
       teamId: t.teamId,
       adapterKey: t.adapterKey,
       gating: t.gating,
+      optional: t.optional,
+      autoCompleteOnOpen: t.autoCompleteOnOpen,
       contentSlug: t.contentSlug,
       condition: t.condition,
       sortOrder: t.sortOrder,
@@ -317,7 +323,7 @@ export async function allocateBuddy(journeyId: string, buddyId: string, actorId:
   });
 }
 
-export async function proposeDay0(journeyId: string, v: { where: string; whenAt: Date; who: string }, proposedById: string, db: PrismaClient = defaultPrisma) {
+export async function proposeDay0(journeyId: string, v: { where: string; whenAt: Date; who: string; notes?: string | null }, proposedById: string, db: PrismaClient = defaultPrisma) {
   return db.$transaction(async (tx) => {
     await tx.day0Arrangement.upsert({
       where: { journeyId },

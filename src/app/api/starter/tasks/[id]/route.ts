@@ -1,6 +1,7 @@
 import { withRole } from "@/lib/auth/server";
 import type { TaskDetailResponse } from "@/components/journey/detail-types";
 import { buildTaskDetail } from "../../_lib/detail";
+import { viewScope } from "@/lib/auth/access";
 import { pnpContact, relationOf, toPerson, toTaskDto } from "../../_lib/dto";
 import { taskContext } from "../../_lib/context";
 import { guard } from "../../_lib/http";
@@ -14,7 +15,7 @@ export const GET = withRole<{ params: Promise<{ id: string }> }>(["STARTER", "BU
     const ids = [journey.starterId, journey.lmId, ...(journey.buddyId ? [journey.buddyId] : [])];
     const people = await prisma.user.findMany({ where: { id: { in: ids } } });
     const person = (pid: string) => toPerson(people.find((p) => p.id === pid)!);
-    const extra = await buildTaskDetail(journey, task);
+    const extra = await buildTaskDetail(journey, task, viewScope(user, journey) === "STARTER");
     const body: TaskDetailResponse = {
       task: toTaskDto(journey, task, user),
       journey: {

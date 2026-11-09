@@ -12,3 +12,12 @@ export interface GoalDto {
 
 /** Who may edit goals: the starter (30/60/90) and managers of the journey. Buddies are read-only. */
 export const canEditGoals = (user: Pick<SessionUser, "id" | "roles">, j: JourneyRef) => j.starterId === user.id || canManageJourney(user, j);
+
+/**
+ * D21 / F8: before the journey's start date the starter's goals are read-only (lock icons in the UI).
+ * Managers (the LM, P&P, admin) can still edit. Returns the start date (ISO) while locked, else null.
+ */
+export function goalsLockedUntil(user: Pick<SessionUser, "id" | "roles">, j: JourneyRef & { startDate: Date }, now: Date = new Date()): string | null {
+  if (canManageJourney(user, j) || j.starterId !== user.id) return null;
+  return now.getTime() < j.startDate.getTime() ? j.startDate.toISOString() : null;
+}

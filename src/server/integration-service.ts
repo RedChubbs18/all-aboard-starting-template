@@ -405,14 +405,24 @@ export async function demoJourneyId(): Promise<string> {
  */
 async function ensureGuestSignedIn(journeyId: string, ctx: ActorCtx): Promise<string[]> {
   const j = await loadOrThrow(journeyId);
-  const t = j.tasks.find((x) => x.key === "guest-sign-in" && x.applicable);
-  if (!t || j.status !== "active" || !OPEN.has(t.status)) return [];
-  await js.completeTask(journeyId, t.key, { actorId: ctx.actorId ?? null, now: ctx.now });
-  await js.recordEvent({
-    journeyId, actorId: ctx.actorId ?? null, type: "DEMO_PREREQUISITE", entity: "Task", entityId: t.id,
-    to: "DONE", data: { key: t.key, simulated: true }, createdAt: ctx.now ?? new Date(),
-  });
-  return [`Demo: "${t.title}" completed for the starter`];
+  const out: string[] = [];
+  if (j.status !== "active") return out;
+  // F5: the primary device choice is a gating Conditional offer task, so the demo also makes it for the starter.
+  for (const key of ["guest-sign-in", "device-choice-submitted"]) {
+    const cur = (await loadOrThrow(journeyId)).tasks.find((x) => x.key === key && x.applicable);
+    if (!cur || !OPEN.has(cur.status)) continue;
+    if (key === "device-choice-submitted") {
+      const eq = await getAdapter("equipment");
+      if (!(await eq.getChoice(journeyId))) await eq.submitChoice(journeyId, { device: "MAC", peripherals: [] });
+    }
+    await js.completeTask(journeyId, cur.key, { actorId: ctx.actorId ?? null, now: ctx.now });
+    await js.recordEvent({
+      journeyId, actorId: ctx.actorId ?? null, type: "DEMO_PREREQUISITE", entity: "Task", entityId: cur.id,
+      to: "DONE", data: { key: cur.key, simulated: true }, createdAt: ctx.now ?? new Date(),
+    });
+    out.push(`Demo: "${cur.title}" completed for the starter`);
+  }
+  return out;
 }
 
 /**
@@ -506,7 +516,7 @@ const templateInputs = async (): Promise<TemplateInput[]> =>
     id: t.id, key: t.key, title: t.title, description: t.description, stage: t.stage as Stage,
     owner: t.owner as TemplateInput["owner"], type: t.type as TemplateInput["type"], dueOffsetDays: t.dueOffsetDays,
     dependsOn: strArr(t.dependsOn), source: t.source as TemplateInput["source"], teamId: t.teamId, adapterKey: t.adapterKey,
-    gating: t.gating, contentSlug: t.contentSlug, condition: t.condition, sortOrder: t.sortOrder,
+    gating: t.gating, optional: t.optional, autoCompleteOnOpen: t.autoCompleteOnOpen, contentSlug: t.contentSlug, condition: t.condition, sortOrder: t.sortOrder,
   }));
 
 /**

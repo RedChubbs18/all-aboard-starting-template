@@ -61,7 +61,7 @@
   {
     "id": "faq-05",
     "question": "What is the difference between a Mac and a Windows laptop?",
-    "answer": "Both work for the same job. A Mac suits people who already use macOS or prefer it. A Windows laptop suits people who already use Windows, or whose team's tools are mainly Windows-based (example). You pick one in the device choice task before the deadline.",
+    "answer": "Both work for the same job. A Mac suits people who already use macOS or prefer it. A Windows laptop suits people who already use Windows, or whose team's tools are mainly Windows-based (example). You pick one in the \"Choose your primary device\" task before the deadline.",
     "tags": [
       "mac",
       "windows",
@@ -76,7 +76,7 @@
   {
     "id": "faq-06",
     "question": "Can I choose a Mac?",
-    "answer": "Yes. Choose Mac in the device choice task before the deadline shown on that task. If you need to change your choice after the deadline, ask your LM.",
+    "answer": "Yes. Choose Mac in the \"Choose your primary device\" task before the deadline shown on that task. If you need to change your choice after the deadline, ask your LM.",
     "tags": [
       "mac",
       "choose",
@@ -106,7 +106,7 @@
   {
     "id": "faq-08",
     "question": "What peripherals can I get?",
-    "answer": "You can pick one or two monitors, a keyboard and mouse, a docking station and a headset. Choose them in the device choice task. Pick only what your role needs. If you need something not on the list, ask your LM.",
+    "answer": "You can pick one or two monitors, a keyboard and mouse, a docking station, a laptop stand and a headset in the optional \"Choose peripherals\" task. Pick only what your role needs. A work mobile phone depends on your role: ask your LM. If you need something not on the list, ask your LM.",
     "tags": [
       "peripherals",
       "monitor",
@@ -120,9 +120,23 @@
     "sourceSlug": "device-choice-mac-or-windows"
   },
   {
+    "id": "faq-38",
+    "question": "Will I get a mobile phone and a headset?",
+    "answer": "A headset is available to everyone as a peripheral (example). A work mobile phone depends on your role, so ask your LM. Both are collected with your laptop on Day 0.",
+    "tags": [
+      "phone",
+      "mobile",
+      "headset",
+      "device",
+      "laptop",
+      "entitlement"
+    ],
+    "sourceSlug": "device-choice-mac-or-windows"
+  },
+  {
     "id": "faq-09",
     "question": "What will be on my desk?",
-    "answer": "Your desk is in your team's area of the office. It has a height-adjustable desk, one monitor as standard (or two if your role needs them), a docking station, a keyboard, a mouse and a headset for Teams calls (example). To ask for a second monitor, raise a request in your IT request task or ask your LM.",
+    "answer": "Your desk is in your team's area of the office. It has a height-adjustable desk, one monitor as standard (or two if your role needs them), a docking station, a keyboard, a mouse and a headset for Teams calls (example). To ask for a second monitor, ask your LM.",
     "tags": [
       "desk",
       "monitor",
@@ -186,7 +200,7 @@
   {
     "id": "faq-13",
     "question": "What do I need to do before my first day?",
-    "answer": "Set up your password and Microsoft Authenticator, raise any IT requests, choose your Mac or Windows laptop and peripherals, book your induction, upload your pass photo and confirm your Day 0 arrangements with your LM. Your journey lists these tasks in order and shows which are due soon.",
+    "answer": "Choose your Mac or Windows laptop, set up your password and Microsoft Authenticator, book your induction, upload your pass photo and confirm your Day 0 arrangements. Your line manager raises your IT requests. Your journey lists your tasks in order and shows which are due soon.",
     "tags": [
       "before day one",
       "before start",
@@ -215,8 +229,8 @@
   },
   {
     "id": "faq-15",
-    "question": "How do I raise an IT request?",
-    "answer": "Open the IT request task on your journey. Choose what you need from the list, add a short reason without passwords or personal details, and submit. Each request shows as Submitted, In progress or Done. IT@LBG self-service is at https://example.test/it-help (placeholder).",
+    "question": "Who raises my IT requests?",
+    "answer": "Your line manager raises them for you, and your buddy can help. They choose what you need from the list, add a short reason without passwords or personal details, and submit. IT@LBG self-service is at https://example.test/it-help (placeholder).",
     "tags": [
       "it",
       "it@lbg",
@@ -230,8 +244,8 @@
   },
   {
     "id": "faq-16",
-    "question": "Why can't I raise IT requests yet?",
-    "answer": "IT requests unlock once your Colleague File ID exists. This is the ID created when your record is set up in Workday. Your journey shows when the ID is ready. Until then, the IT request task stays locked.",
+    "question": "Why haven't my IT requests started yet?",
+    "answer": "IT requests can start once your Colleague File ID exists. SailPoint creates it automatically. Your line manager then raises the requests for you. If you need something specific, tell your line manager.",
     "tags": [
       "it request",
       "locked",

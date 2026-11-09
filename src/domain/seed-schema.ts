@@ -50,6 +50,8 @@ export const templateSchema = z
     teamId: z.string().nullish(),
     adapterKey: z.string().nullish(),
     gating: z.boolean().default(false),
+    optional: z.boolean().default(false),
+    autoCompleteOnOpen: z.boolean().default(false),
     contentSlug: z.string().nullish(),
     condition: z.string().nullish(),
     sortOrder: z.number().int().optional(),

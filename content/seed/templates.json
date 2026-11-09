@@ -57,7 +57,8 @@
     "type": "ACTION",
     "dueOffsetDays": -23,
     "dependsOn": [
-      "allocate-buddy"
+      "allocate-buddy",
+      "guest-sign-in"
     ],
     "source": "CORE",
     "adapterKey": null,
@@ -80,16 +81,17 @@
     "adapterKey": null,
     "gating": false,
     "contentSlug": "contract-recap",
-    "condition": null
+    "condition": null,
+    "autoCompleteOnOpen": true
   },
   {
     "key": "read-workspace-info",
     "title": "Read about your desk and workspace",
     "description": "What is at your desk, how to ask for a second monitor and home working basics.",
-    "stage": "CONDITIONAL_OFFER",
+    "stage": "UNCONDITIONAL_OFFER",
     "owner": "STARTER",
     "type": "INFO",
-    "dueOffsetDays": -25,
+    "dueOffsetDays": -17,
     "dependsOn": [
       "guest-sign-in"
     ],
@@ -97,7 +99,8 @@
     "adapterKey": null,
     "gating": false,
     "contentSlug": "workspace-desks-and-monitors",
-    "condition": null
+    "condition": null,
+    "autoCompleteOnOpen": true
   },
   {
     "key": "meet-your-team",
@@ -114,7 +117,8 @@
     "adapterKey": null,
     "gating": false,
     "contentSlug": "meet-your-team-and-buddy",
-    "condition": null
+    "condition": null,
+    "autoCompleteOnOpen": true
   },
   {
     "key": "say-hello-on-teams",
@@ -148,7 +152,8 @@
     "adapterKey": null,
     "gating": false,
     "contentSlug": "policies-and-benefits-overview",
-    "condition": null
+    "condition": null,
+    "autoCompleteOnOpen": true
   },
   {
     "key": "complete-vetting-steps",
@@ -286,10 +291,10 @@
   },
   {
     "key": "raise-it-requests",
-    "title": "Raise your IT requests",
-    "description": "Ask IT@LBG for the software and access your role needs.",
+    "title": "Raise IT requests for your starter",
+    "description": "Ask IT@LBG for the software and access your starter's role needs. Your starter's buddy can help with this too.",
     "stage": "UNCONDITIONAL_OFFER",
-    "owner": "STARTER",
+    "owner": "LM",
     "type": "ACTION",
     "dueOffsetDays": -19,
     "dependsOn": [
@@ -320,18 +325,36 @@
   },
   {
     "key": "device-choice-submitted",
-    "title": "Choose Mac or Windows and peripherals",
-    "description": "Pick your laptop and the peripherals you need for Day 0.",
-    "stage": "UNCONDITIONAL_OFFER",
+    "title": "Choose your primary device (Mac or Windows)",
+    "description": "Pick the laptop you would like to start with. A mobile phone and headset are covered in the device guide.",
+    "stage": "CONDITIONAL_OFFER",
     "owner": "STARTER",
     "type": "ORDER",
-    "dueOffsetDays": -16,
+    "dueOffsetDays": -22,
     "dependsOn": [
-      "internal-account-created"
+      "guest-sign-in"
     ],
     "source": "CORE",
     "adapterKey": "equipment",
     "gating": true,
+    "contentSlug": "device-choice-mac-or-windows",
+    "condition": null
+  },
+  {
+    "key": "choose-peripherals",
+    "title": "Choose peripherals",
+    "description": "Optional. Pick any extras you would like on Day 0, such as a monitor or headset. You can skip this.",
+    "stage": "CONDITIONAL_OFFER",
+    "owner": "STARTER",
+    "type": "ORDER",
+    "dueOffsetDays": -21,
+    "dependsOn": [
+      "device-choice-submitted"
+    ],
+    "source": "CORE",
+    "adapterKey": "equipment",
+    "gating": false,
+    "optional": true,
     "contentSlug": "device-choice-mac-or-windows",
     "condition": null
   },
@@ -355,7 +378,7 @@
   {
     "key": "confirm-day-0-arrangements",
     "title": "Confirm your Day 0 arrangements",
-    "description": "Check the proposed meeting point, time and contact, then confirm.",
+    "description": "Check the meeting point, time and contact your line manager proposed, then confirm.",
     "stage": "UNCONDITIONAL_OFFER",
     "owner": "STARTER",
     "type": "ACTION",
@@ -587,7 +610,8 @@
     "adapterKey": null,
     "gating": false,
     "contentSlug": "check-ins-with-your-lm",
-    "condition": null
+    "condition": null,
+    "autoCompleteOnOpen": true
   },
   {
     "key": "book-induction-fallback",
@@ -685,7 +709,8 @@
     "adapterKey": null,
     "gating": false,
     "contentSlug": "flex-benefits-guide",
-    "condition": null
+    "condition": null,
+    "autoCompleteOnOpen": true
   },
   {
     "key": "cascade-performance-goals",
@@ -717,7 +742,8 @@
     "adapterKey": null,
     "gating": false,
     "contentSlug": "performance-goals-guide",
-    "condition": null
+    "condition": null,
+    "autoCompleteOnOpen": true
   },
   {
     "key": "read-development-goals",
@@ -732,7 +758,8 @@
     "adapterKey": null,
     "gating": true,
     "contentSlug": "development-goals-guide",
-    "condition": null
+    "condition": null,
+    "autoCompleteOnOpen": true
   },
   {
     "key": "team-github-access",

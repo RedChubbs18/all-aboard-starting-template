@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyOptimisticDone, computeProgress, deriveView, describeChange, displayPercent } from "./derive";
+import { applyOptimisticDone, computeProgress, deriveView, describeChange, displayPercent, nextActionableTask, tallyStages } from "./derive";
 import { task } from "./test-data";
 import { pointAt, milestonePoint } from "./track-geometry";
 
@@ -82,5 +82,38 @@ describe("track geometry", () => {
   it("clamps out-of-range progress", () => {
     expect(pointAt(-1).x).toBe(28);
     expect(pointAt(2).x).toBe(328);
+  });
+});
+
+describe("F2 / F6 starter-scoped view", () => {
+  const tasks = [
+    task({ key: "sys", stage: "CONDITIONAL_OFFER", owner: "SYSTEM", status: "TODO", canAct: false, dueDate: "2026-11-21T00:00:00.000Z" }),
+    task({ key: "opt", stage: "CONDITIONAL_OFFER", status: "TODO", optional: true, gating: false, dueDate: "2026-11-21T00:00:00.000Z" }),
+    task({ key: "mine", stage: "CONDITIONAL_OFFER", status: "TODO", dueDate: "2026-11-30T00:00:00.000Z" }),
+    task({ key: "later", stage: "PEV", status: "TODO", dueDate: "2026-11-22T00:00:00.000Z" }),
+  ];
+  it("the next step and the count only ever use the starter's own, non-optional tasks", () => {
+    const v = deriveView({ tasks, currentStage: "CONDITIONAL_OFFER", status: "active", viewerIsStarter: true }, now);
+    expect(v.nextTasks.every((t) => t.owner === "STARTER")).toBe(true);
+    expect(v.nextTasks.map((t) => t.title)).not.toContain("sys");
+    expect(v.nextTasks.map((t) => t.title)).not.toContain("opt");
+    expect(v.remainingCount).toBe(2);
+  });
+  it("progress uses the server tally over every owner's tasks, so hidden manager delays still slow it", () => {
+    const visible = [task({ key: "mine", stage: "CONDITIONAL_OFFER", status: "DONE" })];
+    const alone = deriveView({ tasks: visible, currentStage: "CONDITIONAL_OFFER", status: "active", viewerIsStarter: true }, now);
+    const all = tallyStages([...visible, task({ key: "lm", stage: "CONDITIONAL_OFFER", owner: "LM", status: "TODO" })]);
+    const withHidden = deriveView({ tasks: visible, overall: all, currentStage: "CONDITIONAL_OFFER", status: "active", viewerIsStarter: true }, now);
+    expect(withHidden.progress).toBeLessThan(alone.progress);
+  });
+  it("optional tasks are excluded from the tally", () => {
+    expect(tallyStages(tasks).CONDITIONAL_OFFER.total).toBe(2);
+  });
+  it("nextActionableTask prefers the same stage, skips optional, SYSTEM and unactionable tasks", () => {
+    const cur = tasks[2];
+    expect(nextActionableTask(tasks, cur)?.key).toBe("later"); // nothing else in the same stage, so the next stage
+    const sameStage = [...tasks, task({ key: "same", stage: "CONDITIONAL_OFFER", status: "TODO", dueDate: "2026-12-30T00:00:00.000Z" })];
+    expect(nextActionableTask(sameStage, cur)?.key).toBe("same"); // same stage wins over an earlier due date elsewhere
+    expect(nextActionableTask([cur], cur)).toBeNull();
   });
 });

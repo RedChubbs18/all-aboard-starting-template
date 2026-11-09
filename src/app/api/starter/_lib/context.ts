@@ -1,4 +1,5 @@
-import { canActOnTask, canViewJourney, journeyScopeWhere } from "@/lib/auth/access";
+import { canActOnTask, canViewJourney, journeyScopeWhere, taskVisibleInScope, viewScope } from "@/lib/auth/access";
+import { isVettingFailed } from "@/domain/engine";
 import { hasAnyRole, type SessionUser } from "@/lib/auth/roles";
 import { prisma } from "@/server/db";
 import { listJourneys, loadJourney, loadJourneyByStarter } from "@/server/journey-service";
@@ -41,13 +42,20 @@ export async function taskContext(user: SessionUser, taskId: string): Promise<{ 
   if (!canViewJourney(user, journey)) throw new HttpError(403, "forbidden", "You cannot view this task");
   const task = journey.tasks.find((t) => t.id === taskId);
   if (!task || !task.applicable) throw new HttpError(404, "not_found", "Task not found");
+  const scope = viewScope(user, journey);
+  // D20 / D22: starters never see manager, buddy or P&P tasks; buddies see only their own. Same answer as "missing".
+  if (!taskVisibleInScope(scope, user, journey, task)) throw new HttpError(404, "not_found", "Task not found");
+  if (scope === "STARTER" && isVettingFailed(journey)) throw new HttpError(409, "vetting_failed", VETTING_MESSAGE);
   return { journey, task };
 }
+
+export const VETTING_MESSAGE = "There is an issue with your vetting. Please contact the number below.";
 
 /** Writes need ownership of the task and an active journey. */
 export function assertCanAct(user: SessionUser, journey: JourneyState, task: TaskState) {
   if (journey.status !== "active") throw new HttpError(409, "journey_closed", `This journey is ${journey.status}`);
-  if (!canActOnTask(user, journey, task.owner)) throw new HttpError(403, "forbidden", "You cannot change this task");
+  if (viewScope(user, journey) === "STARTER" && isVettingFailed(journey)) throw new HttpError(409, "vetting_failed", VETTING_MESSAGE);
+  if (!canActOnTask(user, journey, task.owner, task.key, task.adapterKey)) throw new HttpError(403, "forbidden", "You cannot change this task");
 }
 
 export function findByKey(journey: JourneyState, key: string): TaskState | undefined {

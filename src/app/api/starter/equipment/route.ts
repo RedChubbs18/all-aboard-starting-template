@@ -5,6 +5,8 @@ import { completeTask, recordEvent } from "@/server/journey-service";
 import { assertCanAct, taskContext } from "../_lib/context";
 import { guard, HttpError, readJson } from "../_lib/http";
 
+const PERIPHERALS_TASK_KEY = "choose-peripherals";
+
 const inList = (xs: unknown, allowed: readonly string[]): string[] | null =>
   Array.isArray(xs) && xs.every((x) => typeof x === "string" && allowed.includes(x)) ? (xs as string[]) : null;
 
@@ -24,6 +26,7 @@ export const POST = withRole(["STARTER", "LM", "PNP", "ADMIN"], (req, _ctx, user
     const eq = await getAdapter("equipment");
     const existing = await eq.getChoice(journey.id);
     const home = task.key === "order-home-working-items";
+    const peripheralsTask = task.key === PERIPHERALS_TASK_KEY;
 
     let device: "MAC" | "WINDOWS";
     let peripherals: string[];
@@ -34,12 +37,18 @@ export const POST = withRole(["STARTER", "LM", "PNP", "ADMIN"], (req, _ctx, user
       if (d !== "MAC" && d !== "WINDOWS") throw new HttpError(422, "invalid", "Choose Mac or Windows");
       device = d;
       peripherals = [...(existing?.peripherals ?? []).filter((p) => !p.startsWith(HOME_PREFIX)), ...items.map((i) => HOME_PREFIX + i)];
-    } else {
-      if (body.device !== "MAC" && body.device !== "WINDOWS") throw new HttpError(422, "invalid", "Choose Mac or Windows");
+    } else if (peripheralsTask) {
+      // F12: optional peripherals. Needs the primary device first; an empty list ("none needed") is fine.
+      if (!existing) throw new HttpError(409, "needs_device", "Choose your primary device first");
       const items = inList(body.peripherals ?? [], PERIPHERAL_OPTIONS);
       if (!items) throw new HttpError(422, "invalid", "Unknown peripheral");
+      device = existing.device;
+      peripherals = [...items, ...existing.peripherals.filter((p) => p.startsWith(HOME_PREFIX))];
+    } else {
+      // F12: the primary device task submits only the device and keeps any peripherals already chosen.
+      if (body.device !== "MAC" && body.device !== "WINDOWS") throw new HttpError(422, "invalid", "Choose Mac or Windows");
       device = body.device;
-      peripherals = [...items, ...(existing?.peripherals ?? []).filter((p) => p.startsWith(HOME_PREFIX))];
+      peripherals = existing?.peripherals ?? [];
     }
     const choice = await eq.submitChoice(journey.id, { device, peripherals });
     if (task.status !== "DONE") await completeTask(journey.id, task.key, { actorId: user.id, evidence: choice.ref });
