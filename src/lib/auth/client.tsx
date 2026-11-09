@@ -27,9 +27,18 @@ export interface SessionValue {
   signOut(): Promise<void>;
   /** Demo mode only. `pin` is sent when the server requires DEMO_PIN. */
   switchPersona(userId: string, pin?: string): Promise<void>;
+  /**
+   * Entra only. Delegated Microsoft Graph token for `scopes`, requested incrementally (not at login).
+   * Falls back to ONE redirect for consent; a second failure after returning is reported, never looped.
+   */
+  acquireGraphToken(scopes: string[]): Promise<GraphTokenResult>;
   /** fetch() that authenticates the call (bearer token in Entra mode, cookie in demo mode). */
   apiFetch(path: string, init?: RequestInit): Promise<Response>;
 }
+
+export type GraphTokenResult = { ok: true; accessToken: string; upn: string } | { ok: false; reason: "no_token" | "consent_required" };
+
+const GRAPH_REDIRECT_FLAG = "graph-consent-redirect";
 
 const Ctx = createContext<SessionValue | null>(null);
 
@@ -59,6 +68,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       await app.acquireTokenRedirect({ scopes: LOGIN_SCOPES, account });
       return null;
+    }
+  }, []);
+
+  const acquireGraphToken = useCallback(async (scopes: string[]): Promise<GraphTokenResult> => {
+    const app = msal.current;
+    const account = app?.getActiveAccount() ?? app?.getAllAccounts()[0];
+    if (!app || !account) return { ok: false, reason: "no_token" };
+    try {
+      const r = await app.acquireTokenSilent({ scopes, account });
+      sessionStorage.removeItem(GRAPH_REDIRECT_FLAG);
+      return { ok: true, accessToken: r.accessToken, upn: account.username };
+    } catch {
+      // One consent redirect per attempt. If we already tried and are back, report instead of looping.
+      if (sessionStorage.getItem(GRAPH_REDIRECT_FLAG)) {
+        sessionStorage.removeItem(GRAPH_REDIRECT_FLAG);
+        return { ok: false, reason: "consent_required" };
+      }
+      sessionStorage.setItem(GRAPH_REDIRECT_FLAG, "1");
+      await app.acquireTokenRedirect({ scopes, account });
+      return { ok: false, reason: "consent_required" };
     }
   }, []);
 
@@ -139,6 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       personas,
       demoPinRequired,
       apiFetch,
+      acquireGraphToken,
       async signIn() {
         if (modeRef.current === "entra") await msal.current?.loginRedirect({ scopes: LOGIN_SCOPES });
       },
@@ -166,7 +196,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await loadMe();
       },
     }),
-    [status, mode, user, error, personas, demoPinRequired, apiFetch, loadMe],
+    [status, mode, user, error, personas, demoPinRequired, apiFetch, acquireGraphToken, loadMe],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

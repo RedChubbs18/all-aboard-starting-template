@@ -6,6 +6,7 @@ import { createChatbotReal } from "./chatbot/real";
 import { createEquipmentMock } from "./equipment/mock";
 import { createFirstAdvantageMock } from "./firstadvantage/mock";
 import { createIdentityMock } from "./identity/mock";
+import { createIdentityReal } from "./identity/real";
 import { createITRequestMock } from "./itrequest/mock";
 import { createNotificationMock } from "./notification/mock";
 import { createPassMock } from "./pass/mock";
@@ -63,6 +64,8 @@ export const mockFactories: { [K in AdapterKey]: (store: StateStore) => AdapterM
  * resolves to a stub that throws "not configured".
  */
 export const realFactories: Partial<{ [K in AdapterKey]: () => AdapterMap[K] }> = {
+  // D19: records Graph invites made from the admin's browser; no server-side Graph credentials.
+  identity: () => createIdentityReal(prismaStore),
   // WS6: Claude via the Anthropic API; both degrade to mock behaviour without ANTHROPIC_API_KEY.
   chatbot: () => createChatbotReal({ store: prismaStore }),
   photocheck: () => createPhotoCheckReal({ store: prismaStore }),
