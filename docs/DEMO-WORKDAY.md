@@ -64,3 +64,7 @@ Mock Workday `demo/mock-workday/.env`: `WORKDAY_WEBHOOK_SECRET` (same value), `M
 - **Demo only:** the README and UI banner say "Demo simulation of an HR system. Not Workday." Don't use Workday's logo or trademarked visual identity; use neutral styling.
 - Synthetic offer data. Real personal emails typed during the demo live only in mock Workday's git-ignored store. Purge them after the demo.
 - Guest users are created as `team05-*`. Delete them before 13 November.
+
+## Mock Workday implementation
+
+The mock Workday side is built in `demo/mock-workday/` (own `package.json`, port 3001). See `demo/mock-workday/README.md` for setup and the demo script.
