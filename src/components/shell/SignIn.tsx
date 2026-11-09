@@ -14,7 +14,7 @@ export function SignIn() {
     <section aria-labelledby="signin-h" className="mx-auto w-full max-w-[420px] rounded-lg border border-line bg-card px-7 py-9">
       <BrandLogo className="mb-7" />
       <h1 id="signin-h" className="text-[30px] font-bold leading-tight">
-        Welcome aboard
+        Welcome to MyJourney
       </h1>
       {error && (
         <Alert tone="danger" live="alert" className="mt-3">

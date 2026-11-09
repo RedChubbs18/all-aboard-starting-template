@@ -1,4 +1,4 @@
-# Build plan — Team 05 onboarding app
+# Build plan — Team 05 MyJourney app
 
 Single source of truth for the build. Agents read this before starting. The full requirements brief is in `docs/REQUIREMENTS.md` (FR-x.y references point there).
 
