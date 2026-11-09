@@ -1,0 +1,259 @@
+[
+  {
+    "id": "faq-01",
+    "question": "When do I get paid?",
+    "answer": "Pay day is the last working day of each month (example). Your payslips are in Workday. If your first month is part month, your first payslip may be pro rata (example). For pay questions, contact P&P through the Teams chat link on the help page.",
+    "tags": ["pay", "pay day", "payday", "salary", "payslip", "money", "when paid"],
+    "sourceSlug": "policies-and-benefits-overview"
+  },
+  {
+    "id": "faq-02",
+    "question": "How much holiday do I get?",
+    "answer": "You get 25 days' holiday a year, plus bank holidays (example). In your first year it is pro rata to your start date (example). You book holiday in Workday.",
+    "tags": ["holiday", "annual leave", "leave", "bank holiday", "days off", "vacation", "book holiday"],
+    "sourceSlug": "policies-and-benefits-overview"
+  },
+  {
+    "id": "faq-03",
+    "question": "What are anchor days?",
+    "answer": "Anchor days are the days each week when your team asks everyone to be in the office together. Your anchor days are shown on your contract recap page. On other days you choose where you work, as long as you can still do your job and meet your commitments. Your LM can explain how it works in your team.",
+    "tags": ["anchor days", "office", "working pattern", "in the office", "days in office", "hybrid", "contract"],
+    "sourceSlug": "contract-recap"
+  },
+  {
+    "id": "faq-04",
+    "question": "Can I change my anchor days?",
+    "answer": "Not on your own. Talk to your LM first. Changes are agreed as part of flexible working (example). If you have a reason such as caring responsibilities or a health condition, you can also ask P&P for support (example).",
+    "tags": ["anchor days", "change", "flexible working", "office days", "request", "caring"],
+    "sourceSlug": "contract-recap"
+  },
+  {
+    "id": "faq-05",
+    "question": "What is the difference between a Mac and a Windows laptop?",
+    "answer": "Both work for the same job. A Mac suits people who already use macOS or prefer it. A Windows laptop suits people who already use Windows, or whose team's tools are mainly Windows-based (example). You pick one in the device choice task before the deadline.",
+    "tags": ["mac", "windows", "laptop", "difference", "device", "choose", "macos"],
+    "sourceSlug": "device-choice-mac-or-windows"
+  },
+  {
+    "id": "faq-06",
+    "question": "Can I choose a Mac?",
+    "answer": "Yes. Choose Mac in the device choice task before the deadline shown on that task. If you need to change your choice after the deadline, ask your LM.",
+    "tags": ["mac", "choose", "laptop", "device", "deadline", "change"],
+    "sourceSlug": "device-choice-mac-or-windows"
+  },
+  {
+    "id": "faq-07",
+    "question": "When do I get my laptop?",
+    "answer": "You collect your laptop on Day 0 from the tech bar on Floor 1 at Example House (example). Your order is placed after you make your device choice and your internal account is set up. Your journey shows the collection point and the items you picked.",
+    "tags": ["laptop", "collect", "equipment", "tech bar", "when", "pick up", "day 0", "day one"],
+    "sourceSlug": "collect-equipment-guide"
+  },
+  {
+    "id": "faq-08",
+    "question": "What peripherals can I get?",
+    "answer": "You can pick one or two monitors, a keyboard and mouse, a docking station and a headset. Choose them in the device choice task. Pick only what your role needs. If you need something not on the list, ask your LM.",
+    "tags": ["peripherals", "monitor", "keyboard", "mouse", "dock", "headset", "accessories", "equipment"],
+    "sourceSlug": "device-choice-mac-or-windows"
+  },
+  {
+    "id": "faq-09",
+    "question": "What will be on my desk?",
+    "answer": "Your desk is in your team's area of the office. It has a height-adjustable desk, one monitor as standard (or two if your role needs them), a docking station, a keyboard, a mouse and a headset for Teams calls (example). To ask for a second monitor, raise a request in your IT request task or ask your LM.",
+    "tags": ["desk", "monitor", "workspace", "office", "setup", "headset", "dock", "second monitor"],
+    "sourceSlug": "workspace-desks-and-monitors"
+  },
+  {
+    "id": "faq-10",
+    "question": "How do I order items for home working?",
+    "answer": "Open the home working order task on your journey. You can order items such as a desk, chair, monitor, keyboard, mouse and footrest (example list). Check the delivery address on your records before you submit. Deliveries take about 5 working days (example). Ask your LM before ordering anything not on the list.",
+    "tags": ["home working", "order", "desk", "chair", "monitor", "delivery", "home office", "equipment"],
+    "sourceSlug": "home-working-order-guide"
+  },
+  {
+    "id": "faq-11",
+    "question": "What if my vetting is delayed?",
+    "answer": "Vetting timescales vary. Check your status on the vetting task. If it says Action needed, complete the steps in HireView (https://example.test/hireview, placeholder). You get reminders until it is done. If the status hasn't changed and you are worried, contact P&P through the Teams chat link on the PEV page. If vetting is not cleared in time, your start date may move (example).",
+    "tags": ["vetting", "delay", "delayed", "pev", "hireview", "status", "start date", "reminder", "late"],
+    "sourceSlug": "pev-vetting-explainer"
+  },
+  {
+    "id": "faq-12",
+    "question": "Where do I send vetting documents?",
+    "answer": "Upload vetting documents only through HireView, using the link on your vetting task. Don't send documents by email or in Teams chat. If you can't upload, contact P&P through the Teams chat link on the PEV page.",
+    "tags": ["vetting", "documents", "upload", "hireview", "email", "send", "pev"],
+    "sourceSlug": "pev-vetting-explainer"
+  },
+  {
+    "id": "faq-13",
+    "question": "What do I need to do before my first day?",
+    "answer": "Set up your password and Microsoft Authenticator, raise any IT requests, choose your Mac or Windows laptop and peripherals, book your induction, upload your pass photo and confirm your Day 0 arrangements with your LM. Your journey lists these tasks in order and shows which are due soon.",
+    "tags": ["before day one", "before start", "to do", "checklist", "prepare", "tasks", "first day"]
+  },
+  {
+    "id": "faq-14",
+    "question": "How do I set up my password and Microsoft Authenticator?",
+    "answer": "Open the password set-up link from the task on your phone, and enter your username from the welcome email (example). Create a password that meets the rules on screen. Install Microsoft Authenticator from your phone's app store. Add it as a sign-in method by scanning the QR code, then type the 6-digit code. Approve the test sign-in on your phone and tick the task off.",
+    "tags": ["password", "authenticator", "mfa", "set up", "sign in", "microsoft authenticator", "phone", "qr code"],
+    "sourceSlug": "ms-password-and-authenticator-guide"
+  },
+  {
+    "id": "faq-15",
+    "question": "How do I raise an IT request?",
+    "answer": "Open the IT request task on your journey. Choose what you need from the list, add a short reason without passwords or personal details, and submit. Each request shows as Submitted, In progress or Done. IT@LBG self-service is at https://example.test/it-help (placeholder).",
+    "tags": ["it", "it@lbg", "request", "raise", "software", "access", "shared drive"],
+    "sourceSlug": "it-requests-explainer"
+  },
+  {
+    "id": "faq-16",
+    "question": "Why can't I raise IT requests yet?",
+    "answer": "IT requests unlock once your Colleague File ID exists. This is the ID created when your record is set up in Workday. Your journey shows when the ID is ready. Until then, the IT request task stays locked.",
+    "tags": ["it request", "locked", "colleague file id", "workday", "unlock", "cannot", "why"],
+    "sourceSlug": "it-requests-explainer"
+  },
+  {
+    "id": "faq-17",
+    "question": "What is Epture access?",
+    "answer": "TBC: the Epture access process is still being confirmed. Your journey shows an Epture access task with its current status. You don't need to do anything with it yet. The steps will be added once they are confirmed.",
+    "tags": ["epture", "access", "tbc", "placeholder", "system"],
+    "sourceSlug": "epture-access-tbc"
+  },
+  {
+    "id": "faq-18",
+    "question": "Do I need a photo for my pass?",
+    "answer": "Yes. Upload a photo in the photo ID task on your journey. The photo check runs straight away. If the photo passes, your pass is ordered to your Day 0 location.",
+    "tags": ["pass", "photo", "id", "photo id", "upload", "badge", "access card"],
+    "sourceSlug": "photo-id-pass-guide"
+  },
+  {
+    "id": "faq-19",
+    "question": "What are the photo rules for my pass?",
+    "answer": "Look straight at the camera with a clear, fully visible face. Avoid blur and heavy shadows. Use a plain, light background if you can. Don't wear sunglasses or a hat or cap. Make sure only you are in the photo. The photo should be taken in the last 6 months, and be a JPEG or PNG under 5 MB (example).",
+    "tags": ["photo", "rules", "pass", "sunglasses", "hat", "cap", "face", "clear", "requirements", "size"],
+    "sourceSlug": "photo-id-pass-guide"
+  },
+  {
+    "id": "faq-20",
+    "question": "Can I wear a head covering in my pass photo?",
+    "answer": "If you wear a head covering for religious or medical reasons, speak to P&P before you upload your photo. Don't let the photo check decide this for you. P&P can review the photo and override the check. Ordinary hats and caps are not allowed in the photo.",
+    "tags": ["head covering", "hat", "religious", "medical", "pass photo", "override", "photo rules", "headwear"],
+    "sourceSlug": "photo-id-pass-guide"
+  },
+  {
+    "id": "faq-21",
+    "question": "My pass photo was rejected. What now?",
+    "answer": "The photo check tells you what to fix, such as sunglasses or an unclear face. Take a new photo that follows the photo rules and upload it again. If you are still stuck, contact P&P through the Teams chat link. P&P can review the photo and override the check.",
+    "tags": ["photo", "rejected", "failed", "pass", "retry", "override", "unclear", "sunglasses"],
+    "sourceSlug": "photo-id-pass-guide"
+  },
+  {
+    "id": "faq-22",
+    "question": "How do I book my induction?",
+    "answer": "Open the induction booking task on your journey and pick a session from the list. Confirm your booking, and a calendar invite is sent to you (example). The Welcome to Lloyds induction runs monthly, online and in person (example), and covers how LBG works and who to ask for help. You can book sessions in your first month (example).",
+    "tags": ["induction", "book", "booking", "welcome to lloyds", "session", "calendar", "monthly"],
+    "sourceSlug": "induction-welcome-to-lloyds"
+  },
+  {
+    "id": "faq-23",
+    "question": "What if I missed the induction booking?",
+    "answer": "If you have not booked by Day 0, a fallback task called Book induction appears on your Day 0 journey. Open it and book a session from the list. It only appears if your induction is not already booked.",
+    "tags": ["induction", "missed", "fallback", "not booked", "day 0", "book later"],
+    "sourceSlug": "induction-welcome-to-lloyds"
+  },
+  {
+    "id": "faq-24",
+    "question": "Who is my buddy?",
+    "answer": "Your buddy is a team member your LM picks for you. They are not your manager. Your journey shows their profile and a Teams chat link. Your buddy can help with everyday questions, such as where things are and how the team works.",
+    "tags": ["buddy", "team", "support", "help", "who", "mentor", "profile"],
+    "sourceSlug": "meet-your-team-and-buddy"
+  },
+  {
+    "id": "faq-25",
+    "question": "Can I see my team before I start?",
+    "answer": "Yes. Your team page shows each member's role, photo and reporting line, and a short bio where one is available. If a bio is missing, that is fine. Use the Teams chat link to say hello before you start.",
+    "tags": ["team", "profile", "bio", "members", "see", "before start", "photo", "reporting line"],
+    "sourceSlug": "meet-your-team-and-buddy"
+  },
+  {
+    "id": "faq-26",
+    "question": "What are flex benefits and when is the deadline?",
+    "answer": "Flex benefits let you choose extras from a menu, for example extra holiday, health cover or a cycle-to-work scheme (examples). Open the flex benefits task, which links to the benefits platform. Make your choices within 14 days of your start date (example). If you miss the deadline, contact P&P through the Teams chat link as soon as you can.",
+    "tags": ["flex", "flex benefits", "benefits", "deadline", "choose", "holiday", "health cover", "cycle to work"],
+    "sourceSlug": "flex-benefits-guide"
+  },
+  {
+    "id": "faq-27",
+    "question": "What is mandatory training and when do I need to do it?",
+    "answer": "Mandatory training is a set of courses everyone at LBG must complete (example). The list comes from Workday, and your journey shows the same list with live status. Complete all courses within 30 days of your start date (example). Examples include information security awareness and data protection (examples).",
+    "tags": ["training", "mandatory", "courses", "workday", "deadline", "compliance", "data protection", "security"],
+    "sourceSlug": "mandatory-training-overview"
+  },
+  {
+    "id": "faq-28",
+    "question": "Where is the office and where do I meet on Day 0?",
+    "answer": "You work at Example House, Floor 3 (a fictional office for this demo). Your LM sets your Day 0 meeting point and time, and it shows on your journey once it is confirmed. The floor plan, including the lifts, meeting rooms and tech bar, is on the office page.",
+    "tags": ["office", "floor plan", "meeting point", "where", "day 0", "directions", "example house", "lift"],
+    "sourceSlug": "office-wayfinding-example-house"
+  },
+  {
+    "id": "faq-29",
+    "question": "What should I bring on my first day?",
+    "answer": "Bring your photo ID pass once it is ready, your phone with the journey app, and optionally a notebook and lunch. Your LM confirms your meeting time and place. Expect to meet your LM, say hello to your team and buddy, collect your equipment, and watch the executive welcome video.",
+    "tags": ["day one", "first day", "bring", "pass", "what to bring", "lunch", "phone", "expect"],
+    "sourceSlug": "day-one-what-to-bring"
+  },
+  {
+    "id": "faq-30",
+    "question": "How do check-ins with my LM work?",
+    "answer": "You and your LM agree how often you meet. For example, weekly for the first month, then fortnightly (example). Each check-in has a Teams meeting link in your journey. Bring one thing that went well, one question and one thing you'd like help with. To move a check-in, message your LM on Teams.",
+    "tags": ["check-in", "check in", "lm", "one to one", "cadence", "teams", "meeting", "regular"],
+    "sourceSlug": "check-ins-with-your-lm"
+  },
+  {
+    "id": "faq-31",
+    "question": "What are 30-60-90 day goals?",
+    "answer": "They are the goals you set for your first 90 days. By Day 30 you learn the basics. By Day 60 you contribute to your team's work. By Day 90 you own a piece of work. Draft up to three goals per stage in the task, share them with your LM, and agree the final list together. You and your LM can both edit it.",
+    "tags": ["30 60 90", "30-60-90", "goals", "first 90 days", "objectives", "plan", "lm"],
+    "sourceSlug": "goals-30-60-90-guide"
+  },
+  {
+    "id": "faq-32",
+    "question": "What are performance goals?",
+    "answer": "Performance goals describe what good work looks like in your role and link your work to your team and business area. Your LM adds cascaded goals from your team and business area to your list (example). Read them, ask questions in the goal notes and agree the list with your LM. This setup does not explain how performance is rated; see the performance process on the intranet (example).",
+    "tags": ["performance", "goals", "cascade", "business area", "team goals", "rating", "lm"],
+    "sourceSlug": "performance-goals-guide"
+  },
+  {
+    "id": "faq-33",
+    "question": "What are development goals?",
+    "answer": "Development goals are about the skills you want to build, such as learning a new tool, taking a course or trying a stretch task (examples). Choose one to three. For each one, note what you want to do, why it matters, how you will know you have done it and by when. Mark the development goals task done once you have shared them with your LM.",
+    "tags": ["development", "development goals", "learning", "skills", "growth", "course", "career"],
+    "sourceSlug": "development-goals-guide"
+  },
+  {
+    "id": "faq-34",
+    "question": "How do I sign in before I start?",
+    "answer": "Before you start you get an invite by email to your personal address. Follow the link and sign in with your personal email address. You land on your journey and can see your tasks and team. You sign in with your internal account later, once it is set up. Use your phone's browser, and you can add the app to your home screen.",
+    "tags": ["sign in", "guest", "invite", "personal email", "login", "journey", "phone", "home screen"],
+    "sourceSlug": "guest-access-sign-in"
+  },
+  {
+    "id": "faq-35",
+    "question": "I did not get my invite email. What do I do?",
+    "answer": "Check your spam or junk folder first. If it is still missing, contact P&P through the Teams chat link on the help page. They can resend the invite to your personal email address.",
+    "tags": ["invite", "email", "missing", "spam", "junk", "not received", "resend"],
+    "sourceSlug": "guest-access-sign-in"
+  },
+  {
+    "id": "faq-36",
+    "question": "Who do I contact for help?",
+    "answer": "For your contract, pay and first weeks, contact your LM on Teams. For vetting, use the Teams chat link on the PEV page to contact the P&P onboarding team. For passwords, laptop and IT access, use IT@LBG self-service at https://example.test/it-help (placeholder). For everyday team questions, ask your buddy. If you are not sure, contact the P&P onboarding team.",
+    "tags": ["help", "contact", "who", "support", "p&p", "lm", "buddy", "it", "question"],
+    "sourceSlug": "help-and-contacts"
+  },
+  {
+    "id": "faq-37",
+    "question": "Can I install this app on my phone?",
+    "answer": "Yes. Open the app in your phone's browser and add it to your home screen. It then opens like an app and keeps the main pages available when you have no signal (example). You don't need to download anything from an app store.",
+    "tags": ["install", "app", "phone", "home screen", "pwa", "offline", "download", "mobile"]
+  }
+]
