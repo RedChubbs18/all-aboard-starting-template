@@ -23,6 +23,9 @@
 | D20 | Starter task visibility (F2) | Starters see their own tasks, plus a compact read-only status for SYSTEM steps. LM, BUDDY and P&P tasks are hidden from them. | 2026-11-09 |
 | D21 | Checklist lock (F8) | The goals page (Checklist tab) is read-only, with lock icons, until the start date. | 2026-11-09 |
 | D22 | Buddy view (F16) | The buddy sees their own BUDDY tasks, plus the starter's name, stage, progress % and a chat link. No starter task detail. | 2026-11-09 |
+| D23 | Product name | The app is called **MyJourney**. | 2026-11-09 |
+| D24 | Demo mock Workday | A separate demo-only app in `demo/mock-workday/` on port 3001. A recruiter creates a conditional offer; the candidate accepts with their details; the signed-in recruiter console sends the Entra guest invite (Entra's own email, with MyJourney instructions in the custom message; simulated unless external invites are approved); a signed webhook then creates the starter and journey in MyJourney. Personal email stays in mock Workday's git-ignored store (FR-1.9). Contract: `docs/DEMO-WORKDAY.md`. | 2026-11-09 |
+| D25 | Account picker | Every Entra sign-in uses `prompt: "select_account"`, so a personal SSO session never signs in silently. | 2026-11-09 |
 | D7 | Horse graphics | Original placeholder SVGs until the team supplies official assets. | 2026-11-09 |
 
 ## Still open
