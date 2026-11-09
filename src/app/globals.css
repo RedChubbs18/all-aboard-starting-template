@@ -21,6 +21,11 @@
   --color-warning: #8a5300;
   --color-danger: #b3261e;
   --color-info: #0b5cad;
+  /* Status tints (design/components.md); contrast verified in design/scripts/contrast.mjs */
+  --color-success-soft: #e2f3e8;
+  --color-warning-soft: #fdf1d8;
+  --color-danger-soft: #fbe6e4;
+  --color-info-soft: #e4effb;
   --radius-sm: 6px;
   --radius-md: 12px;
   --radius-lg: 20px;
@@ -50,3 +55,32 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* ---- component-level utilities (WS1) ---- */
+@keyframes halo-pulse {
+  0% { transform: scale(1); opacity: 0.5; }
+  70%, 100% { transform: scale(1.9); opacity: 0; }
+}
+@keyframes milestone-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+@keyframes star-burst {
+  0% { transform: translate(0, 0) scale(0.4); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(1); opacity: 0; }
+}
+@keyframes sheet-up {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.halo-pulse { animation: halo-pulse 2s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+.milestone-pop { animation: milestone-pop 300ms ease-in-out; transform-box: fill-box; transform-origin: center; }
+.star-burst { animation: star-burst 1.2s ease-out forwards; }
+.sheet-up { animation: sheet-up 200ms ease-out; }
+.tabular { font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) {
+  .halo-pulse, .milestone-pop, .sheet-up { animation: none !important; }
+  .star-burst { display: none; }
+}
+dialog.app-dialog::backdrop { background: rgb(20 33 28 / 0.5); }
