@@ -56,3 +56,30 @@ describe("nav", () => {
     expect(homePathFor(u("a", "PNP"))).toBe("/mi");
   });
 });
+
+describe("photo-check-override (D12)", () => {
+  const key = "photo-check-override";
+  it("the journey's LM and PNP can complete it; other LMs, starters, buddies cannot", () => {
+    expect(canActOnTask(u("lm1", "LM"), j, "PNP", key)).toBe(true);
+    expect(canActOnTask(u("p", "PNP"), j, "PNP", key)).toBe(true);
+    expect(canActOnTask(u("lm2", "LM"), j, "PNP", key)).toBe(false);
+    expect(canActOnTask(u("s1", "STARTER"), j, "PNP", key)).toBe(false);
+    expect(canActOnTask(u("b1", "BUDDY"), j, "PNP", key)).toBe(false);
+  });
+  it("does not widen LM access to other PNP-owned tasks", () => {
+    expect(canActOnTask(u("lm1", "LM"), j, "PNP", "offer-conditions-met")).toBe(false);
+    expect(canActOnTask(u("lm1", "LM"), j, "PNP")).toBe(false);
+  });
+});
+
+describe("nav and admin guards", () => {
+  it("PNP and ADMIN get Simulate; only PNP gets the direct Record exit link", () => {
+    const pnp = navFor(u("p", "PNP")).map((n) => n.href);
+    expect(pnp).toEqual(expect.arrayContaining(["/admin/simulate", "/admin/journeys"]));
+    expect(pnp).not.toContain("/admin");
+    const admin = navFor(u("a", "ADMIN")).map((n) => n.href);
+    expect(admin).toContain("/admin/simulate");
+    expect(admin).not.toContain("/admin/journeys");
+    expect(navFor(u("l", "LM")).map((n) => n.href)).not.toContain("/admin/simulate");
+  });
+});

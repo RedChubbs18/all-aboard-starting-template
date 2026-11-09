@@ -32,7 +32,16 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/lm", label: "My starters", roles: ["LM", "PNP", "ADMIN"] },
   { href: "/mi", label: "MI", roles: ["PNP", "ADMIN"] },
   { href: "/admin", label: "Admin", roles: ["ADMIN"] },
+  { href: "/admin/journeys", label: "Record exit", roles: ["PNP"] },
+  { href: "/admin/simulate", label: "Simulate", roles: ["ADMIN", "PNP"] },
 ];
+
+/**
+ * Admin sub-pages that P&P may also use (their APIs allow ADMIN and PNP). Every other /admin page is ADMIN only.
+ * Used by the admin layout guard and the admin tabs so both stay consistent.
+ */
+export const PNP_ADMIN_PATHS = ["/admin/journeys", "/admin/simulate"] as const;
+export const isPnpAdminPath = (path: string) => PNP_ADMIN_PATHS.some((p) => path === p || path.startsWith(`${p}/`));
 
 export const navFor = (user: { roles: readonly Role[] } | null) =>
   NAV_ITEMS.filter((n) => hasAnyRole(user, ...n.roles));

@@ -1,7 +1,7 @@
 /** Builds the LM-facing DTOs. Read-only: all writes go through journey-service. */
 import { normalizeIntegrationStatus } from "@/domain/engine";
 import type { JourneyState } from "@/domain/types";
-import { canActOnTask } from "@/lib/auth/access";
+import { PHOTO_OVERRIDE_TASK_KEY, canActOnTask } from "@/lib/auth/access";
 import type { SessionUser } from "@/lib/auth/roles";
 import { chatLink } from "@/lib/teams";
 import { prisma } from "@/server/db";
@@ -11,7 +11,7 @@ import { HttpError } from "./guard";
 
 const iso = (d: Date) => d.toISOString();
 
-export const PHOTO_OVERRIDE_KEY = "photo-check-override";
+export const PHOTO_OVERRIDE_KEY = PHOTO_OVERRIDE_TASK_KEY;
 
 const stringList = (v: unknown): string[] | null =>
   Array.isArray(v) && v.length ? v.filter((x): x is string => typeof x === "string") : null;
