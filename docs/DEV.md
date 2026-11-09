@@ -25,6 +25,8 @@ Prisma refuses `--force-reset` when invoked by an AI agent, which is why `db:res
 
 ## Seed data
 
+`prisma/seed.ts` loads `.env` itself via `prisma/load-env.ts` (tsx does not), falling back to `file:./dev.db`.
+
 `prisma/seed.ts` reads `content/seed/{content,faqs,templates,people}.json`, validated by the zod schemas in `src/domain/seed-schema.ts`. Missing files fall back to `prisma/fixtures/` (templates and people always fall back together). Invalid files fail loudly with the offending paths. People use fictional names and `@example.test` emails.
 
 Journeys in `people.json` are instantiated through the real engine, then tasks in stages before `currentStage` are marked DONE (all tasks for completed journeys), then `taskStates` overrides apply. `hireviewStatus` is stored as `IntegrationState` for `hireview`.

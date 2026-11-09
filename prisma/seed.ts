@@ -1,3 +1,4 @@
+import "./load-env";
 import { prisma } from "../src/server/db";
 import { seedDatabase } from "../src/server/seed";
 
