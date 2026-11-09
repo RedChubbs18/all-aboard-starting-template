@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ButtonLink } from "@/components/ui/Button";
 import { useApi } from "@/lib/auth/use-api";
 import { Alert } from "@/components/admin/common";
 
@@ -30,25 +31,25 @@ export default function Page() {
     : [];
   return (
     <div className="space-y-4">
-      {loading && <p role="status" className="text-text-muted">Loading…</p>}
+      {loading && <p role="status" className="text-muted">Loading…</p>}
       {error && <Alert kind="danger">{error}</Alert>}
       <p>
-        <Link href="/admin/seed" className="inline-flex min-h-11 items-center rounded-md bg-brand px-4 font-semibold text-surface hover:bg-brand-strong">
+        <ButtonLink href="/admin/seed">
           Seed a new starter
-        </Link>
+        </ButtonLink>
       </p>
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((c) => (
           <li key={c.label}>
-            <Link href={c.href} className="block min-h-11 rounded-md bg-surface p-4 shadow-card hover:bg-brand-soft">
-              <span className="block text-2xl font-semibold text-brand-strong">{c.value}</span>
-              <span className="text-text-muted">{c.label}</span>
+            <Link href={c.href} className="block min-h-11 rounded-md border border-line bg-card px-[22px] py-4 hover:bg-page">
+              <span className="block text-[28px] font-extrabold leading-tight tracking-[-0.02em] text-ink">{c.value}</span>
+              <span className="text-muted">{c.label}</span>
             </Link>
           </li>
         ))}
       </ul>
       <p>
-        <Link href="/admin/simulate" className="font-medium text-brand underline">Simulate integration events (demo tools)</Link>
+        <Link href="/admin/simulate" className="font-semibold text-brand-strong underline underline-offset-2">Simulate integration events (demo tools)</Link>
       </p>
     </div>
   );

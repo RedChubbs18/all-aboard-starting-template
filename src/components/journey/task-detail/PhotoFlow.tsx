@@ -45,7 +45,7 @@ export function PhotoFlow({ task, detail, onChanged }: { task: TaskDto; detail: 
     );
   }
   if (!task.canAct) {
-    return <p className="text-text-muted">Only the starter can upload their photo. Status: {task.status === "DONE" ? "photo accepted" : "waiting for the starter"}.</p>;
+    return <p className="text-muted">Only the starter can upload their photo. Status: {task.status === "DONE" ? "photo accepted" : "waiting for the starter"}.</p>;
   }
   if (task.status === "LOCKED") return null;
 
@@ -118,36 +118,43 @@ export function PhotoFlow({ task, detail, onChanged }: { task: TaskDto; detail: 
     <div className="space-y-4">
       {done && <Alert tone="success">Your photo has been accepted.</Alert>}
 
-      <section aria-labelledby="photo-tips" className="rounded-md bg-surface-alt p-3">
-        <h3 id="photo-tips" className="font-semibold">
-          Before you start
-        </h3>
-        <ul className="mt-1 grid list-disc gap-x-6 pl-5 sm:grid-cols-2">
-          {TIPS.map((t) => (
-            <li key={t}>{t}</li>
-          ))}
-        </ul>
-      </section>
-
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="space-y-4">
         <div>
-          <div className="relative flex aspect-[3/4] max-h-80 items-center justify-center overflow-hidden rounded-md border-2 border-dashed border-border bg-surface-alt">
+          <div className="relative flex h-[min(46vh,380px)] w-full items-center justify-center overflow-hidden rounded-md bg-viewfinder">
             {preview ? (
               <img src={preview} alt="Preview of the photo you chose" className="h-full w-full object-cover" />
             ) : (
-              <span className="px-4 text-center text-text-muted">Your photo will appear here</span>
+              <span className="px-4 text-center text-sm text-card">Your photo will appear here</span>
             )}
+            {/* Dashed oval guide, centred over the preview. */}
+            <span aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-[70%] w-[48%] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border-2 border-dashed border-focus" />
             {state.step === "passed" && (
-              <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-sm bg-success-soft px-2 py-0.5 font-semibold text-success">
+              <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-brand-tint px-2.5 py-0.5 text-xs font-bold text-brand-strong">
                 <Check aria-hidden className="size-4" /> Passed
               </span>
             )}
             {state.step === "rejected" && (
-              <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-sm bg-danger-soft px-2 py-0.5 font-semibold text-danger">
+              <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-blocked-tint px-2.5 py-0.5 text-xs font-bold text-blocked">
                 <XCircle aria-hidden className="size-4" /> Not accepted
               </span>
             )}
           </div>
+          <section aria-labelledby="photo-tips" className="mt-3 rounded-md border border-line bg-card">
+            <h3 id="photo-tips" className="px-4 pt-3 font-bold">
+              Before you start
+            </h3>
+            <ul className="mt-1">
+              {TIPS.map((t) => (
+                <li key={t} className="flex items-start gap-3 border-t border-line px-4 py-2.5 first:border-t-0">
+                  <span
+                    aria-hidden
+                    className={`mt-1 size-4 shrink-0 rounded-full ${state.step === "passed" || state.step === "submitting" || done ? "bg-brand" : "border-2 border-disabled"}`}
+                  />
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </section>
           <div className="mt-3 flex gap-2">
             <input ref={cameraInput} type="file" accept="image/*" capture="user" className="sr-only" tabIndex={-1} aria-hidden onChange={(e) => { void choose(e.target.files?.[0]); e.target.value = ""; }} />
             <input ref={fileInput} type="file" accept="image/*" className="sr-only" tabIndex={-1} aria-hidden onChange={(e) => { void choose(e.target.files?.[0]); e.target.value = ""; }} />
@@ -161,7 +168,7 @@ export function PhotoFlow({ task, detail, onChanged }: { task: TaskDto; detail: 
             </Button>
           </div>
           {state.step === "idle" && state.notice && (
-            <p role="alert" className="mt-2 flex items-start gap-1 text-danger">
+            <p role="alert" className="mt-2 flex items-start gap-1 text-blocked">
               <XCircle aria-hidden className="mt-0.5 size-5 shrink-0" />
               {state.notice}
             </p>
@@ -236,12 +243,12 @@ export function PhotoFlow({ task, detail, onChanged }: { task: TaskDto; detail: 
           >
             Submit photo
           </Button>
-          <p id="photo-submit-help" className="text-sm text-text-muted">
+          <p id="photo-submit-help" className="text-sm text-muted">
             {reason ?? "Your photo is used only for your pass and isn't kept in this app."}
             {!detail.day0Confirmed && detail.confirmTaskId && (
               <>
                 {" "}
-                <Link href={`/journey/task/${detail.confirmTaskId}`} className="text-brand underline underline-offset-2">
+                <Link href={`/journey/task/${detail.confirmTaskId}`} className="text-brand-strong underline underline-offset-2">
                   Go to Day 0 arrangements
                 </Link>
               </>

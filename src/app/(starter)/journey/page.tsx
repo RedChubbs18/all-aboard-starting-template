@@ -58,8 +58,8 @@ function JourneyPage() {
   return (
     <div className="space-y-4">
       <OfflineBanner />
-      <h1 className="text-2xl font-semibold text-brand-strong">
-        {journey.viewerIsStarter ? `Hi ${journey.starter.name.split(" ")[0]}` : `${journey.starter.name}'s journey`}
+      <h1 className="sr-only">
+        {journey.viewerIsStarter ? "Your journey" : `${journey.starter.name}'s journey`}
       </h1>
       <JourneyView data={data} onComplete={onComplete} pendingId={pendingId} lastCompletedTitle={lastCompletedTitle} onWithdrawn={() => void reload()} />
     </div>

@@ -12,15 +12,15 @@ import { SignIn } from "./SignIn";
  */
 export function RoleGate({ roles, children }: { roles: Role[]; children: React.ReactNode }) {
   const { status, user, error } = useSession();
-  if (status === "loading") return <p role="status" className="text-text-muted">Loading…</p>;
-  if (status === "error") return <p role="alert" className="text-danger">{error ?? "Something went wrong."}</p>;
+  if (status === "loading") return <p role="status" className="text-muted">Loading…</p>;
+  if (status === "error") return <p role="alert" className="text-blocked">{error ?? "Something went wrong."}</p>;
   if (status === "not_onboarded") return <NotOnboarded />;
   if (status === "unauthenticated" || !user) return <SignIn />;
   if (!hasAnyRole(user, ...roles)) {
     return (
-      <section role="alert" className="rounded-lg bg-surface p-6 shadow-card">
-        <h1 className="text-xl font-semibold text-danger">No access</h1>
-        <p className="mt-2 text-text-muted">Your role ({user.roles.join(", ") || "none"}) cannot view this page.</p>
+      <section role="alert" className="rounded-lg bg-card p-6 border border-line">
+        <h1 className="text-xl font-bold text-blocked">No access</h1>
+        <p className="mt-2 text-muted">Your role ({user.roles.join(", ") || "none"}) cannot view this page.</p>
       </section>
     );
   }

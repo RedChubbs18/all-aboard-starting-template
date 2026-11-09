@@ -17,31 +17,31 @@ const HV: Record<Hv["status"], { label: string; Icon: LucideIcon; cls: string; w
   not_started: {
     label: "Not started",
     Icon: CircleDashed,
-    cls: "bg-surface-alt text-text-muted border border-border",
+    cls: "bg-page text-muted border border-line",
     what: "Your vetting hasn't started yet. First Advantage will contact you when it is time to begin.",
   },
   in_progress: {
     label: "In progress",
     Icon: Clock,
-    cls: "bg-brand-soft text-brand",
+    cls: "bg-brand-tint text-brand-strong",
     what: "First Advantage is working through your checks. Nothing more to do right now unless they ask.",
   },
   action_needed: {
     label: "Action needed",
     Icon: AlertTriangle,
-    cls: "bg-warning-soft text-warning",
+    cls: "bg-blocked-tint text-blocked",
     what: "First Advantage needs something from you before they can carry on.",
   },
   cleared: {
     label: "Cleared",
     Icon: CheckCircle2,
-    cls: "bg-success-soft text-success",
+    cls: "bg-brand-tint text-brand-strong",
     what: "Your vetting is complete. You can move on to the next stage.",
   },
   failed: {
     label: "Failed",
     Icon: XCircle,
-    cls: "bg-danger-soft text-danger",
+    cls: "bg-blocked-tint text-blocked",
     what: "Your vetting could not be completed. People & Places will contact you to talk it through.",
   },
 };
@@ -56,14 +56,14 @@ export function HireViewPanel({ data, onChanged }: { data: TaskDetailResponse; o
   return (
     <div className="space-y-4">
       <Card className="space-y-3">
-        <p className="text-sm font-semibold uppercase tracking-wide text-text-muted">First Advantage vetting status</p>
-        <span className={cn("inline-flex items-center gap-2 rounded-md px-3 py-2 text-lg font-semibold", meta.cls)}>
+        <p className="text-sm font-semibold text-muted">First Advantage vetting status</p>
+        <span className={cn("inline-flex items-center gap-2 rounded-md px-3 py-2 text-lg font-bold", meta.cls)}>
           <meta.Icon aria-hidden className="size-6" />
           {meta.label}
         </span>
         <h3 className="font-semibold">What this means</h3>
         <p>{meta.what}</p>
-        <div className="flex flex-wrap items-center gap-3 text-sm text-text-muted">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-muted">
           <span>Last checked {formatDateTime(s.updatedAt)}</span>
           <Button
             variant="ghost"
@@ -110,16 +110,16 @@ export function SystemStatus({ data }: { data: TaskDetailResponse }) {
   const tone = t.status === "DONE" ? "success" : t.status === "BLOCKED" ? "danger" : "neutral";
   return (
     <Card className="space-y-2">
-      <p className="text-sm font-semibold uppercase tracking-wide text-text-muted">Handled automatically</p>
+      <p className="text-sm font-semibold text-muted">Handled automatically</p>
       <p>
         This step is completed by <strong>{d.provider}</strong>. There is nothing for you to do.
       </p>
       <p className="flex flex-wrap items-center gap-2">
         Status: <Badge tone={tone}>{d.statusText.charAt(0).toUpperCase() + d.statusText.slice(1)}</Badge>
-        {d.updatedAt && <span className="text-sm text-text-muted">updated {formatDateTime(d.updatedAt)}</span>}
+        {d.updatedAt && <span className="text-sm text-muted">updated {formatDateTime(d.updatedAt)}</span>}
       </p>
-      {t.key === "colleague-file-id-created" && <p className="text-sm text-text-muted">Your Colleague File ID is issued by SailPoint. IT requests unlock once it exists.</p>}
-      {t.key === "epture-access-granted" && <p className="text-sm text-text-muted">Details of Epture access are still being confirmed.</p>}
+      {t.key === "colleague-file-id-created" && <p className="text-sm text-muted">Your Colleague File ID is issued by SailPoint. IT requests unlock once it exists.</p>}
+      {t.key === "epture-access-granted" && <p className="text-sm text-muted">Details of Epture access are still being confirmed.</p>}
     </Card>
   );
 }
@@ -138,7 +138,7 @@ export function TrainingList({ data }: { data: TaskDetailResponse }) {
     <div>
       <h3 className="font-semibold">
         Mandatory training{" "}
-        <span className="font-normal text-text-muted">
+        <span className="font-normal text-muted">
           ({done} of {d.items.length} complete)
         </span>
       </h3>
@@ -147,14 +147,14 @@ export function TrainingList({ data }: { data: TaskDetailResponse }) {
           <Card as="li" key={i.id} className="flex items-center justify-between gap-3 p-3">
             <span>
               <span className="block font-medium">{i.title}</span>
-              {i.dueDate && <span className="text-sm text-text-muted">due {formatDateTime(i.dueDate).split(",")[0]}</span>}
+              {i.dueDate && <span className="text-sm text-muted">due {formatDateTime(i.dueDate).split(",")[0]}</span>}
             </span>
             <Badge tone={TRAIN[i.status]?.tone ?? "neutral"}>{TRAIN[i.status]?.label ?? i.status}</Badge>
           </Card>
         ))}
-        {d.items.length === 0 && <li className="text-text-muted">No training has been assigned yet.</li>}
+        {d.items.length === 0 && <li className="text-muted">No training has been assigned yet.</li>}
       </ul>
-      <p className="mt-2 text-sm text-text-muted">Workday is the record of your training. Status here refreshes when you open this page.</p>
+      <p className="mt-2 text-sm text-muted">Workday is the record of your training. Status here refreshes when you open this page.</p>
     </div>
   );
 }

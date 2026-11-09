@@ -69,11 +69,11 @@ describe("HorseTrack accessibility", () => {
     expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "100");
   });
 
-  it("keeps the svg decorative and has a single status live region", () => {
+  it("keeps the horse marker decorative and has a single status live region", () => {
     const { container } = render(track(view(1)));
-    const svg = container.querySelector("svg");
-    expect(svg).toHaveAttribute("aria-hidden", "true");
-    expect(svg).toHaveAttribute("focusable", "false");
+    const marker = container.querySelector("img");
+    expect(marker).toHaveAttribute("alt", "");
+    expect(marker?.parentElement).toHaveAttribute("aria-hidden", "true");
     expect(container.querySelectorAll('[role="status"]')).toHaveLength(1);
     expect(container.querySelector("#journey-live")).toHaveTextContent("");
   });
@@ -85,9 +85,9 @@ describe("HorseTrack accessibility", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Action needed");
   });
 
-  it("has a compact variant without the svg", () => {
+  it("has a compact variant without the horse marker", () => {
     const { container } = render(track(view(2), { variant: "compact", overdueCount: 2 }));
-    expect(container.querySelector("svg")).toBeNull();
+    expect(container.querySelector("img")).toBeNull();
     expect(screen.getByText(/2 overdue/)).toBeInTheDocument();
   });
 });

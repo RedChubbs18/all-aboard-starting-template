@@ -1,26 +1,39 @@
 "use client";
 
 import { useSession } from "@/lib/auth/client";
+import { BrandLogo } from "@/components/ui/BrandLogo";
+import { Button } from "@/components/ui/Button";
+import { Alert } from "@/components/ui/Alert";
 
-/** Signed-out view: persona switcher (demo mode) or Microsoft sign-in (Entra mode). */
+/** Signed-out view: persona switcher (demo mode) or Microsoft sign-in (Entra mode). STYLE section 16. */
 export function SignIn() {
   const { mode, personas, switchPersona, signIn, error } = useSession();
   return (
-    <section aria-labelledby="signin-h" className="rounded-lg bg-surface p-6 shadow-card">
-      <h1 id="signin-h" className="text-2xl font-semibold text-brand-strong">Welcome aboard</h1>
-      {error && <p role="alert" className="mt-2 text-danger">{error}</p>}
+    <section aria-labelledby="signin-h" className="mx-auto w-full max-w-[420px] rounded-lg border border-line bg-card px-7 py-9">
+      <BrandLogo className="mb-7" />
+      <h1 id="signin-h" className="text-[30px] font-bold leading-tight">
+        Welcome aboard
+      </h1>
+      {error && (
+        <Alert tone="danger" live="alert" className="mt-3">
+          {error}
+        </Alert>
+      )}
       {mode === "demo" ? (
         <>
-          <p className="mt-2 text-text-muted">Demo mode: choose who you want to be.</p>
-          <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+          <p className="mt-2 text-muted">Demo mode: choose who you want to be.</p>
+          <ul className="mt-4 space-y-2">
             {personas.map((p) => (
               <li key={p.id}>
                 <button
                   onClick={() => switchPersona(p.id)}
-                  className="min-h-12 w-full rounded-md border border-border bg-surface px-3 py-2 text-left hover:bg-brand-soft"
+                  className="min-h-12 w-full rounded-sm border border-line-strong bg-card px-3.5 py-2 text-left hover:bg-page"
                 >
-                  <span className="block font-medium">{p.displayName}</span>
-                  <span className="block text-sm text-text-muted">{p.roles.join(", ") || "Team member"}{p.teamName ? ` · ${p.teamName}` : ""}</span>
+                  <span className="block font-bold">{p.displayName}</span>
+                  <span className="block text-sm text-muted">
+                    {p.roles.join(", ") || "Team member"}
+                    {p.teamName ? ` · ${p.teamName}` : ""}
+                  </span>
                 </button>
               </li>
             ))}
@@ -28,10 +41,10 @@ export function SignIn() {
         </>
       ) : (
         <>
-          <p className="mt-2 text-text-muted">Sign in with your Microsoft account to see your journey.</p>
-          <button onClick={signIn} className="mt-4 min-h-12 rounded-md bg-brand px-5 font-medium text-surface hover:bg-brand-strong">
+          <p className="mt-2 text-muted">Sign in with your Microsoft account to see your journey.</p>
+          <Button onClick={() => void signIn()} className="mt-5 w-full">
             Sign in with Microsoft
-          </button>
+          </Button>
         </>
       )}
     </section>

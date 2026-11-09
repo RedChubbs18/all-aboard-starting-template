@@ -34,7 +34,7 @@ export function ChecklistView({ data, onComplete, completing }: Props) {
           const checked = done || ticked.has(i);
           return (
             <li key={i}>
-              <label className={cn("flex min-h-11 items-start gap-3 rounded-md border border-border/40 bg-surface p-3", canAct && "cursor-pointer hover:bg-brand-soft")}>
+              <label className={cn("flex min-h-11 items-start gap-3 rounded-md border border-line bg-card p-3", canAct && "cursor-pointer hover:bg-brand-tint")}>
                 <input
                   type="checkbox"
                   className="mt-0.5 size-6 shrink-0 accent-[var(--color-brand)]"
@@ -63,7 +63,7 @@ export function ChecklistView({ data, onComplete, completing }: Props) {
           <Button size="lg" className="w-full" loading={completing} aria-disabled={!all} aria-describedby="checklist-help" onClick={() => all && void onComplete()}>
             Mark complete
           </Button>
-          <p id="checklist-help" className="mt-1 text-sm text-text-muted">
+          <p id="checklist-help" className="mt-1 text-sm text-muted">
             {all ? "All steps ticked. Mark the task complete." : `Tick every step to finish (${ticked.size} of ${d.steps.length}).`}
           </p>
         </div>
@@ -90,7 +90,7 @@ export function VideoView({ data, onComplete, completing }: Props) {
         <video
           controls
           preload="metadata"
-          className="aspect-video w-full rounded-md bg-text"
+          className="aspect-video w-full rounded-md bg-ink"
           aria-label={data.content?.title ?? data.task.title}
           onEnded={finish}
           onError={() => setFailed(true)}
@@ -107,10 +107,10 @@ export function VideoView({ data, onComplete, completing }: Props) {
           <p>This is a demo placeholder. Read the transcript below, then tell us when you&apos;ve watched it.</p>
         </Alert>
       )}
-      {percent > 0 && !failed && <p className="tabular text-sm text-text-muted">Watched {percent}%</p>}
-      <p className="text-sm text-text-muted">Captions: this demo video has no captions file. The transcript is available below.</p>
+      {percent > 0 && !failed && <p className="tabular text-sm text-muted">Watched {percent}%</p>}
+      <p className="text-sm text-muted">Captions: this demo video has no captions file. The transcript is available below.</p>
       {data.content && (
-        <details className="rounded-md border border-border/40 bg-surface p-3">
+        <details className="rounded-md border border-line bg-card p-3">
           <summary className="min-h-11 cursor-pointer py-2 font-semibold">Transcript</summary>
           <p className="mt-2 whitespace-pre-line">{data.content.body.replace(/[#*`]/g, "").replace(/\*\*Video URL:.*\n?/i, "")}</p>
         </details>
@@ -168,22 +168,22 @@ export function BookingView({ data, onChanged }: Props) {
               <label
                 key={s.id}
                 className={cn(
-                  "flex min-h-14 cursor-pointer items-center gap-3 rounded-md border-2 bg-surface p-3",
-                  sessionId === s.id ? "border-brand bg-brand-soft" : "border-border/60",
+                  "flex min-h-14 cursor-pointer items-center gap-3 rounded-md border-2 bg-card p-3",
+                  sessionId === s.id ? "border-dark-green bg-brand-tint" : "border-line",
                   full && "cursor-not-allowed opacity-60",
                 )}
               >
                 <input type="radio" name={group} className="size-5 accent-[var(--color-brand)]" disabled={full} checked={sessionId === s.id} onChange={() => setSessionId(s.id)} />
                 <span>
                   <span className="block font-semibold">{formatDateTime(s.startsAt)}</span>
-                  <span className="block text-sm text-text-muted">
+                  <span className="block text-sm text-muted">
                     {s.location} · {full ? "Full" : `${s.remaining} places left`}
                   </span>
                 </span>
               </label>
             );
           })}
-          {d.sessions.length === 0 && <p className="text-text-muted">No sessions are open yet. P&amp;P will add them soon.</p>}
+          {d.sessions.length === 0 && <p className="text-muted">No sessions are open yet. P&amp;P will add them soon.</p>}
         </div>
       </fieldset>
       {canAct && (
@@ -191,7 +191,7 @@ export function BookingView({ data, onChanged }: Props) {
           Confirm booking
         </Button>
       )}
-      {canAct && !sessionId && <p className="text-sm text-text-muted">Choose a session to continue.</p>}
+      {canAct && !sessionId && <p className="text-sm text-muted">Choose a session to continue.</p>}
     </div>
   );
 }
@@ -216,7 +216,7 @@ export function OrderView({ data, onChanged }: Props) {
   if (data.task.status === "DONE" && d.choice) {
     return (
       <Card className="space-y-2" aria-live="polite">
-        <p className="flex items-center gap-2 font-semibold text-success">
+        <p className="flex items-center gap-2 font-semibold text-brand-strong">
           <PackageCheck aria-hidden className="size-5" /> {isHome ? "Home working order confirmed" : "Device choice confirmed"}
         </p>
         <p>
@@ -224,7 +224,7 @@ export function OrderView({ data, onChanged }: Props) {
         </p>
         {visible(d.choice.peripherals).length > 0 && <p>Day 0 peripherals: {visible(d.choice.peripherals).join(", ")}</p>}
         {home(d.choice.peripherals).length > 0 && <p>Home working items: {home(d.choice.peripherals).join(", ")}</p>}
-        <p className="text-sm text-text-muted">Collect from: {d.choice.collectionPoint}. Reference {d.choice.ref}.</p>
+        <p className="text-sm text-muted">Collect from: {d.choice.collectionPoint}. Reference {d.choice.ref}.</p>
       </Card>
     );
   }
@@ -248,7 +248,7 @@ export function OrderView({ data, onChanged }: Props) {
           <legend className="font-semibold">Which laptop would you like?</legend>
           <div className="mt-2 grid grid-cols-2 gap-2">
             {(["MAC", "WINDOWS"] as const).map((v) => (
-              <label key={v} className={cn("flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-md border-2 p-3 font-semibold", device === v ? "border-brand bg-brand-soft" : "border-border/60 bg-surface")}>
+              <label key={v} className={cn("flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-md border-2 p-3 font-semibold", device === v ? "border-dark-green bg-brand-tint" : "border-line bg-card")}>
                 <input type="radio" name="device" className="size-5 accent-[var(--color-brand)]" checked={device === v} onChange={() => setDevice(v)} />
                 {v === "MAC" ? "Mac" : "Windows"}
               </label>
@@ -260,7 +260,7 @@ export function OrderView({ data, onChanged }: Props) {
         <legend className="font-semibold">{isHome ? "Which home working items do you need?" : "Which peripherals would you like on Day 0?"}</legend>
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
           {options.map((o) => (
-            <label key={o} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-border/60 bg-surface p-3 hover:bg-brand-soft">
+            <label key={o} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-line bg-card p-3 hover:bg-brand-tint">
               <input type="checkbox" className="size-5 accent-[var(--color-brand)]" checked={items.includes(o)} onChange={() => toggle(o)} />
               {o}
             </label>
@@ -272,7 +272,7 @@ export function OrderView({ data, onChanged }: Props) {
           <Button size="lg" className="w-full" aria-disabled={!ready} onClick={() => ready && setConfirm(true)}>
             Review and confirm
           </Button>
-          {!ready && <p className="text-sm text-text-muted">{isHome ? "Choose at least one item." : "Choose a laptop to continue."}</p>}
+          {!ready && <p className="text-sm text-muted">{isHome ? "Choose at least one item." : "Choose a laptop to continue."}</p>}
         </>
       )}
       <Sheet open={confirm} onClose={() => setConfirm(false)} title="Confirm your order" variant="dialog">
@@ -320,7 +320,7 @@ export function CollectView({ data }: Props) {
       <div>
         <h3 className="font-semibold">Collect from</h3>
         <p className="mt-1 flex items-start gap-2">
-          <MapPin aria-hidden className="mt-0.5 size-5 shrink-0 text-brand" />
+          <MapPin aria-hidden className="mt-0.5 size-5 shrink-0 text-brand-strong" />
           {d.choice.collectionPoint}
         </p>
       </div>
@@ -334,9 +334,9 @@ export function CollectView({ data }: Props) {
         </ul>
       </div>
       {homeItems.length > 0 && (
-        <p className="text-sm text-text-muted">Delivered to your home, not collected: {homeItems.join(", ")}.</p>
+        <p className="text-sm text-muted">Delivered to your home, not collected: {homeItems.join(", ")}.</p>
       )}
-      <p className="text-sm text-text-muted">Reference {d.choice.ref}.</p>
+      <p className="text-sm text-muted">Reference {d.choice.ref}.</p>
     </Card>
   );
 }
@@ -376,7 +376,7 @@ export function Day0View({ data, onChanged }: Props) {
           <dt className="font-semibold">Ask for</dt>
           <dd>{day0.who}</dd>
         </dl>
-        <p className="text-sm">{day0.confirmedAt ? <span className="font-semibold text-success">Confirmed {formatDateTime(day0.confirmedAt)}</span> : "Not confirmed yet."}</p>
+        <p className="text-sm">{day0.confirmedAt ? <span className="font-semibold text-brand-strong">Confirmed {formatDateTime(day0.confirmedAt)}</span> : "Not confirmed yet."}</p>
       </Card>
       {error && (
         <Alert tone="danger" live="alert">

@@ -13,7 +13,7 @@ export default function Home() {
   useEffect(() => {
     if (status === "authenticated" && user) router.replace(homePathFor(user));
   }, [status, user, router]);
-  if (status === "loading" || status === "authenticated") return <p role="status" className="text-text-muted">Loading…</p>;
+  if (status === "loading" || status === "authenticated") return <p role="status" className="text-muted">Loading…</p>;
   if (status === "not_onboarded") return <NotOnboarded />;
   return <SignIn />;
 }

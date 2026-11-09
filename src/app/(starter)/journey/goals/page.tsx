@@ -21,11 +21,11 @@ function GoalsPage() {
   const { data, error, loading, reload } = useApi<GoalsResponse>(`/api/starter/goals${journeyId ? `?journeyId=${encodeURIComponent(journeyId)}` : ""}`);
   return (
     <div className="mx-auto max-w-[640px] space-y-4">
-      <Link href={journeyId ? `/journey?journeyId=${encodeURIComponent(journeyId)}` : "/journey"} className="inline-flex min-h-11 items-center text-brand underline underline-offset-2">
+      <Link href={journeyId ? `/journey?journeyId=${encodeURIComponent(journeyId)}` : "/journey"} className="inline-flex min-h-11 items-center text-brand-strong underline underline-offset-2">
         Back to journey
       </Link>
-      <h1 className="text-2xl font-semibold text-brand-strong">30-60-90 day goals</h1>
-      <p className="text-text-muted">Agree a few simple goals with your line manager. Use plain language and keep personal details out.</p>
+      <h1 className="text-[28px] font-bold leading-tight text-ink">30-60-90 day goals</h1>
+      <p className="text-muted">Agree a few simple goals with your line manager. Use plain language and keep personal details out.</p>
       {loading && (
         <div aria-busy="true" className="space-y-3">
           <Skeleton className="h-32 w-full" />

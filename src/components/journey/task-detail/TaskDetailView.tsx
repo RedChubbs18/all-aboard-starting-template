@@ -38,21 +38,21 @@ export function TaskDetailView({ data, onChanged, onComplete, completing }: Prop
 
   return (
     <article aria-labelledby="task-h" className="mx-auto max-w-[640px] space-y-4">
-      <Link href={back} className="inline-flex min-h-11 items-center gap-1 text-brand underline underline-offset-2">
+      <Link href={back} className="inline-flex min-h-11 items-center gap-1 text-brand-strong underline underline-offset-2">
         <ArrowLeft aria-hidden className="size-5" />
         Back to journey
       </Link>
 
       <header className="space-y-2">
-        <p className="text-sm text-text-muted">{STAGE_META[task.stage].label}</p>
-        <h1 id="task-h" className="text-2xl font-semibold text-brand-strong">
+        <p className="text-sm text-muted">{STAGE_META[task.stage].label}</p>
+        <h1 id="task-h" className="text-[28px] font-bold leading-tight text-ink">
           {task.title}
         </h1>
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status={task.status} />
           <OwnerBadge owner={task.owner} viewerIsStarter={journey.viewerIsStarter} />
           {overdue && <OverdueBadge />}
-          <span className="text-sm text-text-muted">{task.status === "DONE" ? "Done" : `Due ${formatLongDate(task.dueDate)}`}</span>
+          <span className="text-sm text-muted">{task.status === "DONE" ? "Done" : `Due ${formatLongDate(task.dueDate)}`}</span>
         </div>
         {task.description && <p>{task.description}</p>}
       </header>
@@ -120,18 +120,18 @@ export function TaskDetailView({ data, onChanged, onComplete, completing }: Prop
       )}
 
       {content && (detail.kind === "checklist" || detail.kind === "video" || detail.kind === "photo" ? (
-        <details className="rounded-md border border-border/40 bg-surface p-3" open={detail.kind === "photo" ? false : undefined}>
+        <details className="rounded-md border border-line bg-card p-3" open={detail.kind === "photo" ? false : undefined}>
           <summary className="min-h-11 cursor-pointer py-2 font-semibold">{content.title}</summary>
           <Markdown source={content.body} />
-          <Link href={`/content/${content.slug}`} className="mt-2 inline-flex min-h-11 items-center text-brand underline underline-offset-2">
+          <Link href={`/content/${content.slug}`} className="mt-2 inline-flex min-h-11 items-center text-brand-strong underline underline-offset-2">
             Open the full page
           </Link>
         </details>
       ) : (
         <Card as="section" aria-label={content.title}>
-          <h2 className="text-lg font-semibold">{content.title}</h2>
+          <h2 className="text-lg font-bold">{content.title}</h2>
           <Markdown source={content.body} />
-          <Link href={`/content/${content.slug}`} className="mt-2 inline-flex min-h-11 items-center text-brand underline underline-offset-2">
+          <Link href={`/content/${content.slug}`} className="mt-2 inline-flex min-h-11 items-center text-brand-strong underline underline-offset-2">
             Open the full page
           </Link>
         </Card>
@@ -144,7 +144,7 @@ export function TaskDetailView({ data, onChanged, onComplete, completing }: Prop
       )}
 
       {showGeneric && (
-        <div className="sticky bottom-20 md:static">
+        <div className="sticky bottom-[88px]">
           <Button size="lg" className="w-full" loading={completing} onClick={() => void onComplete()}>
             <CheckCircle2 aria-hidden className="size-5" />
             {detail.kind === "collect" ? "Mark as collected" : "Mark complete"}

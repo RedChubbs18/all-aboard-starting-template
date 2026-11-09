@@ -1,5 +1,6 @@
 "use client";
 
+import { controlClass } from "@/components/ui/Field";
 import { useId, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
@@ -41,7 +42,7 @@ export function WithdrawDialog({ open, onClose, onWithdrawn }: { open: boolean; 
 
   return (
     <Sheet open={open} onClose={onClose} title="Thinking of not joining?" variant="dialog">
-      <p className="text-text-muted">
+      <p className="text-muted">
         We&apos;re sorry to hear that. If you withdraw, your journey will close and People &amp; Places will be told. You can talk to your line manager or
         P&amp;P first if you would like to.
       </p>
@@ -49,7 +50,7 @@ export function WithdrawDialog({ open, onClose, onWithdrawn }: { open: boolean; 
         <legend className="font-semibold">Why are you withdrawing?</legend>
         <div className="mt-2 space-y-1">
           {WITHDRAW_REASONS.map((r) => (
-            <label key={r.value} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-2 hover:bg-brand-soft">
+            <label key={r.value} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-2 hover:bg-brand-tint">
               <input type="radio" name="withdraw-reason" value={r.value} checked={reason === r.value} onChange={() => setReason(r.value)} className="size-5 accent-[var(--color-brand)]" />
               <span>{r.label}</span>
             </label>
@@ -60,7 +61,7 @@ export function WithdrawDialog({ open, onClose, onWithdrawn }: { open: boolean; 
         <label htmlFor="withdraw-comment" className="font-semibold">
           Anything else you would like to add? (optional)
         </label>
-        <p id={hintId} className="text-sm text-text-muted">
+        <p id={hintId} className="text-sm text-muted">
           Please don&apos;t include personal details.
         </p>
         <textarea
@@ -70,9 +71,9 @@ export function WithdrawDialog({ open, onClose, onWithdrawn }: { open: boolean; 
           onChange={(e) => setComment(e.target.value)}
           aria-describedby={`${hintId}${error ? ` ${errId}` : ""}`}
           rows={3}
-          className="mt-1 w-full rounded-md border-2 border-border bg-surface px-3 py-2 text-base focus-visible:border-info"
+          className={`${controlClass} mt-1`}
         />
-        <p className="tabular text-right text-sm text-text-muted">
+        <p className="tabular text-right text-sm text-muted">
           {comment.length} / {WITHDRAW_COMMENT_MAX}
         </p>
       </div>

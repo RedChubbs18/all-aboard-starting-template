@@ -1,5 +1,6 @@
 "use client";
 
+import { controlClass } from "@/components/ui/Field";
 import { Pencil } from "lucide-react";
 import { useId, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
@@ -62,7 +63,7 @@ function AddGoal({ horizon, journeyId, onAdded }: { horizon: "30" | "60" | "90";
           value={text}
           maxLength={280}
           onChange={(e) => setText(e.target.value)}
-          className="min-h-12 w-full rounded-md border-2 border-border bg-surface px-3 text-base focus-visible:border-info"
+          className={controlClass}
         />
       </div>
       <Button type="submit" loading={busy} aria-disabled={!text.trim()}>
@@ -88,7 +89,7 @@ function GoalRow({ goal, canEdit, onChanged }: { goal: GoalItem; canEdit: boolea
     return true;
   };
   return (
-    <li className="flex items-start gap-3 rounded-md border border-border/40 bg-surface p-3">
+    <li className="flex items-start gap-3 rounded-md border border-line bg-card p-3">
       <input
         type="checkbox"
         className="mt-1 size-6 shrink-0 accent-[var(--color-brand)]"
@@ -109,7 +110,7 @@ function GoalRow({ goal, canEdit, onChanged }: { goal: GoalItem; canEdit: boolea
             if (text.trim() && (await patch({ text }))) setEditing(false);
           }}
         >
-          <input value={text} maxLength={280} onChange={(e) => setText(e.target.value)} aria-label="Goal text" className="min-h-11 flex-1 rounded-md border-2 border-border px-3" />
+          <input value={text} maxLength={280} onChange={(e) => setText(e.target.value)} aria-label="Goal text" className={`${controlClass} flex-1`} />
           <Button type="submit">Save</Button>
           <Button variant="ghost" onClick={() => { setText(goal.text); setEditing(false); }}>
             Cancel
@@ -117,7 +118,7 @@ function GoalRow({ goal, canEdit, onChanged }: { goal: GoalItem; canEdit: boolea
         </form>
       ) : (
         <>
-          <span className={done ? "flex-1 text-text-muted line-through" : "flex-1"}>{goal.text}</span>
+          <span className={done ? "flex-1 text-muted line-through" : "flex-1"}>{goal.text}</span>
           {canEdit && (
             <Button variant="ghost" size="icon" aria-label={`Edit goal: ${goal.text}`} onClick={() => setEditing(true)}>
               <Pencil aria-hidden className="size-5" />
@@ -143,11 +144,11 @@ export function GoalsPanel({ journeyId, goals, canEdit, onChanged }: Props) {
         const list = goals.filter((g) => g.horizon === h.key);
         return (
           <Card as="section" key={h.key} aria-labelledby={`goals-${h.key}`}>
-            <h2 id={`goals-${h.key}`} className="text-lg font-semibold">
+            <h2 id={`goals-${h.key}`} className="text-lg font-bold">
               {h.label}
             </h2>
             {list.length === 0 ? (
-              <p className="mt-2 text-text-muted">No goals yet. Agree a few with your line manager.</p>
+              <p className="mt-2 text-muted">No goals yet. Agree a few with your line manager.</p>
             ) : (
               <ul className="mt-2 space-y-2">
                 {list.map((g) => (
@@ -160,11 +161,11 @@ export function GoalsPanel({ journeyId, goals, canEdit, onChanged }: Props) {
         );
       })}
       <Card as="section" aria-labelledby="goals-cascaded">
-        <h2 id="goals-cascaded" className="text-lg font-semibold">
+        <h2 id="goals-cascaded" className="text-lg font-bold">
           Goals from your line manager
         </h2>
         {cascaded.length === 0 ? (
-          <p className="mt-2 text-text-muted">Your line manager hasn&apos;t shared any cascaded goals yet. They will appear here by Day 30.</p>
+          <p className="mt-2 text-muted">Your line manager hasn&apos;t shared any cascaded goals yet. They will appear here by Day 30.</p>
         ) : (
           <ul className="mt-2 list-disc space-y-1 pl-5">
             {cascaded.map((g) => (
@@ -172,7 +173,7 @@ export function GoalsPanel({ journeyId, goals, canEdit, onChanged }: Props) {
             ))}
           </ul>
         )}
-        <p className="mt-2 text-sm text-text-muted">These are set by your line manager and can&apos;t be edited here.</p>
+        <p className="mt-2 text-sm text-muted">These are set by your line manager and can&apos;t be edited here.</p>
       </Card>
     </div>
   );

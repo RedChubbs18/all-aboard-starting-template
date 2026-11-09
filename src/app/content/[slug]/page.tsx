@@ -29,18 +29,18 @@ export default async function ContentPage({ params }: Params) {
   if (!c) notFound();
   return (
     <article className="mx-auto max-w-[720px] space-y-3">
-      <Link href="/content" className="inline-flex min-h-11 items-center text-brand underline underline-offset-2">
+      <Link href="/content" className="inline-flex min-h-11 items-center text-brand-strong underline underline-offset-2">
         All guides and policies
       </Link>
       <header>
         <Badge>{CONTENT_TYPE_LABEL[c.type] ?? "Guide"}</Badge>
-        <h1 className="mt-2 text-2xl font-semibold text-brand-strong">{c.title}</h1>
-        {c.summary && <p className="mt-1 text-text-muted">{c.summary}</p>}
+        <h1 className="mt-2 text-[28px] font-bold leading-tight text-ink">{c.title}</h1>
+        {c.summary && <p className="mt-1 text-muted">{c.summary}</p>}
       </header>
-      <div className="rounded-lg bg-surface p-4 shadow-card">
+      <div className="rounded-lg bg-card p-4 border border-line">
         <Markdown source={c.body} vars={{ anchorDays: <AnchorDaysValue /> }} />
       </div>
-      <p className="text-sm text-text-muted">Example content for a demo. It isn&apos;t real company policy.</p>
+      <p className="text-sm text-muted">Example content for a demo. It isn&apos;t real company policy.</p>
     </article>
   );
 }

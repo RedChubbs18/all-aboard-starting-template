@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { Owner, Stage } from "@/domain/types";
 import { Alert } from "@/components/ui/Alert";
+import { cn } from "@/components/ui/cn";
 import { ContactCard } from "@/components/ui/ContactCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { deriveView } from "./derive";
@@ -25,14 +26,17 @@ export interface JourneyViewProps {
   onWithdrawn?: () => void;
   reducedMotion?: boolean;
   now?: Date;
+  /** "column" (default) is the 430px phone column; "split" puts forecast and contacts beside the stages on wide screens. */
+  layout?: "column" | "split";
 }
 
 /** Journey home body: track, forecast, stage accordion, contacts. Used by the starter, buddy and (WS2) LM views. */
-export function JourneyView({ data, onComplete, pendingId, lastCompletedTitle, readOnly, highlightOwner, onWithdrawn, reducedMotion, now }: JourneyViewProps) {
+export function JourneyView({ data, onComplete, pendingId, lastCompletedTitle, readOnly, highlightOwner, onWithdrawn, reducedMotion, now, layout = "column" }: JourneyViewProps) {
   const { journey, others } = data;
   const view = useMemo(() => deriveView(journey, now ?? new Date()), [journey, now]);
   const [openRequest, setOpenRequest] = useState<{ stage: Stage; n: number } | null>(null);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const split = layout === "split";
   const viewerIsStarter = journey.viewerIsStarter;
   const first = journey.starter.name.split(" ")[0];
   const hv = journey.hireview;
@@ -44,7 +48,7 @@ export function JourneyView({ data, onComplete, pendingId, lastCompletedTitle, r
   if (journey.status === "exited" && viewerIsStarter) {
     return (
       <section aria-labelledby="closing-h" className="space-y-4">
-        <div className="rounded-lg bg-surface p-2 shadow-card">
+        <div className="rounded-lg bg-card p-2 border border-line">
           <EmptyState title="Thank you, and best wishes">
             <span id="closing-h" className="sr-only">
               Journey closed
@@ -77,7 +81,7 @@ export function JourneyView({ data, onComplete, pendingId, lastCompletedTitle, r
         </Alert>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <div className={split ? "grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]" : "space-y-4"}>
         <div className="min-w-0 space-y-4">
           <HorseTrack
             title={viewerIsStarter ? "Your onboarding journey" : `${first}'s onboarding journey`}
@@ -93,7 +97,7 @@ export function JourneyView({ data, onComplete, pendingId, lastCompletedTitle, r
             reducedMotion={reducedMotion}
             onSelectStage={(stage) => setOpenRequest((o) => ({ stage, n: (o?.n ?? 0) + 1 }))}
           />
-          <div className="lg:hidden">
+          <div className={split ? "lg:hidden" : undefined}>
             <Forecast view={view} viewerIsStarter={viewerIsStarter} />
           </div>
           <StageAccordion
@@ -108,33 +112,35 @@ export function JourneyView({ data, onComplete, pendingId, lastCompletedTitle, r
           />
         </div>
 
-        <aside aria-label="Forecast and contacts" className="min-w-0 space-y-4 lg:sticky lg:top-4 lg:self-start">
-          <div className="hidden lg:block">
-            <Forecast view={view} viewerIsStarter={viewerIsStarter} />
-          </div>
+        <aside aria-label="Forecast and contacts" className={cn("min-w-0 space-y-4", split && "lg:sticky lg:top-4 lg:self-start")}>
+          {split && (
+            <div className="hidden lg:block">
+              <Forecast view={view} viewerIsStarter={viewerIsStarter} />
+            </div>
+          )}
           <h2 className="sr-only">Contacts</h2>
           <ContactCard name={journey.lm.name} role="Line manager" subtitle={journey.lm.jobTitle} upn={journey.lm.upn} photoUrl={journey.lm.photoUrl} bio={journey.lm.bio} variant="compact" />
           {journey.buddy ? (
             <ContactCard name={journey.buddy.name} role="Buddy" subtitle={journey.buddy.jobTitle} upn={journey.buddy.upn} photoUrl={journey.buddy.photoUrl} bio={journey.buddy.bio} variant="compact" />
           ) : (
-            <p className="rounded-md bg-surface p-3 text-sm text-text-muted shadow-card">Your buddy hasn&apos;t been allocated yet. Your line manager will do this soon.</p>
+            <p className="rounded-md border border-line bg-card p-3 text-sm text-muted">Your buddy hasn&apos;t been allocated yet. Your line manager will do this soon.</p>
           )}
           {!viewerIsStarter && (
             <ContactCard name={journey.starter.name} role="Starter" upn={journey.starter.upn} photoUrl={journey.starter.photoUrl} bio={null} variant="compact" />
           )}
-          <Link href="/team" className="flex min-h-11 items-center text-brand underline underline-offset-2">
+          <Link href="/team" className="flex min-h-11 items-center text-brand-strong underline underline-offset-2">
             See the whole team
           </Link>
         </aside>
       </div>
 
       {others.length > 0 && (
-        <nav aria-label="Other journeys you can view" className="rounded-lg bg-surface p-4 shadow-card">
+        <nav aria-label="Other journeys you can view" className="rounded-lg bg-card p-4 border border-line">
           <h2 className="font-semibold">Other starters</h2>
           <ul className="mt-1">
             {others.map((o) => (
               <li key={o.id}>
-                <Link href={`/journey?journeyId=${encodeURIComponent(o.id)}`} className="flex min-h-11 items-center text-brand underline underline-offset-2">
+                <Link href={`/journey?journeyId=${encodeURIComponent(o.id)}`} className="flex min-h-11 items-center text-brand-strong underline underline-offset-2">
                   {o.starterName}
                 </Link>
               </li>
@@ -145,7 +151,7 @@ export function JourneyView({ data, onComplete, pendingId, lastCompletedTitle, r
 
       {viewerIsStarter && journey.status === "active" && (
         <footer className="pt-4 text-center">
-          <button type="button" onClick={() => setWithdrawOpen(true)} className="min-h-11 px-3 text-sm text-text-muted underline underline-offset-2">
+          <button type="button" onClick={() => setWithdrawOpen(true)} className="min-h-11 px-3 text-sm text-muted underline underline-offset-2">
             Thinking of not joining?
           </button>
           <WithdrawDialog open={withdrawOpen} onClose={() => setWithdrawOpen(false)} onWithdrawn={() => { setWithdrawOpen(false); onWithdrawn?.(); }} />
