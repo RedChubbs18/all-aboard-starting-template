@@ -169,7 +169,7 @@ export function renderMarkdownSafe(md: string): string {
       .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
       .replace(/(^|[^*])\*([^*]+)\*/g, "$1<em>$2</em>")
       .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_m, text: string, url: string) =>
-        /^(https?:\/\/|mailto:|\/)/i.test(url) ? `<a href="${url}" rel="noopener noreferrer">${text}</a>` : text,
+        /^(https?:\/\/|mailto:|\/(?![/\\]))/i.test(url) ? `<a href="${url}" rel="noopener noreferrer">${text}</a>` : text,
       );
   const out: string[] = [];
   let list: "ul" | "ol" | null = null;

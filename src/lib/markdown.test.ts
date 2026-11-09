@@ -29,6 +29,9 @@ describe("safe markdown", () => {
   it("drops unsafe link schemes", () => {
     expect(safeHref("javascript:alert(1)")).toBeNull();
     expect(safeHref("data:text/html,x")).toBeNull();
+    expect(safeHref("//evil.example/x")).toBeNull();
+    expect(safeHref("/\\evil.example/x")).toBeNull();
+    expect(safeHref("/content/x")).toBe("/content/x");
     expect(safeHref("//evil.test")).toBeNull();
     expect(safeHref("https://example.test/x")).toBe("https://example.test/x");
     expect(safeHref("/content/a")).toBe("/content/a");

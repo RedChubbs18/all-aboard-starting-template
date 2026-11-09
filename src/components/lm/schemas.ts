@@ -54,17 +54,21 @@ export const goalPatchSchema = z
   .object({ text: text("Goal", 200).optional(), done: z.boolean().optional() })
   .refine((v) => v.text !== undefined || v.done !== undefined, "Nothing to update");
 
+/** Team call links must be Microsoft Teams links over https (FR-3.13, L6). */
+export const TEAMS_LINK_HOSTS: readonly string[] = ["teams.microsoft.com", "teams.live.com"];
+
 export const linkSchema = z
   .string()
   .trim()
   .max(500, "Links must be 500 characters or fewer")
   .refine((v) => {
     try {
-      return new URL(v).protocol === "https:";
+      const u = new URL(v);
+      return u.protocol === "https:" && TEAMS_LINK_HOSTS.includes(u.hostname.toLowerCase()) && !u.username && !u.password && !u.port;
     } catch {
       return false;
     }
-  }, "Each link must be a full https:// address");
+  }, "Each link must be a Microsoft Teams https:// link")
 
 export const taskPatchSchema = z
   .object({

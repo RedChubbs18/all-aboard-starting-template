@@ -69,6 +69,11 @@ describe("renderMarkdownSafe", () => {
     expect(renderMarkdownSafe("[x](javascript:alert(1))")).not.toContain("href");
     expect(renderMarkdownSafe("[ok](https://example.test/a)")).toContain('href="https://example.test/a"');
   });
+  it("drops protocol-relative links but keeps same-site paths (L7)", () => {
+    expect(renderMarkdownSafe("[x](//evil.example/a)")).not.toContain("href");
+    expect(renderMarkdownSafe("[x](/\\evil.example/a)")).not.toContain("href");
+    expect(renderMarkdownSafe("[ok](/content/a)")).toContain('href="/content/a"');
+  });
   it("renders headings, lists and emphasis", () => {
     const html = renderMarkdownSafe("# Title\n\n- one\n- **two**\n\n1. a");
     expect(html).toContain("<h3>Title</h3>");

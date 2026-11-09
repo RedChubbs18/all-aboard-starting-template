@@ -29,7 +29,8 @@ export type Block =
 export function safeHref(raw: string): string | null {
   const u = raw.trim();
   if (/^https?:\/\//i.test(u) || /^mailto:/i.test(u)) return u;
-  if (u.startsWith("/") && !u.startsWith("//")) return u;
+  // "//host" and "/" + backslash + "host" are protocol-relative (browsers treat a backslash as "/").
+  if (u.startsWith("/") && !/^\/[/\\]/.test(u)) return u;
   if (u.startsWith("#")) return u;
   return null;
 }
