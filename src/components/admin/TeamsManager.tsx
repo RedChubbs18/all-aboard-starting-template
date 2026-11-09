@@ -113,7 +113,7 @@ export function TeamsManager() {
                   <label key={r} className="flex min-h-11 items-center gap-2">
                     <input
                       type="checkbox"
-                      className="size-5"
+                      className="size-6"
                       checked={p.roles.includes(r)}
                       disabled={lockedSelfAdmin}
                       onChange={(e) => setP({ ...p, roles: e.target.checked ? [...p.roles, r] : p.roles.filter((x) => x !== r) })}
@@ -142,7 +142,7 @@ export function TeamsManager() {
               )}
             </Field>
             <label className="flex min-h-11 items-center gap-2">
-              <input type="checkbox" className="size-5" checked={p.buddyEligible} onChange={(e) => setP({ ...p, buddyEligible: e.target.checked })} />
+              <input type="checkbox" className="size-6" checked={p.buddyEligible} onChange={(e) => setP({ ...p, buddyEligible: e.target.checked })} />
               Buddy eligible
             </label>
             <div className="flex justify-end gap-2 pt-2">

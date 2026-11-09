@@ -228,19 +228,19 @@ export function TemplatesManager({ readOnly = false }: { readOnly?: boolean }) {
               )}
             </div>
             <label className="flex min-h-11 items-center gap-2">
-              <input type="checkbox" className="size-5" checked={editing.gating} onChange={(e) => set("gating", e.target.checked)} />
+              <input type="checkbox" className="size-6" checked={editing.gating} onChange={(e) => set("gating", e.target.checked)} />
               Gating (must be done before the next stage opens)
             </label>
             <label className="flex min-h-11 items-center gap-2">
-              <input type="checkbox" className="size-5" checked={editing.optional} onChange={(e) => { set("optional", e.target.checked); if (e.target.checked) set("gating", false); }} />
+              <input type="checkbox" className="size-6" checked={editing.optional} onChange={(e) => { set("optional", e.target.checked); if (e.target.checked) set("gating", false); }} />
               Optional (never gating, not counted in progress)
             </label>
             <label className="flex min-h-11 items-center gap-2">
-              <input type="checkbox" className="size-5" checked={editing.autoCompleteOnOpen} onChange={(e) => set("autoCompleteOnOpen", e.target.checked)} />
+              <input type="checkbox" className="size-6" checked={editing.autoCompleteOnOpen} onChange={(e) => set("autoCompleteOnOpen", e.target.checked)} />
               Complete when the colleague opens it (read-only information tasks)
             </label>
             <label className="flex min-h-11 items-center gap-2">
-              <input type="checkbox" className="size-5" checked={editing.active} onChange={(e) => set("active", e.target.checked)} />
+              <input type="checkbox" className="size-6" checked={editing.active} onChange={(e) => set("active", e.target.checked)} />
               Active (used for new journeys)
             </label>
             <Field label="Content slug" error={errors.contentSlug} hint="Optional content item shown with the task.">
@@ -276,7 +276,7 @@ export function TemplatesManager({ readOnly = false }: { readOnly?: boolean }) {
                   <label key={t.key} className="flex min-h-11 items-center gap-2">
                     <input
                       type="checkbox"
-                      className="size-5"
+                      className="size-6"
                       checked={editing.dependsOn.includes(t.key)}
                       onChange={(e) => set("dependsOn", e.target.checked ? [...editing.dependsOn, t.key] : editing.dependsOn.filter((k) => k !== t.key))}
                     />

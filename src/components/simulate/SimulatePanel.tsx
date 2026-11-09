@@ -136,7 +136,7 @@ function SimulateBody() {
             <h2 id="remind-h" className="text-lg font-bold">Reminders</h2>
             <p className="mt-1 text-sm text-muted">Sends First Advantage reminders to starters in vetting who are not cleared.</p>
             <label className="mt-3 flex min-h-11 items-center gap-2 text-sm">
-              <input type="checkbox" checked={force} onChange={(e) => setForce(e.target.checked)} className="size-5" />
+              <input type="checkbox" checked={force} onChange={(e) => setForce(e.target.checked)} className="size-6" />
               Ignore the 24 hour window (demo)
             </label>
             <Button variant="secondary" onClick={tick} disabled={busy !== null} busy={busy === "tick"} className="mt-2 w-full">

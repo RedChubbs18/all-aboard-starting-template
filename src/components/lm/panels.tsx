@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { useFocusSwap } from "@/components/ui/use-focus-swap";
 import { chatLink } from "@/lib/teams";
 import { GOAL_HORIZONS, STAGES, type GoalHorizon } from "@/domain/types";
 import { bespokeTaskSchema, teamItemSchema, buddySchema, CADENCES, checkInSchema, day0Schema, fieldErrors, goalPatchSchema, goalSchema } from "./schemas";
@@ -41,11 +43,15 @@ export function BuddyPanel(p: PanelProps) {
   const [choice, setChoice] = useState("");
   const [errors, setErrors] = useState<Errors>({});
   const [busy, setBusy] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const v = buddySchema.safeParse({ buddyId: choice });
-    if (!v.success) return setErrors(fieldErrors(v.error));
+    if (!v.success) {
+      setAttempt((n) => n + 1);
+      return setErrors(fieldErrors(v.error));
+    }
     setErrors({});
     const c = d.buddyCandidates.find((x) => x.id === choice);
     setBusy(true);
@@ -54,7 +60,10 @@ export function BuddyPanel(p: PanelProps) {
     );
     setBusy(false);
     if (report(r, p, `${c?.displayName ?? "Buddy"} allocated`)) setChoice("");
-    else if (r.fields) setErrors(r.fields);
+    else {
+      setAttempt((n) => n + 1);
+      setErrors(r.fields ?? { buddyId: r.message ?? "That didn't work. Please try again." });
+    }
   }
 
   return (
@@ -78,6 +87,7 @@ export function BuddyPanel(p: PanelProps) {
             <p className="text-muted">No buddy-eligible people in this team. Ask P&P to mark team members as eligible.</p>
           ) : (
             <>
+              <ErrorSummary message={Object.keys(errors).length ? firstError(errors) : null} focusKey={attempt} />
               <SelectField label={d.buddy ? "Change buddy" : "Choose a buddy"} value={choice} onChange={(e) => setChoice(e.target.value)} error={errors.buddyId} hint="Team members who have said they can be a buddy.">
                 <option value="">Select a person</option>
                 {d.buddyCandidates.map((c) => (
@@ -87,7 +97,7 @@ export function BuddyPanel(p: PanelProps) {
                   </option>
                 ))}
               </SelectField>
-              <Button type="submit" busy={busy} disabled={busy}>
+              <Button type="submit" busy={busy} aria-disabled={busy || undefined}>
                 {d.buddy ? "Change buddy" : "Allocate buddy"}
               </Button>
             </>
@@ -155,7 +165,7 @@ export function CheckInPanel(p: PanelProps) {
             ))}
           </SelectField>
           <TextField label="First check-in" type="datetime-local" value={at} onChange={(e) => setAt(e.target.value)} error={errors.scheduledAt} hint="We create a Teams meeting link for you and the starter." />
-          <Button type="submit" busy={busy} disabled={busy}>
+          <Button type="submit" busy={busy} aria-disabled={busy || undefined}>
             {latest ? "Replace check-in" : "Agree check-in"}
           </Button>
         </form>
@@ -175,11 +185,17 @@ export function Day0Panel(p: PanelProps) {
   const [when, setWhen] = useState(d.day0 ? isoToLocal(d.day0.whenAt) : "");
   const [errors, setErrors] = useState<Errors>({});
   const [busy, setBusy] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const root = useRef<HTMLDivElement>(null);
+  useFocusSwap(open, root);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const v = day0Schema.safeParse({ where, who, whenAt: localToIso(when) });
-    if (!v.success) return setErrors(fieldErrors(v.error));
+    if (!v.success) {
+      setAttempt((n) => n + 1);
+      return setErrors(fieldErrors(v.error));
+    }
     setErrors({});
     setBusy(true);
     const r = await p.mutate({ path: `${p.base}/day0`, method: "PUT", body: v.data }, (cur) => ({
@@ -193,6 +209,7 @@ export function Day0Panel(p: PanelProps) {
 
   return (
     <Panel id="day0" title="Day 0: your arrangements">
+      <div ref={root} className="space-y-3">
       {d.day0 ? (
         <div className="space-y-2">
           <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
@@ -215,18 +232,18 @@ export function Day0Panel(p: PanelProps) {
         </Alert>
       )}
       {d.journey.status === "active" && !open && (
-        <Button variant="secondary" onClick={() => setOpen(true)}>
+        <Button data-opener variant="secondary" onClick={() => setOpen(true)}>
           {d.day0 ? "Change arrangements" : "Set up Day 0"}
         </Button>
       )}
       {open && (
         <form onSubmit={submit} noValidate className="space-y-3">
-          <ErrorSummary message={Object.keys(errors).length ? firstError(errors) : null} />
+          <ErrorSummary message={Object.keys(errors).length ? firstError(errors) : null} focusKey={attempt} />
           <TextField label="Where" value={where} maxLength={120} onChange={(e) => setWhere(e.target.value)} error={errors.where} hint="For example: Reception, 3rd floor" />
           <TextField label="When" type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} error={errors.whenAt} />
           <TextField label="Who to meet or ask for" value={who} maxLength={120} onChange={(e) => setWho(e.target.value)} error={errors.who} />
           <div className="flex flex-wrap gap-2">
-            <Button type="submit" busy={busy} disabled={busy}>
+            <Button type="submit" busy={busy} aria-disabled={busy || undefined}>
               Send proposal
             </Button>
             <Button variant="ghost" onClick={() => setOpen(false)}>
@@ -235,6 +252,7 @@ export function Day0Panel(p: PanelProps) {
           </div>
         </form>
       )}
+      </div>
     </Panel>
   );
 }
@@ -252,6 +270,8 @@ function GoalRow({ g, p }: { g: GoalDto; p: PanelProps }) {
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(g.text);
   const [error, setError] = useState<string>();
+  const root = useRef<HTMLLIElement>(null);
+  useFocusSwap(editing, root);
   const patch = (body: { text?: string; done?: boolean }, optimistic: (x: GoalDto) => GoalDto) =>
     p.mutate({ path: `${p.base}/goals/${g.id}`, method: "PATCH", body }, (d) => ({ ...d, goals: d.goals.map((x) => (x.id === g.id ? optimistic(x) : x)) }));
 
@@ -270,7 +290,7 @@ function GoalRow({ g, p }: { g: GoalDto; p: PanelProps }) {
 
   if (editing) {
     return (
-      <li>
+      <li ref={root}>
         <form onSubmit={save} noValidate className="space-y-2">
           <TextField label="Edit goal" value={text} maxLength={200} onChange={(e) => setText(e.target.value)} error={error} />
           <div className="flex gap-2">
@@ -282,21 +302,19 @@ function GoalRow({ g, p }: { g: GoalDto; p: PanelProps }) {
     );
   }
   return (
-    <li className="flex items-start gap-3">
-      <input
-        type="checkbox"
+    <li ref={root} className="flex items-start gap-3">
+      <Checkbox
         id={`goal-${g.id}`}
         checked={g.done}
         onChange={async (e) => {
           const done = e.target.checked;
           report(await patch({ done }, (x) => ({ ...x, done })), p, done ? "Goal achieved" : "Goal reopened");
         }}
-        className="mt-2 size-6 shrink-0 accent-brand"
       />
-      <label htmlFor={`goal-${g.id}`} className={`flex-1 pt-2 ${g.done ? "text-muted line-through" : ""}`}>
+      <label htmlFor={`goal-${g.id}`} className={`flex-1 pt-2.5 ${g.done ? "text-muted line-through" : ""}`}>
         {g.text}
       </label>
-      <Button variant="ghost" onClick={() => setEditing(true)} aria-label={`Edit goal: ${g.text}`}>
+      <Button data-opener variant="ghost" onClick={() => setEditing(true)} aria-label={`Edit goal: ${g.text}`}>
         Edit
       </Button>
     </li>
@@ -310,11 +328,15 @@ export function GoalsPanel(p: PanelProps) {
   const [text, setText] = useState("");
   const [errors, setErrors] = useState<Errors>({});
   const [busy, setBusy] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
     const v = goalSchema.safeParse({ horizon, text });
-    if (!v.success) return setErrors(fieldErrors(v.error));
+    if (!v.success) {
+      setAttempt((n) => n + 1);
+      return setErrors(fieldErrors(v.error));
+    }
     setErrors({});
     setBusy(true);
     const r = await p.mutate({ path: `${p.base}/goals`, method: "POST", body: v.data }, (cur) => ({
@@ -339,6 +361,7 @@ export function GoalsPanel(p: PanelProps) {
         );
       })}
       <form onSubmit={add} noValidate className="space-y-3 border-t border-line pt-3">
+        <ErrorSummary message={Object.keys(errors).length ? firstError(errors) : null} focusKey={attempt} />
         <SelectField label="Add a goal for" value={horizon} onChange={(e) => setHorizon(e.target.value)} error={errors.horizon}>
           {GOAL_HORIZONS.map((h) => (
             <option key={h} value={h}>
@@ -347,7 +370,7 @@ export function GoalsPanel(p: PanelProps) {
           ))}
         </SelectField>
         <TextField label="Goal" value={text} maxLength={200} onChange={(e) => setText(e.target.value)} error={errors.text} />
-        <Button type="submit" busy={busy} disabled={busy}>
+        <Button type="submit" busy={busy} aria-disabled={busy || undefined}>
           <Icon name="plus" /> Add goal
         </Button>
       </form>
@@ -363,17 +386,24 @@ export function PhotoReviewPanel(p: PanelProps) {
   const [justification, setJustification] = useState("");
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   if (!review) return null;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const v = justification.trim();
-    if (v.length < 5) return setError("Please give a short justification (at least 5 characters)");
+    if (v.length < 5) {
+      setAttempt((n) => n + 1);
+      return setError("Please give a short justification (at least 5 characters)");
+    }
     setError(undefined);
     setBusy(true);
     const r = await p.mutate({ path: `${p.base}/photo-override`, method: "POST", body: { justification: v } }, (d) => ({ ...d, photoReview: null }));
     setBusy(false);
-    if (!report(r, p, "Photo recertified")) setError(r.fields?.justification ?? r.message);
+    if (!report(r, p, "Photo recertified")) {
+      setAttempt((n) => n + 1);
+      setError(r.fields?.justification ?? r.message);
+    }
   }
 
   return (
@@ -391,8 +421,9 @@ export function PhotoReviewPanel(p: PanelProps) {
         <p className="text-muted">No issue details were recorded.</p>
       )}
       <form onSubmit={submit} noValidate className="space-y-3">
+        <ErrorSummary message={error ?? null} focusKey={attempt} />
         <TextArea label="Why is this photo acceptable?" value={justification} maxLength={300} onChange={(e) => setJustification(e.target.value)} error={error} hint="Required. Recorded in the audit trail. Do not include personal details." />
-        <Button type="submit" busy={busy} disabled={busy}>
+        <Button type="submit" busy={busy} aria-disabled={busy || undefined}>
           Recertify photo
         </Button>
       </form>
@@ -452,7 +483,7 @@ export function BespokeTaskSheet({ open, onClose, ...p }: PanelProps & { open: b
         </SelectField>
         <TextField label="Due date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} error={errors.dueDate} />
         <div className="flex flex-wrap gap-2">
-          <Button type="submit" busy={busy} disabled={busy}>
+          <Button type="submit" busy={busy} aria-disabled={busy || undefined}>
             Add task
           </Button>
           <Button variant="ghost" onClick={onClose}>
@@ -500,7 +531,7 @@ export function TeamItemSheet({ open, onClose, ...p }: PanelProps & { open: bool
           <option value="STARTER">The starter</option>
         </SelectField>
         <div className="flex flex-wrap gap-2">
-          <Button type="submit" busy={busy} disabled={busy}>
+          <Button type="submit" busy={busy} aria-disabled={busy || undefined}>
             Add item
           </Button>
           <Button variant="ghost" onClick={onClose}>

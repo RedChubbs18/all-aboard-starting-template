@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { LINK_TASK_KEYS, linkSchema, MAX_LINKS } from "./schemas";
 import { teamChecklistItems } from "./team";
 import type { MutateResult } from "./hooks";
@@ -194,16 +195,15 @@ export function TeamChecklist({ p, onAdd }: { p: PanelProps; onAdd: () => void }
             <li key={t.key}>
               <Card highlight={t.owner === "LM"}>
                 <div className="flex items-start gap-3">
-                  <input
+                  <Checkbox
                     id={id}
-                    type="checkbox"
                     checked={t.status === "DONE"}
                     disabled={!editable || busyKey === t.key}
                     onChange={() => toggle(t)}
-                    className="mt-1 size-6 shrink-0 accent-brand"
+                    className="accent-brand"
                   />
                   <div className="flex-1 space-y-1">
-                    <label htmlFor={id} className="block min-h-8 font-semibold">
+                    <label htmlFor={id} className="block min-h-11 pt-2.5 font-semibold">
                       {t.title}
                     </label>
                     <div className="flex flex-wrap items-center gap-2">

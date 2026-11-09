@@ -2,10 +2,13 @@
 
 import { controlClass } from "@/components/ui/Field";
 import { Lock, Pencil } from "lucide-react";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
+import { useFocusSwap } from "@/components/ui/use-focus-swap";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { Card } from "@/components/ui/Card";
+import { ErrorSummary } from "@/components/lm/error-summary";
 import { useToast } from "@/components/ui/Toast";
 import { formatLongDate } from "./format";
 import { useSession } from "@/lib/auth/client";
@@ -33,15 +36,22 @@ const HORIZONS: { key: "30" | "60" | "90"; label: string }[] = [
   { key: "90", label: "By 90 days" },
 ];
 
-function AddGoal({ horizon, journeyId, onAdded }: { horizon: "30" | "60" | "90"; journeyId: string; onAdded: () => void | Promise<void> }) {
+function AddGoal({ horizon, label, journeyId, onAdded }: { horizon: "30" | "60" | "90"; label: string; journeyId: string; onAdded: () => void | Promise<void> }) {
   const { apiFetch } = useSession();
   const toast = useToast();
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
   const id = useId();
   async function add(e: React.FormEvent) {
     e.preventDefault();
-    if (!text.trim()) return;
+    if (!text.trim()) {
+      setError("Enter a goal before adding it.");
+      setAttempt((n) => n + 1);
+      return;
+    }
+    setError(null);
     setBusy(true);
     const r = await apiFetch("/api/starter/goals", {
       method: "POST",
@@ -53,25 +63,34 @@ function AddGoal({ horizon, journeyId, onAdded }: { horizon: "30" | "60" | "90";
       setText("");
       toast.success("Goal added");
       await onAdded();
-    } else toast.error(((await r.json().catch(() => ({}))) as { message?: string }).message ?? "Couldn't add that goal");
+    } else {
+      const message = ((await r.json().catch(() => ({}))) as { message?: string }).message ?? "Couldn't add that goal";
+      setError(message);
+      setAttempt((n) => n + 1);
+      toast.error(message);
+    }
   }
   return (
-    <form onSubmit={add} className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end">
+    <form onSubmit={add} noValidate className="mt-3 space-y-2">
+      <ErrorSummary message={error} title="Couldn't add that goal" focusKey={attempt} />
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
       <div className="flex-1">
         <label htmlFor={id} className="text-sm font-semibold">
-          Add a goal
+          Add a goal for {label.toLowerCase()}
         </label>
         <input
           id={id}
           value={text}
           maxLength={280}
           onChange={(e) => setText(e.target.value)}
+          aria-invalid={error ? true : undefined}
           className={controlClass}
         />
       </div>
-      <Button type="submit" loading={busy} aria-disabled={!text.trim()}>
+      <Button type="submit" loading={busy} aria-label={`Add goal for ${label.toLowerCase()}`}>
         Add
       </Button>
+      </div>
     </form>
   );
 }
@@ -82,6 +101,8 @@ function GoalRow({ goal, canEdit, locked, onChanged }: { goal: GoalItem; canEdit
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(goal.text);
   const [done, setDone] = useState(goal.done);
+  const root = useRef<HTMLLIElement>(null);
+  useFocusSwap(editing, root);
   const patch = async (body: { text?: string; done?: boolean }) => {
     const r = await apiFetch(`/api/starter/goals/${goal.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
     if (!r.ok) {
@@ -92,10 +113,8 @@ function GoalRow({ goal, canEdit, locked, onChanged }: { goal: GoalItem; canEdit
     return true;
   };
   return (
-    <li className="flex items-start gap-3 rounded-md border border-line bg-card p-3">
-      <input
-        type="checkbox"
-        className="mt-1 size-6 shrink-0 accent-[var(--color-brand)]"
+    <li ref={root} className="flex items-start gap-3 rounded-md border border-line bg-card p-3">
+      <Checkbox
         checked={done}
         disabled={!canEdit}
         aria-label={`Done: ${goal.text}`}
@@ -128,7 +147,7 @@ function GoalRow({ goal, canEdit, locked, onChanged }: { goal: GoalItem; canEdit
           )}
           {locked && <Lock aria-hidden className="mt-3 size-5 shrink-0 text-muted" strokeWidth={1.8} />}
           {canEdit && (
-            <Button variant="ghost" size="icon" aria-label={`Edit goal: ${goal.text}`} onClick={() => setEditing(true)}>
+            <Button data-opener variant="ghost" size="icon" aria-label={`Edit goal: ${goal.text}`} onClick={() => setEditing(true)}>
               <Pencil aria-hidden className="size-5" />
             </Button>
           )}
@@ -173,7 +192,7 @@ export function GoalsPanel({ journeyId, goals, canEdit, lockedUntil, onChanged }
                 ))}
               </ul>
             )}
-            {canEdit && <AddGoal horizon={h.key} journeyId={journeyId} onAdded={onChanged} />}
+            {canEdit && <AddGoal horizon={h.key} label={h.label} journeyId={journeyId} onAdded={onChanged} />}
           </Card>
         );
       })}

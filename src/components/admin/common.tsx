@@ -122,7 +122,7 @@ export function Drawer({ title, open, onClose, children }: { title: string; open
 }
 
 /** Confirm dialog (cancel first in DOM order). */
-export function Confirm({ title, message, confirmLabel, open, onCancel, onConfirm, busy }: { title: string; message: ReactNode; confirmLabel: string; open: boolean; onCancel: () => void; onConfirm: () => void; busy?: boolean }) {
+export function Confirm({ title, message, confirmLabel, open, onCancel, onConfirm, busy, tone = "danger" }: { title: string; message: ReactNode; confirmLabel: string; open: boolean; onCancel: () => void; onConfirm: () => void; busy?: boolean; tone?: "danger" | "primary" }) {
   return (
     <Sheet open={open} onClose={onCancel} title={title} variant="dialog">
       <div className="text-muted">{message}</div>
@@ -130,7 +130,7 @@ export function Confirm({ title, message, confirmLabel, open, onCancel, onConfir
         <button type="button" onClick={onCancel} className={btnCls.secondary}>
           Cancel
         </button>
-        <button type="button" onClick={onConfirm} disabled={busy} aria-busy={busy} className={btnCls.danger}>
+        <button type="button" onClick={busy ? undefined : onConfirm} aria-disabled={busy || undefined} aria-busy={busy} className={btnCls[tone]}>
           {confirmLabel}
         </button>
       </div>

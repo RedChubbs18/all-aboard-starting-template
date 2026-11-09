@@ -6,7 +6,8 @@ import { useApi } from "@/lib/auth/use-api";
 import { useSession } from "@/lib/auth/client";
 import { graphInviteExternalApproved, graphInvitesEnabled } from "@/lib/auth/config";
 import { FALLBACK_MESSAGES, GRAPH_INVITE_SCOPES, guestDisplayName, isValidEmail, sendGraphInvite, type InviteOutcome } from "@/lib/graph/invite";
-import { Alert, Field, btnCls, inputCls, useSend, type Fields } from "./common";
+import { ErrorSummary } from "@/components/lm/error-summary";
+import { Alert, Confirm, Field, btnCls, inputCls, useSend, type Fields } from "./common";
 
 interface Dir {
   teams: { id: string; name: string }[];
@@ -44,6 +45,7 @@ export function SeedStarterForm() {
   const [personalEmail, setPersonalEmail] = useState("");
   const [inviteNote, setInviteNote] = useState<InviteNote | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   const set = (k: keyof typeof v, val: string) => setV((o) => ({ ...o, [k]: val }));
 
@@ -54,10 +56,12 @@ export function SeedStarterForm() {
     const email = personalEmail.trim();
     if (sendReal && !isValidEmail(email)) {
       setErrors({ personalEmail: "Enter a valid personal email address for the invite" });
+      setAttempt((n) => n + 1);
       return;
     }
     if (!sendReal && email && !isValidEmail(email)) {
       setErrors({ personalEmail: "Enter a valid email address" });
+      setAttempt((n) => n + 1);
       return;
     }
     if (sendReal) setConfirming(true);
@@ -68,6 +72,7 @@ export function SeedStarterForm() {
     setConfirming(false);
     setBusy(true);
     setMsg("");
+    setErrors({});
     setResult(null);
     setInviteNote(null);
     const email = personalEmail.trim();
@@ -85,6 +90,7 @@ export function SeedStarterForm() {
     } else {
       setErrors(r.fields);
       setMsg(r.message);
+      setAttempt((n) => n + 1);
     }
   }
 
@@ -134,9 +140,16 @@ export function SeedStarterForm() {
         </section>
       )}
       {inviteNote && <Alert kind={inviteNote.kind}>{inviteNote.text}</Alert>}
-      {msg && !Object.keys(errors).length && <Alert kind="danger">{msg}</Alert>}
+
       {dir.error && <Alert kind="danger">{dir.error}</Alert>}
       <form onSubmit={submit} className="space-y-3 rounded-lg bg-card p-4 border border-line" noValidate>
+        {/* The server message is always shown; field problems are listed under it. Focus moves here after a failed submit. */}
+        <ErrorSummary
+          message={msg || (Object.keys(errors).length ? "Check the fields below." : null)}
+          items={Object.values(errors)}
+          title={Object.keys(errors).length ? "Please fix the highlighted fields" : "Couldn't create the journey"}
+          focusKey={attempt}
+        />
         <fieldset>
           <legend className="font-medium">Starter</legend>
           <div className="flex gap-4">
@@ -204,20 +217,19 @@ export function SeedStarterForm() {
         </p>
         <button type="submit" className={btnCls.primary} disabled={busy} aria-busy={busy}>Create journey and send invite</button>
       </form>
-      {confirming && (
-        <div role="presentation" className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-invite-title" className="max-w-md space-y-4 rounded-lg bg-card p-5">
-            <h2 id="confirm-invite-title" className="text-lg font-bold">Send invitation?</h2>
-            <p>
-              Send a real Microsoft Entra invitation email to {personalEmail.trim()}? This creates a guest user {guestDisplayName(displayForGuest || "starter")} in the shared tenant.
-            </p>
-            <div className="flex gap-3">
-              <button type="button" className={btnCls.secondary} autoFocus onClick={() => setConfirming(false)}>Cancel</button>
-              <button type="button" className={btnCls.primary} onClick={() => void run()}>Send invite</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Confirm
+        open={confirming}
+        title="Send invitation?"
+        message={
+          <p>
+            Send a real Microsoft Entra invitation email to {personalEmail.trim()}? This creates a guest user {guestDisplayName(displayForGuest || "starter")} in the shared tenant.
+          </p>
+        }
+        confirmLabel="Send invite"
+        tone="primary"
+        onCancel={() => setConfirming(false)}
+        onConfirm={() => void run()}
+      />
     </div>
   );
 }
