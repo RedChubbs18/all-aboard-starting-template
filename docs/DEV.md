@@ -81,7 +81,7 @@ For Entra and PWA install on a phone, use an HTTPS URL:
 
 Venue Wi-Fi can isolate clients or change your IP, so check this on the day.
 
-`npm run dev` binds to `localhost` only. Use `npm run dev:lan` to reach the app from other devices, and set `DEMO_PIN` when you do.
+`npm run dev` listens on all interfaces, which is the Next.js default. Binding to `localhost` alone made it IPv6-only on macOS, which broke the dev live-reload connection in Safari and caused a page-reload loop. On shared Wi-Fi in demo mode, set `DEMO_PIN`, or use Entra mode, where every API needs a token.
 
 ## Graph invites
 
