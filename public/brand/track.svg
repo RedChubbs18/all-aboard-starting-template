@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 120" role="img" aria-labelledby="t d">
+  <title id="t">Placeholder journey track with five stages</title>
+  <desc id="d">Start line, then milestones: Conditional offer, Vetting, Unconditional offer, Day 0, Day 30. Static art; the app overlays live progress and a text equivalent. Milestones sit at 20, 40, 60, 80 and 100 percent.</desc>
+  <path d="M28.0 66.0 L33.0 63.1 L38.0 60.3 L43.0 57.6 L48.0 55.0 L53.0 52.6 L58.0 50.4 L63.0 48.5 L68.0 46.9 L73.0 45.7 L78.0 44.7 L83.0 44.2 L88.0 44.0 L93.0 44.2 L98.0 44.7 L103.0 45.7 L108.0 46.9 L113.0 48.5 L118.0 50.4 L123.0 52.6 L128.0 55.0 L133.0 57.6 L138.0 60.3 L143.0 63.1 L148.0 66.0 L153.0 68.9 L158.0 71.7 L163.0 74.4 L168.0 77.0 L173.0 79.4 L178.0 81.6 L183.0 83.5 L188.0 85.1 L193.0 86.3 L198.0 87.3 L203.0 87.8 L208.0 88.0 L213.0 87.8 L218.0 87.3 L223.0 86.3 L228.0 85.1 L233.0 83.5 L238.0 81.6 L243.0 79.4 L248.0 77.0 L253.0 74.4 L258.0 71.7 L263.0 68.9 L268.0 66.0 L273.0 63.1 L278.0 60.3 L283.0 57.6 L288.0 55.0 L293.0 52.6 L298.0 50.4 L303.0 48.5 L308.0 46.9 L313.0 45.7 L318.0 44.7 L323.0 44.2 L328.0 44.0" fill="none" stroke="var(--color-border, #6f7f78)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M28.0 66.0 L33.0 63.1 L38.0 60.3 L43.0 57.6 L48.0 55.0 L53.0 52.6 L58.0 50.4 L63.0 48.5 L68.0 46.9 L73.0 45.7 L78.0 44.7 L83.0 44.2 L88.0 44.0 L93.0 44.2 L98.0 44.7 L103.0 45.7 L108.0 46.9 L113.0 48.5 L118.0 50.4 L123.0 52.6 L128.0 55.0 L133.0 57.6 L138.0 60.3 L143.0 63.1 L148.0 66.0 L153.0 68.9 L158.0 71.7 L163.0 74.4 L168.0 77.0 L173.0 79.4 L178.0 81.6 L183.0 83.5 L188.0 85.1 L193.0 86.3 L198.0 87.3 L203.0 87.8 L208.0 88.0 L213.0 87.8 L218.0 87.3 L223.0 86.3 L228.0 85.1 L233.0 83.5 L238.0 81.6 L243.0 79.4 L248.0 77.0 L253.0 74.4 L258.0 71.7 L263.0 68.9 L268.0 66.0 L273.0 63.1 L278.0 60.3 L283.0 57.6 L288.0 55.0 L293.0 52.6 L298.0 50.4 L303.0 48.5 L308.0 46.9 L313.0 45.7 L318.0 44.7 L323.0 44.2 L328.0 44.0" fill="none" stroke="var(--color-surface, #fff)" stroke-width="2" stroke-dasharray="2 9" stroke-linecap="round"/>
+  <!-- start line -->
+  <rect x="26.0" y="52.0" width="4" height="28" rx="2" fill="var(--color-brand-strong, #003d2c)"/>
+  <g stroke-width="3">
+    <circle cx="88.0" cy="44.0" r="11" fill="var(--color-brand, #00573f)" stroke="var(--color-surface, #fff)"/>
+    <circle cx="148.0" cy="66.0" r="11" fill="var(--color-brand, #00573f)" stroke="var(--color-surface, #fff)"/>
+    <circle cx="208.0" cy="88.0" r="11" fill="var(--color-surface, #fff)" stroke="var(--color-brand, #00573f)"/>
+    <circle cx="268.0" cy="66.0" r="11" fill="var(--color-surface, #fff)" stroke="var(--color-brand, #00573f)"/>
+    <circle cx="328.0" cy="44.0" r="11" fill="var(--color-accent, #f2b705)" stroke="var(--color-brand-strong, #003d2c)"/>
+  </g>
+  <g font-family="system-ui, sans-serif" font-size="12" text-anchor="middle" fill="currentColor">
+    <text x="88.0" y="26.0">Offer</text>
+    <text x="148.0" y="48.0">Vetting</text>
+    <text x="208.0" y="118.0">Confirmed</text>
+    <text x="268.0" y="48.0">Day 0</text>
+    <text x="328.0" y="26.0">Day 30</text>
+  </g>
+</svg>

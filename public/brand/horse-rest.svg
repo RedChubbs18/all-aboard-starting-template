@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80" role="img" aria-labelledby="t">
+  <title id="t">Placeholder horse standing at the start line</title>
+  <g fill="currentColor">
+    <path d="M30 34c4-8 16-10 30-9 10 1 17 3 22 2l6-9 4 3-4 10c-2 5-8 8-12 9v26h-7V50H46v26h-7V50c-6-2-9-8-9-16z"/>
+    <path d="M84 27l7-13 6-6 3 4 9 6c3 2 3 6 0 7l-6 2-5 4-6-3z"/>
+    <path d="M97 8l2-6 3 6z"/>
+    <path d="M31 33c-8 2-12 10-12 22 6-4 10-5 14-4z"/>
+  </g>
+  <circle cx="99" cy="17" r="1.6" fill="var(--color-surface, #fff)"/>
+</svg>
