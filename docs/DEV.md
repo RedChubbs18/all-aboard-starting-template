@@ -80,3 +80,5 @@ For Entra and PWA install on a phone, use an HTTPS URL:
 - **`npm run dev:lan:https`** serves HTTPS with a locally generated certificate. The laptop trusts it, but phones won't, so they'll show warnings and won't install the PWA.
 
 Venue Wi-Fi can isolate clients or change your IP, so check this on the day.
+
+`npm run dev` binds to `localhost` only. Use `npm run dev:lan` to reach the app from other devices, and set `DEMO_PIN` when you do.

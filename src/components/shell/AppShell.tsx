@@ -37,7 +37,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <header className="sticky top-0 z-40 border-b border-line bg-card px-4 pb-3 pt-3">
             <div className="grid grid-cols-[44px_1fr_44px] items-center gap-2">
               <NotificationBell align="left" />
-              <p className="truncate text-center text-lg font-bold">Hi {first}</p>
+              <p className="font-display truncate text-center text-lg font-bold">Hi {first}</p>
               <ProfileMenu more={more} />
             </div>
           </header>

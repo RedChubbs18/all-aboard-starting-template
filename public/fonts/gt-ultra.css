@@ -1,0 +1,9 @@
+/*
+ * GT Ultra (licensed). Loaded only when NEXT_PUBLIC_BRAND_FONTS=local (see src/app/layout.tsx).
+ * The .woff2 files are local only and git-ignored: the licence forbids redistribution.
+ * Median: body and UI text. Standard: headings, large figures and the header greeting.
+ */
+@font-face { font-family: "Brand"; src: url("/fonts/GT-Ultra-Median-Regular.woff2") format("woff2"); font-weight: 400 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Brand"; src: url("/fonts/GT-Ultra-Median-Bold.woff2") format("woff2"); font-weight: 700 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Brand Display"; src: url("/fonts/GT-Ultra-Standard-Regular.woff2") format("woff2"); font-weight: 400 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Brand Display"; src: url("/fonts/GT-Ultra-Standard-Bold.woff2") format("woff2"); font-weight: 700 900; font-style: normal; font-display: swap; }

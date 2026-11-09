@@ -202,7 +202,7 @@ export function HorseTrack(props: HorseTrackProps) {
       <p className="mt-1 text-sm text-muted">
         <span className="font-semibold text-ink">{stage?.label}</span> stage, step {stageNumber} of 5
       </p>
-      <p aria-hidden className="tabular mt-2 text-[40px] font-extrabold leading-none tracking-[-0.02em] text-brand">
+      <p aria-hidden className="font-display tabular mt-2 text-[40px] font-extrabold leading-none tracking-[-0.02em] text-brand">
         {percent}%
       </p>
       <div className="relative mt-4 h-10">

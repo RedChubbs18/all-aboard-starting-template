@@ -22,6 +22,12 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-GB" className="h-full antialiased">
+      {process.env.NEXT_PUBLIC_BRAND_FONTS === "local" ? (
+        <head>
+          {/* Licensed GT Ultra, local only (see public/fonts/gt-ultra.css and docs/DECISIONS.md D18). */}
+          <link rel="stylesheet" href="/fonts/gt-ultra.css" />
+        </head>
+      ) : null}
       <body className="min-h-full">
         <AuthProvider>
           <AppShell>{children}</AppShell>
