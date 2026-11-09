@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { useState } from "react";
 import { STAGES, type Stage } from "@/domain/types";
-import { useStarterDetail, useToasts } from "./hooks";
+import { ToastProvider, useToast } from "@/components/ui/Toast";
+import { useStarterDetail } from "./hooks";
 import { BespokeTaskSheet, BuddyPanel, CheckInPanel, Day0Panel, GoalsPanel, PhotoReviewPanel } from "./panels";
 import { TaskRow, TeamChecklist, type PanelProps } from "./tasks";
 import { LINK_TASK_KEYS } from "./schemas";
 import type { StarterDetail } from "./types";
-import { Alert, Button, Card, ExternalLink, Icon, ProgressBar, RedFlagBadge, Skeleton, STAGE_HINT, STAGE_LABEL, ToastRegion, formatDate } from "./ui";
+import { Alert, Button, Card, ExternalLink, Icon, ProgressBar, RedFlagBadge, Skeleton, STAGE_HINT, STAGE_LABEL, formatDate } from "./ui";
 
 function Header({ d, onAdd }: { d: StarterDetail; onAdd: () => void }) {
   const hv = d.journey.firstadvantage;
@@ -16,17 +17,17 @@ function Header({ d, onAdd }: { d: StarterDetail; onAdd: () => void }) {
     <Card className="space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-semibold text-brand-strong">{d.starter.displayName}</h1>
-          <p className="text-text-muted">
+          <h1 className="text-[28px] font-bold leading-tight text-ink">{d.starter.displayName}</h1>
+          <p className="text-muted">
             {STAGE_LABEL[d.journey.stage]} · Starts {formatDate(d.journey.startDate)}
             {d.journey.status !== "active" && ` · ${d.journey.status}`}
           </p>
         </div>
         {d.journey.redFlag && <RedFlagBadge label={hv === "FAILED" ? "First Advantage: failed" : "First Advantage: action needed"} />}
       </div>
-      <ProgressBar percent={d.progress.percent} label={`${d.progress.done} of ${d.progress.total} tasks done (${d.progress.percent}%)`} />
+      <ProgressBar percent={d.progress.percent} overdue={d.progress.overdue > 0} label={`${d.progress.done} of ${d.progress.total} tasks done (${d.progress.percent}%)`} />
       {(d.progress.overdue > 0 || d.progress.blocked > 0) && (
-        <p className="text-sm font-semibold text-warning">
+        <p className="text-sm font-semibold text-blocked">
           {d.progress.overdue > 0 && `${d.progress.overdue} overdue`}
           {d.progress.overdue > 0 && d.progress.blocked > 0 && " · "}
           {d.progress.blocked > 0 && `${d.progress.blocked} blocked`}
@@ -58,7 +59,7 @@ function StageProgress({ d }: { d: StarterDetail }) {
         const current = s === d.journey.stage;
         const { done, total } = d.progress.perStage[s];
         return (
-          <li key={s} aria-current={current ? "step" : undefined} className={`rounded-sm px-2 py-1 font-semibold ${current ? "bg-brand text-surface" : "border border-border bg-surface text-text"}`}>
+          <li key={s} aria-current={current ? "step" : undefined} className={`rounded-full border-[1.5px] px-3.5 py-1.5 font-semibold ${current ? "border-dark-green bg-dark-green text-card" : "border-ink bg-card text-ink"}`}>
             {STAGE_LABEL[s]} {done}/{total}
           </li>
         );
@@ -71,7 +72,7 @@ function StageProgress({ d }: { d: StarterDetail }) {
 function StageList({ d, p }: { d: StarterDetail; p: PanelProps }) {
   return (
     <section aria-labelledby="all-tasks" className="space-y-3">
-      <h2 id="all-tasks" className="text-xl font-semibold text-brand-strong">
+      <h2 id="all-tasks" className="text-xl font-bold text-ink">
         {d.starter.displayName.split(" ")[0]}&apos;s journey
       </h2>
       <StageProgress d={d} />
@@ -79,18 +80,18 @@ function StageList({ d, p }: { d: StarterDetail; p: PanelProps }) {
         const tasks = d.tasks.filter((t) => t.stage === s).sort((a, b) => a.dueDate.localeCompare(b.dueDate));
         const { done, total } = d.progress.perStage[s];
         return (
-          <details key={s} open={s === d.journey.stage} className="rounded-md bg-surface shadow-card">
+          <details key={s} open={s === d.journey.stage} className="rounded-md border border-line bg-card">
             <summary className="flex min-h-14 cursor-pointer items-center gap-3 px-4 font-semibold">
               <span className="flex-1">
-                <span className="block text-lg">{STAGE_LABEL[s]}</span>
-                <span className="block text-sm font-normal text-text-muted">{STAGE_HINT[s]}</span>
+                <span className="block text-[17px] font-bold">{STAGE_LABEL[s]}</span>
+                <span className="block text-sm font-normal text-muted">{STAGE_HINT[s]}</span>
               </span>
-              <span className="text-sm font-normal text-text-muted">
+              <span className="text-sm font-semibold text-muted">
                 {done} of {total} done
               </span>
             </summary>
-            <div className="space-y-3 px-4 pb-4">
-              {tasks.length === 0 ? <p className="text-text-muted">No tasks in this stage yet.</p> : tasks.map((t) => <TaskRow key={t.id} t={t} p={p} />)}
+            <div className="space-y-3 border-t border-line px-4 py-4">
+              {tasks.length === 0 ? <p className="text-muted">No tasks in this stage yet.</p> : tasks.map((t) => <TaskRow key={t.id} t={t} p={p} />)}
             </div>
           </details>
         );
@@ -100,12 +101,20 @@ function StageList({ d, p }: { d: StarterDetail; p: PanelProps }) {
 }
 
 export function StarterDetailView({ journeyId }: { journeyId: string }) {
+  return (
+    <ToastProvider>
+      <StarterDetailBody journeyId={journeyId} />
+    </ToastProvider>
+  );
+}
+
+function StarterDetailBody({ journeyId }: { journeyId: string }) {
   const { data: d, error, loading, reload, mutate } = useStarterDetail(journeyId);
-  const t = useToasts();
+  const t = useToast();
   const [sheet, setSheet] = useState(false);
 
   const back = (
-    <Link href="/lm" className="inline-flex min-h-11 items-center gap-1 text-brand underline underline-offset-2">
+    <Link href="/lm" className="inline-flex min-h-11 items-center gap-1 text-brand-strong underline underline-offset-2">
       <span aria-hidden="true">←</span> Your starters
     </Link>
   );
@@ -129,7 +138,7 @@ export function StarterDetailView({ journeyId }: { journeyId: string }) {
       </div>
     );
 
-  const p: PanelProps = { d, base: `/api/lm/starters/${journeyId}`, mutate, ok: t.success, fail: t.fail };
+  const p: PanelProps = { d, base: `/api/lm/starters/${journeyId}`, mutate, ok: (m) => t.success(m), fail: (m) => t.error(m) };
   const mine = d.tasks
     .filter((x) => x.owner === "LM" && !LINK_TASK_KEYS.includes(x.key) && x.source !== "TEAM")
     .sort((a, b) => Number(a.status === "DONE") - Number(b.status === "DONE") || a.dueDate.localeCompare(b.dueDate));
@@ -137,7 +146,6 @@ export function StarterDetailView({ journeyId }: { journeyId: string }) {
 
   return (
     <div className="space-y-4">
-      <ToastRegion toasts={t.toasts} dismiss={t.dismiss} />
       {back}
       <div className="grid gap-4 lg:grid-cols-3 lg:items-start">
         <div className="lg:col-span-3">
@@ -152,15 +160,15 @@ export function StarterDetailView({ journeyId }: { journeyId: string }) {
         )}
 
         <section aria-labelledby="your-tasks" className="space-y-3 lg:col-span-2 lg:col-start-1">
-          <h2 id="your-tasks" className="text-xl font-semibold text-brand-strong">
-            Your tasks <span className="text-base font-normal text-text-muted">({mine.filter((x) => x.status !== "DONE").length} to do)</span>
+          <h2 id="your-tasks" className="text-xl font-bold text-ink">
+            Your tasks <span className="text-base font-normal text-muted">({mine.filter((x) => x.status !== "DONE").length} to do)</span>
           </h2>
           {overdueMine > 0 && (
             <Alert tone="warning" title={`${overdueMine} of your tasks ${overdueMine === 1 ? "is" : "are"} overdue`}>
               P&amp;P may send you a nudge about these. Marking them done clears the flag.
             </Alert>
           )}
-          {mine.length === 0 ? <p className="text-text-muted">You have no tasks for this starter.</p> : mine.map((x) => <TaskRow key={x.id} t={x} p={p} />)}
+          {mine.length === 0 ? <p className="text-muted">You have no tasks for this starter.</p> : mine.map((x) => <TaskRow key={x.id} t={x} p={p} />)}
         </section>
 
         <div className="space-y-4 lg:col-start-3 lg:row-span-4 lg:row-start-3">

@@ -1,5 +1,6 @@
 "use client";
 
+import { Mail } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useSession } from "@/lib/auth/client";
 
@@ -100,14 +101,11 @@ export function NotificationBell({ pollMs = POLL_MS, align = "right" }: { pollMs
         aria-expanded={open}
         aria-controls={panelId}
         aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
-        className="relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-md hover:bg-brand-soft"
+        className="relative inline-flex size-11 items-center justify-center rounded-full border-[1.5px] border-ink bg-card text-ink hover:bg-page"
       >
-        <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
-          <path d="M13.7 21a2 2 0 0 1-3.4 0" />
-        </svg>
+        <Mail aria-hidden className="size-[22px]" strokeWidth={1.8} />
         {unread > 0 && (
-          <span aria-hidden="true" className="absolute right-1 top-1 min-w-5 rounded-full bg-danger px-1 text-center text-xs font-bold leading-5 text-surface">
+          <span aria-hidden="true" className="absolute -right-1 -top-1 min-w-5 rounded-full bg-blocked px-1 text-center text-xs font-bold leading-5 text-card">
             {unread > 9 ? "9+" : unread}
           </span>
         )}
@@ -118,28 +116,28 @@ export function NotificationBell({ pollMs = POLL_MS, align = "right" }: { pollMs
         <section
           id={panelId}
           aria-label="Notifications"
-          className={`absolute ${align === "left" ? "left-0" : "right-0"} z-50 mt-2 max-h-[70dvh] w-[min(22rem,calc(100vw-1.5rem))] overflow-y-auto rounded-md border border-border bg-surface text-text shadow-card`}
+          className={`absolute ${align === "left" ? "left-0" : "right-0"} z-50 mt-2 max-h-[70dvh] w-[min(22rem,calc(100vw-2rem))] overflow-y-auto rounded-md border border-line bg-card text-ink shadow-card`}
         >
-          <h2 className="border-b border-border px-4 py-3 text-base font-semibold">Notifications</h2>
-          {failed && <p role="alert" className="px-4 py-2 text-sm text-danger">Could not refresh. Showing the last list.</p>}
+          <h2 className="border-b border-line px-4 py-3 text-base font-semibold">Notifications</h2>
+          {failed && <p role="alert" className="px-4 py-2 text-sm text-blocked">Could not refresh. Showing the last list.</p>}
           {items.length === 0 ? (
-            <p className="px-4 py-6 text-center text-text-muted">You are all caught up.</p>
+            <p className="px-4 py-6 text-center text-muted">You are all caught up.</p>
           ) : (
             <ul>
               {items.map((n) => (
-                <li key={n.id} className={`border-b border-border last:border-0 ${n.read ? "" : "bg-brand-soft"}`}>
+                <li key={n.id} className={`border-b border-line last:border-0 ${n.read ? "" : "bg-brand-tint"}`}>
                   <div className="flex items-start gap-2 px-4 py-3">
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold">
                         {!n.read && <span className="sr-only">Unread: </span>}
                         {n.title}
                       </p>
-                      <p className="mt-0.5 text-sm text-text-muted">{n.body}</p>
-                      <p className="mt-1 text-xs text-text-muted">
+                      <p className="mt-0.5 text-sm text-muted">{n.body}</p>
+                      <p className="mt-1 text-xs text-muted">
                         <time dateTime={n.createdAt}>{new Date(n.createdAt).toLocaleString()}</time>
                       </p>
                       {n.link && (
-                        <a href={n.link} onClick={() => void markRead(n)} className="mt-1 inline-flex min-h-11 items-center text-brand underline underline-offset-2">
+                        <a href={n.link} onClick={() => void markRead(n)} className="mt-1 inline-flex min-h-11 items-center font-semibold text-brand-strong underline underline-offset-2">
                           Open
                         </a>
                       )}
@@ -148,7 +146,7 @@ export function NotificationBell({ pollMs = POLL_MS, align = "right" }: { pollMs
                       <button
                         type="button"
                         onClick={() => void markRead(n)}
-                        className="min-h-11 shrink-0 rounded-md px-2 text-sm font-semibold text-brand hover:bg-brand-soft"
+                        className="min-h-11 shrink-0 rounded-full px-3 text-sm font-semibold text-brand-strong hover:bg-brand-tint"
                         aria-label={`Mark as read: ${n.title}`}
                       >
                         Mark read

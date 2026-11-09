@@ -13,7 +13,7 @@ function Inlines({ nodes, vars }: { nodes: Inline[]; vars: Vars }) {
             return n.v;
           case "code":
             return (
-              <code key={i} className="rounded-sm bg-surface-alt px-1 py-0.5 text-[0.9em]">
+              <code key={i} className="rounded-sm bg-page px-1 py-0.5 text-[0.9em]">
                 {n.v}
               </code>
             );
@@ -38,7 +38,7 @@ function Inlines({ nodes, vars }: { nodes: Inline[]; vars: Vars }) {
                 key={i}
                 href={n.href}
                 {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                className="break-words text-brand underline underline-offset-2"
+                className="break-words text-brand-strong underline underline-offset-2"
               >
                 <Inlines nodes={n.c} vars={vars} />
                 {external && <span className="sr-only"> (opens in a new tab)</span>}
@@ -49,14 +49,14 @@ function Inlines({ nodes, vars }: { nodes: Inline[]; vars: Vars }) {
             // Images from content are external placeholders; show alt text and a link, never auto-load third-party URLs.
             const href = safeHref(n.src);
             return (
-              <span key={i} className="my-2 flex items-center gap-2 rounded-md border border-dashed border-border bg-surface-alt p-3 text-text-muted">
+              <span key={i} className="my-2 flex items-center gap-2 rounded-md border border-dashed border-line bg-page p-3 text-muted">
                 <ImageIcon aria-hidden className="size-6 shrink-0" />
                 <span>
                   Image: {n.alt || "illustration"}
                   {href && (
                     <>
                       {" "}
-                      <a href={href} target="_blank" rel="noopener noreferrer" className="text-brand underline underline-offset-2">
+                      <a href={href} target="_blank" rel="noopener noreferrer" className="text-brand-strong underline underline-offset-2">
                         Open image<span className="sr-only"> (opens in a new tab)</span>
                       </a>
                     </>
@@ -75,9 +75,9 @@ function BlockView({ b, vars }: { b: Block; vars: Vars }) {
   switch (b.t) {
     case "heading": {
       const cls = {
-        1: "mt-6 text-2xl font-semibold text-brand-strong",
-        2: "mt-6 text-xl font-semibold text-brand-strong",
-        3: "mt-5 text-lg font-semibold",
+        1: "mt-6 text-[28px] font-bold leading-tight text-ink",
+        2: "mt-6 text-xl font-bold text-ink",
+        3: "mt-5 text-lg font-bold",
         4: "mt-4 text-base font-semibold",
       }[b.level];
       // Content titles are rendered as the page h1 by the caller, so body headings start at h2.
@@ -116,12 +116,12 @@ function BlockView({ b, vars }: { b: Block; vars: Vars }) {
       );
     case "quote":
       return (
-        <blockquote className="mt-3 border-l-4 border-brand bg-brand-soft p-3">
+        <blockquote className="mt-3 border-l-4 border-brand bg-brand-tint p-3">
           <Inlines nodes={b.c} vars={vars} />
         </blockquote>
       );
     case "hr":
-      return <hr className="my-4 border-border/50" />;
+      return <hr className="my-4 border-line" />;
     case "table":
       return (
         <div className="mt-3 overflow-x-auto">
@@ -129,7 +129,7 @@ function BlockView({ b, vars }: { b: Block; vars: Vars }) {
             <thead>
               <tr>
                 {b.head.map((c, i) => (
-                  <th key={i} scope="col" className="border-b-2 border-border bg-surface-alt p-2 font-semibold">
+                  <th key={i} scope="col" className="border-b-2 border-line bg-page p-2 font-semibold">
                     <Inlines nodes={c} vars={vars} />
                   </th>
                 ))}
@@ -139,7 +139,7 @@ function BlockView({ b, vars }: { b: Block; vars: Vars }) {
               {b.rows.map((r, ri) => (
                 <tr key={ri}>
                   {r.map((c, ci) => (
-                    <td key={ci} className="border-b border-border/40 p-2 align-top">
+                    <td key={ci} className="border-b border-line p-2 align-top">
                       <Inlines nodes={c} vars={vars} />
                     </td>
                   ))}

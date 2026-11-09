@@ -7,6 +7,7 @@ import type { ChaseRow, Issue, Overview } from "@/server/mi-service";
 import { FilterBar } from "./FilterBar";
 import { filtersToQuery, parseFilters, type MiFilters } from "./filters";
 import { ISSUE_KIND_LABEL, OWNER_LABEL, STAGE_LABEL, STATUS_LABEL, reasonLabel, sourceLabel, stageLabel } from "./labels";
+import { ChipRow, chipClass as chipLinkClass } from "@/components/ui/Chip";
 import { Badge, ChartCard, Icon, Modal, ResponsiveTable, Section, Skeleton, btnPrimary, btnSecondary, fieldClass } from "./primitives";
 
 const fmtDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) : "Not recorded");
@@ -66,14 +67,14 @@ export function MiDashboard() {
 
   return (
     <div className="mx-auto max-w-[1200px] space-y-4 pb-20 md:pb-4">
-      <h1 className="text-2xl font-semibold text-brand-strong">Intake overview</h1>
+      <h1 className="text-[28px] font-bold leading-tight text-ink">Intake overview</h1>
 
       <div className="fixed inset-x-3 top-3 z-50 md:inset-x-auto md:right-4 md:top-auto md:bottom-4 md:w-96" role={notice?.kind === "error" ? "alert" : "status"}>
         {notice && (
-          <div className={`flex items-start gap-2 rounded-md p-3 text-surface shadow-card ${notice.kind === "error" ? "bg-danger" : "bg-brand-strong"}`}>
+          <div className={`flex items-start gap-2 rounded-md p-3 text-card border border-line ${notice.kind === "error" ? "bg-blocked" : "bg-dark-green"}`}>
             <Icon name={notice.kind === "error" ? "alert" : "check"} />
             <p className="flex-1">{notice.text}</p>
-            <button type="button" onClick={() => setNotice(null)} aria-label="Dismiss message" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent">
+            <button type="button" onClick={() => setNotice(null)} aria-label="Dismiss message" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md">
               <Icon name="x" />
             </button>
           </div>
@@ -83,7 +84,7 @@ export function MiDashboard() {
       {view && <FilterBar filters={filters} options={view.options} onChange={onFilters} />}
 
       {error && (
-        <div role="alert" className="flex flex-wrap items-center gap-3 rounded-md border-l-4 border-danger bg-[#fbe6e4] p-3 text-danger">
+        <div role="alert" className="flex flex-wrap items-center gap-3 rounded-md border-l-4 border-blocked bg-blocked-tint p-3 text-blocked">
           <Icon name="alert" />
           <p className="flex-1 font-semibold">{error}</p>
           <button type="button" onClick={reload} className={btnSecondary}>Retry</button>
@@ -127,7 +128,7 @@ function Body({ data, onClear, post, reload, setNotice, exportBtn }: {
   const empty = (
     <div className="py-6 text-center">
       <p className="font-semibold">No starters match these filters</p>
-      <p className="mt-1 text-text-muted">Clear the filters to see everyone again.</p>
+      <p className="mt-1 text-muted">Clear the filters to see everyone again.</p>
       <button type="button" onClick={onClear} className={`${btnPrimary} mt-3`}>Clear filters</button>
     </div>
   );
@@ -159,19 +160,27 @@ function Body({ data, onClear, post, reload, setNotice, exportBtn }: {
       <section aria-label="Key figures">
         <ul className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           {kpis.map((k, i) => (
-            <li key={k.label} className={`rounded-md bg-surface p-4 shadow-card ${i === 4 ? "col-span-2 lg:col-span-1" : ""}`}>
-              <p className="text-3xl font-semibold text-brand-strong">{k.value}</p>
-              <p className="text-sm text-text-muted">{k.label}</p>
+            <li key={k.label} className={`rounded-md border border-line bg-card px-[22px] py-4 ${i === 4 ? "col-span-2 lg:col-span-1" : ""}`}>
+              <p className="text-[32px] font-extrabold leading-tight tracking-[-0.02em] text-ink">{k.value}</p>
+              <p className="text-sm text-muted">{k.label}</p>
             </li>
           ))}
         </ul>
-        {data.filters.status && <p className="mt-2 text-sm text-text-muted">Key figures ignore the status filter.</p>}
+        {data.filters.status && <p className="mt-2 text-sm text-muted">Key figures ignore the status filter.</p>}
       </section>
+
+      <nav aria-label="Dashboard sections">
+        <ChipRow label="Jump to section">
+          {[["#charts", "Charts"], ["#chase", "Chase"], ["#issues", "Issues"], ["#starters", "Starters"], ["#exits", "Exits"]].map(([href, label]) => (
+            <a key={href} href={href} className={chipLinkClass}>{label}</a>
+          ))}
+        </ChipRow>
+      </nav>
 
       {total === 0 ? (
         <Section title="Starters">{empty}</Section>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div id="charts" className="grid scroll-mt-20 gap-4 lg:grid-cols-2">
           <ChartCard
             title="Starters by current stage"
             summary={`${plural(total, "starter")} in this view`}
@@ -195,25 +204,25 @@ function Body({ data, onClear, post, reload, setNotice, exportBtn }: {
         </div>
       )}
 
-      <Section title="Chase line managers" actions={null}>
-        <p className="text-sm text-text-muted">Shown when a line manager has a task that is past due and not done. A line manager can be chased once every 24 hours.</p>
+      <Section id="chase" title="Chase line managers" actions={null}>
+        <p className="text-sm text-muted">Shown when a line manager has a task that is past due and not done. A line manager can be chased once every 24 hours.</p>
         {data.chase.length === 0 ? (
           <p className="mt-3">No line manager has overdue tasks in this view.</p>
         ) : (
           <ul className="mt-3 space-y-3">
             {data.chase.map((c) => (
-              <li key={c.lmId} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border/40 bg-surface-alt p-3">
+              <li key={c.lmId} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-line bg-page p-3">
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold">{c.lmName}</p>
                   <p className="text-sm">{plural(c.overdue.length, "overdue task")}: {c.overdue.slice(0, 3).map((t) => `${t.title} (${t.starterName}, ${t.daysOverdue}d)`).join("; ")}{c.overdue.length > 3 ? `; and ${c.overdue.length - 3} more` : ""}</p>
-                  <p className="text-sm text-text-muted">{c.lastChasedAt ? `Last chased ${fmtTime(c.lastChasedAt)}` : "Never chased"}</p>
+                  <p className="text-sm text-muted">{c.lastChasedAt ? `Last chased ${fmtTime(c.lastChasedAt)}` : "Never chased"}</p>
                 </div>
                 <div>
                   <button type="button" disabled={!c.canChase} aria-describedby={c.canChase ? undefined : `why-${c.lmId}`} onClick={() => setChasing(c)} className={btnPrimary}>
                     {c.canChase ? "Chase LM" : `Chased ${new Date(c.lastChasedAt!).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`}
                   </button>
                   {!c.canChase && c.blockedUntil && (
-                    <p id={`why-${c.lmId}`} className="mt-1 max-w-48 text-sm text-text-muted">Chased in the last 24 hours. Available again {fmtTime(c.blockedUntil)}.</p>
+                    <p id={`why-${c.lmId}`} className="mt-1 max-w-48 text-sm text-muted">Chased in the last 24 hours. Available again {fmtTime(c.blockedUntil)}.</p>
                   )}
                 </div>
               </li>
@@ -222,8 +231,8 @@ function Body({ data, onClear, post, reload, setNotice, exportBtn }: {
         )}
       </Section>
 
-      <Section title={`Issues (${data.issues.length})`} actions={exportBtn("issues", "Export issues CSV")}>
-        <p className="text-sm text-text-muted">Blocked, overdue and failed steps across active journeys.</p>
+      <Section id="issues" title={`Issues (${data.issues.length})`} actions={exportBtn("issues", "Export issues CSV")}>
+        <p className="text-sm text-muted">Blocked, overdue and failed steps across active journeys.</p>
         <div className="mt-3">
           <ResponsiveTable
             caption="Issues across active journeys"
@@ -232,42 +241,42 @@ function Body({ data, onClear, post, reload, setNotice, exportBtn }: {
             empty={<p>No issues. Nothing is blocked, overdue or failed in this view.</p>}
             columns={[
               { key: "starter", header: "Starter", primary: true, sort: (r) => r.starterName, cell: (r) => r.starterName },
-              { key: "task", header: "Step", sort: (r) => r.title, cell: (r) => <>{r.title}<span className="block text-sm text-text-muted">{stageLabel(r.stage)}</span></> },
+              { key: "task", header: "Step", sort: (r) => r.title, cell: (r) => <>{r.title}<span className="block text-sm text-muted">{stageLabel(r.stage)}</span></> },
               { key: "kind", header: "Issue", sort: (r) => r.kind, cell: (r) => <Badge tone={r.kind === "OVERDUE" ? "warning" : "danger"} icon={r.kind === "OVERDUE" ? "clock" : "alert"}>{ISSUE_KIND_LABEL[r.kind]}</Badge> },
               { key: "days", header: "Days overdue", sort: (r) => r.daysOverdue, cell: (r) => (r.daysOverdue ? `${r.daysOverdue} d` : "Not overdue") },
-              { key: "owner", header: "Owner", sort: (r) => r.owner, cell: (r) => <>{OWNER_LABEL[r.owner] ?? r.owner}{r.owner === "LM" && <span className="block text-sm text-text-muted">{r.lmName}</span>}</> },
+              { key: "owner", header: "Owner", sort: (r) => r.owner, cell: (r) => <>{OWNER_LABEL[r.owner] ?? r.owner}{r.owner === "LM" && <span className="block text-sm text-muted">{r.lmName}</span>}</> },
               { key: "act", header: "Action", cell: (r) => <button type="button" onClick={() => { setNote(""); setSupport(r); }} className={`${btnSecondary} !px-3 text-sm`}>Raise support<span className="sr-only"> for {r.starterName}: {r.title}</span></button> },
             ]}
           />
         </div>
       </Section>
 
-      <Section title={`Starters (${total})`} actions={exportBtn("journeys", "Export starters CSV")}>
+      <Section id="starters" title={`Starters (${total})`} actions={exportBtn("journeys", "Export starters CSV")}>
         <ResponsiveTable
           caption="Starters"
           rows={data.journeys}
           rowKey={(r) => r.id}
           empty={empty}
           columns={[
-            { key: "name", header: "Starter", primary: true, sort: (r) => r.starterName, cell: (r) => <>{r.starterName}<span className="block text-sm font-normal text-text-muted">{r.workEmail}</span></> },
+            { key: "name", header: "Starter", primary: true, sort: (r) => r.starterName, cell: (r) => <>{r.starterName}<span className="block text-sm font-normal text-muted">{r.workEmail}</span></> },
             { key: "stage", header: "Stage", sort: (r) => r.stage, cell: (r) => STAGE_LABEL[r.stage] },
             { key: "status", header: "Status", sort: (r) => r.status, cell: (r) => <>{STATUS_LABEL[r.status] ?? r.status}{r.flagged && <> <Badge tone="danger" icon="alert">Flagged</Badge></>}</> },
             { key: "start", header: "Start date", sort: (r) => r.startDate, cell: (r) => fmtDate(r.startDate) },
-            { key: "team", header: "Team", sort: (r) => r.teamName, cell: (r) => <>{r.teamName}{r.area && <span className="block text-sm text-text-muted">{r.area}</span>}</> },
+            { key: "team", header: "Team", sort: (r) => r.teamName, cell: (r) => <>{r.teamName}{r.area && <span className="block text-sm text-muted">{r.area}</span>}</> },
             { key: "lm", header: "Line manager", sort: (r) => r.lmName, cell: (r) => r.lmName },
             { key: "tasks", header: "Tasks done", sort: (r) => (r.totalTasks ? r.doneTasks / r.totalTasks : 0), cell: (r) => `${r.doneTasks} of ${r.totalTasks}` },
           ]}
         />
       </Section>
 
-      <Section title={`Exit report (${data.exits.rows.length})`} actions={exportBtn("exits", "Export exits CSV")}>
+      <Section id="exits" title={`Exit report (${data.exits.rows.length})`} actions={exportBtn("exits", "Export exits CSV")}>
         {data.exits.rows.length === 0 ? (
           <p>No exits in this view.</p>
         ) : (
           <>
             <p className="mb-3">
               <span className="font-semibold">{data.exits.colleagueSupplied.pct}% colleague-supplied</span>{" "}
-              <span className="text-text-muted">({data.exits.colleagueSupplied.count} of {data.exits.colleagueSupplied.total} exits; the rest were recorded by P&amp;P or have no source)</span>
+              <span className="text-muted">({data.exits.colleagueSupplied.count} of {data.exits.colleagueSupplied.total} exits; the rest were recorded by P&amp;P or have no source)</span>
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               <CountList title="By reason" rows={data.exits.byReason.map((r) => [reasonLabel(r.key), r.count])} />
@@ -313,11 +322,11 @@ function Body({ data, onClear, post, reload, setNotice, exportBtn }: {
       <Modal open={!!support} onClose={() => setSupport(null)} title="Raise support">
         {support && (
           <form onSubmit={(e) => { e.preventDefault(); void doSupport(); }}>
-            <p className="text-sm text-text-muted">{support.starterName}: {support.title}</p>
+            <p className="text-sm text-muted">{support.starterName}: {support.title}</p>
             <p className="mt-2"><span className="font-semibold">Routes to:</span> {support.routeLabel}</p>
             <label htmlFor="mi-support-note" className="mt-3 block text-sm font-semibold">Note (optional, do not include personal details)</label>
             <textarea id="mi-support-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={4} className={`${fieldClass} py-2`} />
-            <p className="text-right text-sm text-text-muted">{note.length} of 500</p>
+            <p className="text-right text-sm text-muted">{note.length} of 500</p>
             <div className="mt-3 flex flex-wrap gap-3">
               <button type="button" onClick={() => setSupport(null)} className={btnSecondary}>Cancel</button>
               <button type="submit" disabled={busy} aria-busy={busy} className={btnPrimary}>{busy ? "Submitting..." : "Submit"}</button>
@@ -337,7 +346,7 @@ function CountList({ title, rows }: { title: string; rows: (string | number)[][]
         <caption className="sr-only">Exits {title.toLowerCase()}</caption>
         <tbody>
           {rows.map(([k, v]) => (
-            <tr key={String(k)} className="border-b border-border/40">
+            <tr key={String(k)} className="border-b border-line">
               <th scope="row" className="py-1.5 pr-3 font-normal">{k}</th>
               <td className="py-1.5 text-right font-semibold">{v}</td>
             </tr>

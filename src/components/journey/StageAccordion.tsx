@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Owner, Stage } from "@/domain/types";
+import { cn } from "@/components/ui/cn";
 import { StageHeader } from "@/components/ui/StageHeader";
 import { Alert } from "@/components/ui/Alert";
 import { ContactCard } from "@/components/ui/ContactCard";
@@ -31,24 +32,25 @@ export function StageAccordion({ stages, journey, readOnly, highlightOwner, open
     setSeen(openRequest.n);
     setOverrides((o) => ({ ...o, [openRequest.stage]: true }));
   }
-  const isOpen = (k: Stage) => overrides[k] ?? k === current;
+  const isLocked = (k: Stage) => stages.find((s) => s.key === k)?.state === "locked";
+  const isOpen = (k: Stage) => !isLocked(k) && (overrides[k] ?? k === current);
 
   useEffect(() => {
     if (!openRequest) return;
     requestAnimationFrame(() => document.getElementById(`stage-${openRequest.stage}-btn`)?.scrollIntoView?.({ block: "start", behavior: "smooth" }));
   }, [openRequest]);
 
-  const toggle = (k: Stage) => setOverrides((o) => ({ ...o, [k]: !(o[k] ?? k === current) }));
+  const toggle = (k: Stage) => !isLocked(k) && setOverrides((o) => ({ ...o, [k]: !(o[k] ?? k === current) }));
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3.5">
       {stages.map((s, i) => {
         const id = `stage-${s.key}`;
         const expanded = isOpen(s.key);
         const tasks = journey.tasks.filter((t) => t.stage === s.key);
         const vetting = s.key === "PEV";
         return (
-          <section key={s.key} className="rounded-lg bg-surface shadow-card">
+          <section key={s.key} className={cn("overflow-hidden rounded-md border border-line bg-card", s.state === "locked" && "opacity-55")}>
             <StageHeader
               number={i + 1}
               label={s.label}
@@ -60,20 +62,15 @@ export function StageAccordion({ stages, journey, readOnly, highlightOwner, open
               controlsId={id}
               onToggle={() => toggle(s.key)}
             />
-            <div id={id} role="region" aria-labelledby={`${id}-btn`} hidden={!expanded} className="space-y-3 px-3 pb-3">
-              <p className="px-1 text-sm text-text-muted">{s.description}</p>
-              {s.state === "locked" ? (
-                <Alert tone="info">
-                  <p>{s.unlockHint ?? "This stage unlocks when the previous stage is complete."}</p>
-                </Alert>
-              ) : null}
+            <div id={id} role="region" aria-labelledby={`${id}-btn`} hidden={!expanded} className="space-y-3 border-t border-line pt-3">
+              <p className="px-4 text-sm text-muted">{s.description}</p>
               {vetting && journey.firstadvantage && (journey.firstadvantage.status === "action_needed" || journey.firstadvantage.status === "failed") && (
-                <Alert tone={journey.firstadvantage.status === "failed" ? "danger" : "warning"} title="Action needed on your vetting">
+                <Alert className="mx-4" tone={journey.firstadvantage.status === "failed" ? "danger" : "warning"} title="Action needed on your vetting">
                   <p>Your First Advantage check needs attention. Open the vetting task for what to do next.</p>
                 </Alert>
               )}
               {vetting && journey.pnp && s.state !== "locked" && (
-                <ContactCard name={journey.pnp.name} role="People & Places (vetting support)" upn={journey.pnp.upn} photoUrl={journey.pnp.photoUrl} variant="compact" />
+                <ContactCard name={journey.pnp.name} role="People & Places (vetting support)" upn={journey.pnp.upn} photoUrl={journey.pnp.photoUrl} variant="compact" className="mx-4" />
               )}
               <TaskList
                 tasks={tasks}

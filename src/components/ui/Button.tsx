@@ -3,21 +3,29 @@ import { Loader2 } from "lucide-react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { cn } from "./cn";
 
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "accent";
+/**
+ * primary: black pill. secondary: ghost (white, 1.5px ink border). ghost: text link (deep green).
+ * danger: stuck/alert (white, 2px blocked border). Disabled: sage grey with readable ink (STYLE A.4).
+ */
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 export type ButtonSize = "md" | "lg" | "icon";
 
 const base =
-  "inline-flex items-center justify-center gap-2 min-h-11 rounded-md font-semibold text-base transition-colors disabled:opacity-60 disabled:cursor-not-allowed aria-disabled:opacity-60 aria-disabled:cursor-not-allowed";
+  "inline-flex items-center justify-center gap-2 min-h-11 rounded-full text-[15px] font-bold leading-tight select-none " +
+  "motion-safe:transition-[transform,background-color,opacity] motion-safe:duration-150 active:translate-y-px " +
+  "disabled:cursor-default disabled:border-transparent disabled:bg-disabled disabled:text-disabled-ink " +
+  "aria-disabled:cursor-default aria-disabled:border-transparent aria-disabled:bg-disabled aria-disabled:text-disabled-ink";
+
 const variants: Record<ButtonVariant, string> = {
-  primary: "bg-brand text-surface hover:bg-brand-strong active:bg-brand-strong",
-  secondary: "bg-surface text-brand border-2 border-brand hover:bg-brand-soft",
-  ghost: "text-brand hover:bg-brand-soft",
-  danger: "bg-danger text-surface hover:brightness-90",
-  accent: "bg-accent text-text hover:brightness-95",
+  primary: "bg-ink text-card hover:bg-dark-green",
+  secondary: "border-[1.5px] border-ink bg-card text-ink hover:bg-page",
+  ghost: "text-brand-strong font-semibold hover:bg-brand-tint",
+  danger: "border-2 border-blocked bg-card text-sm text-blocked hover:bg-blocked-tint",
 };
+
 const sizes: Record<ButtonSize, string> = {
-  md: "px-4",
-  lg: "min-h-14 px-6",
+  md: "px-5 py-3",
+  lg: "min-h-14 px-6 py-3",
   icon: "min-w-11 px-0",
 };
 
@@ -33,16 +41,21 @@ interface CommonProps {
 }
 
 type ButtonProps = CommonProps &
-  Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className" | "children"> & { loading?: boolean };
+  Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className" | "children"> & {
+    /** Spinner, disables the button and sets aria-busy. */
+    loading?: boolean;
+    /** Sets aria-busy only (the action is running but the button stays focusable). */
+    busy?: boolean;
+  };
 
 /** Native button. With `aria-disabled` ("disabled with a visible reason") clicks are ignored but focus is kept. */
-export function Button({ variant, size, className, loading, children, onClick, type = "button", ...rest }: ButtonProps) {
+export function Button({ variant, size, className, loading, busy, children, onClick, type = "button", ...rest }: ButtonProps) {
   const ariaDisabled = rest["aria-disabled"] === true || rest["aria-disabled"] === "true";
   return (
     <button
       type={type}
       {...rest}
-      aria-busy={loading || undefined}
+      aria-busy={loading || busy || undefined}
       disabled={rest.disabled || loading}
       onClick={ariaDisabled ? (e) => e.preventDefault() : onClick}
       className={buttonClass(variant, size, className)}

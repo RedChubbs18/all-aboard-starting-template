@@ -38,7 +38,7 @@ export function Sheet({ open, onClose, title, children, variant = "sheet" }: Pro
         if (e.target === ref.current) onClose();
       }}
       className={cn(
-        "app-dialog m-0 bg-surface p-0 text-text shadow-card",
+        "app-dialog m-0 bg-card p-0 text-ink shadow-card",
         variant === "sheet"
           ? "sheet-up fixed inset-x-0 bottom-0 top-auto max-h-[90dvh] w-full max-w-none overflow-y-auto rounded-t-lg lg:inset-y-0 lg:left-auto lg:right-0 lg:max-h-none lg:w-[420px] lg:rounded-none lg:rounded-l-lg"
           : "m-auto w-[calc(100%-2rem)] max-w-sm rounded-lg",
@@ -46,9 +46,9 @@ export function Sheet({ open, onClose, title, children, variant = "sheet" }: Pro
     >
       {open && (
         <div className={variant === "sheet" ? "p-4" : "p-6"}>
-          {variant === "sheet" && <div aria-hidden className="mx-auto mb-2 h-1 w-10 rounded-full bg-border lg:hidden" />}
+          {variant === "sheet" && <div aria-hidden className="mx-auto mb-2 h-1 w-10 rounded-full bg-line-strong lg:hidden" />}
           <div className="flex items-start justify-between gap-3">
-            <h2 id={titleId} className="text-lg font-semibold">
+            <h2 id={titleId} className="text-xl font-bold">
               {title}
             </h2>
             <Button variant="ghost" size="icon" aria-label="Close" onClick={onClose}>

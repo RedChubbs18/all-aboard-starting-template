@@ -30,7 +30,7 @@ export function FilterBar({ filters, options, onChange }: Props) {
     </div>
   );
   return (
-    <section aria-label="Filters" className="rounded-md bg-surface p-4 shadow-card">
+    <section aria-label="Filters" className="rounded-md bg-card p-4 border border-line">
       <button type="button" aria-expanded={open} aria-controls={panel} onClick={() => setOpen((o) => !o)} className={`${btnSecondary} lg:hidden`}>
         Filters ({n})
       </button>

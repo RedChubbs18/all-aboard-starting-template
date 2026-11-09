@@ -58,11 +58,11 @@ function TeamPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold text-brand-strong">Welcome to the team</h1>
-        <p className="text-text-muted">{data.team.name}</p>
+        <h1 className="text-[28px] font-bold leading-tight text-ink">Welcome to the team</h1>
+        <p className="text-muted">{data.team.name}</p>
       </header>
 
-      <section aria-labelledby="line-h" className="rounded-lg bg-surface p-4 shadow-card">
+      <section aria-labelledby="line-h" className="rounded-md border border-line bg-card px-[22px] py-5">
         <h2 id="line-h" className="font-semibold">
           Reporting line
         </h2>
@@ -74,31 +74,31 @@ function TeamPage() {
             </li>
           )}
         </ol>
-        {!lm && <p className="text-text-muted">Your line manager will appear here once confirmed.</p>}
+        {!lm && <p className="text-muted">Your line manager will appear here once confirmed.</p>}
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
-        <section aria-labelledby="pinned-h" className="space-y-3 lg:sticky lg:top-4 lg:self-start">
-          <h2 id="pinned-h" className="text-lg font-semibold">
+      <div className="space-y-6">
+        <section aria-labelledby="pinned-h" className="space-y-3">
+          <h2 id="pinned-h" className="text-lg font-bold">
             Your first contacts
           </h2>
           {pinned.map((m) => (
             <ContactCard key={m.id} name={m.name} role={roleLine(m)} subtitle={m.jobTitle} upn={m.upn} photoUrl={m.photoUrl} bio={m.bio} />
           ))}
-          {!buddy && <p className="rounded-md bg-surface p-3 text-sm text-text-muted shadow-card">Your buddy hasn&apos;t been allocated yet.</p>}
+          {!buddy && <p className="rounded-md bg-card p-3 text-sm text-muted border border-line">Your buddy hasn&apos;t been allocated yet.</p>}
         </section>
 
         <section aria-labelledby="members-h" className="space-y-3">
-          <h2 id="members-h" className="text-lg font-semibold">
+          <h2 id="members-h" className="text-lg font-bold">
             The team ({data.members.length})
           </h2>
-          <ul className="grid gap-3 md:grid-cols-2">
+          <ul className="grid gap-3.5">
             {rest.map((m) => (
               <li key={m.id}>
                 <ContactCard name={m.name} role={roleLine(m)} subtitle={[m.jobTitle, m.reportsToName ? `Reports to ${m.reportsToName}` : null].filter(Boolean).join(" · ")} upn={m.upn} photoUrl={m.photoUrl} bio={m.bio} />
               </li>
             ))}
-            {rest.length === 0 && <li className="text-text-muted">You have met everyone already.</li>}
+            {rest.length === 0 && <li className="text-muted">You have met everyone already.</li>}
           </ul>
         </section>
       </div>

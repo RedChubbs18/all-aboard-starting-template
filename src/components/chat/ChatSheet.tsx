@@ -2,23 +2,24 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
+import { X } from "lucide-react";
 import { useSession } from "@/lib/auth/client";
+import { buttonClass } from "@/components/ui/Button";
+import { controlClass } from "@/components/ui/Field";
 import { MAX_QUESTION_CHARS, type ChatCitation, type ChatReply, type PnpContact } from "./types";
 
 type NewMsg = { role: "user"; text: string } | { role: "bot"; reply: ChatReply } | { role: "error"; text: string };
 type Msg = NewMsg & { id: number };
 
-const focusRing =
-  "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-info focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
-const btnPrimary = `inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-brand px-4 font-semibold text-surface hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 ${focusRing}`;
-const btnSecondary = `inline-flex min-h-11 items-center justify-center gap-2 rounded-md border-2 border-brand bg-surface px-4 font-semibold text-brand hover:bg-brand-soft ${focusRing}`;
+const btnPrimary = buttonClass("primary");
+const btnSecondary = buttonClass("secondary");
 
 /** "Contact P&P" Teams deep link (src/lib/teams.ts, built server-side). */
 export function ContactPnpLink({ contact, variant = "secondary" }: { contact: PnpContact | null; variant?: "primary" | "secondary" | "text" }) {
   if (!contact) {
-    return <p className="text-sm text-text-muted">Contact P&amp;P through your line manager.</p>;
+    return <p className="text-sm text-muted">Contact P&amp;P through your line manager.</p>;
   }
-  const cls = variant === "primary" ? btnPrimary : variant === "secondary" ? btnSecondary : `inline-flex min-h-11 items-center font-semibold text-brand underline underline-offset-2 ${focusRing}`;
+  const cls = variant === "primary" ? btnPrimary : variant === "secondary" ? btnSecondary : "inline-flex min-h-11 items-center font-semibold text-brand-strong underline underline-offset-2";
   return (
     <a href={contact.teamsUrl} target="_blank" rel="noopener noreferrer" className={cls}>
       Contact P&amp;P on Teams
@@ -34,7 +35,7 @@ function Citations({ items, onCiteFaq }: { items: ChatCitation[]; onCiteFaq: (id
   if (!items.length) return null;
   return (
     <div className="mt-3">
-      <p className="text-sm font-semibold text-text-muted">Sources</p>
+      <p className="text-sm font-semibold text-muted">Sources</p>
       <ul className="mt-1 flex flex-wrap gap-2">
         {items.map((c) => (
           <li key={`${c.kind}:${c.id}`}>
@@ -45,7 +46,7 @@ function Citations({ items, onCiteFaq }: { items: ChatCitation[]; onCiteFaq: (id
                   e.preventDefault();
                   onCiteFaq(c.id);
                 }}
-                className={`inline-flex min-h-11 items-center rounded-sm border border-border bg-surface px-3 text-sm text-brand underline underline-offset-2 hover:bg-brand-soft ${focusRing}`}
+                className={`inline-flex min-h-11 items-center rounded-full border border-line bg-card px-3.5 text-sm font-semibold text-brand-strong underline underline-offset-2 hover:bg-brand-tint`}
               >
                 <span className="sr-only">FAQ: </span>
                 {c.title}
@@ -53,7 +54,7 @@ function Citations({ items, onCiteFaq }: { items: ChatCitation[]; onCiteFaq: (id
             ) : (
               <Link
                 href={c.href}
-                className={`inline-flex min-h-11 items-center rounded-sm border border-border bg-surface px-3 text-sm text-brand underline underline-offset-2 hover:bg-brand-soft ${focusRing}`}
+                className={`inline-flex min-h-11 items-center rounded-full border border-line bg-card px-3.5 text-sm font-semibold text-brand-strong underline underline-offset-2 hover:bg-brand-tint`}
               >
                 <span className="sr-only">Guide: </span>
                 {c.title}
@@ -68,9 +69,9 @@ function Citations({ items, onCiteFaq }: { items: ChatCitation[]; onCiteFaq: (id
 
 function FallbackCard({ contact, onSearchFaqs, title }: { contact: PnpContact | null; onSearchFaqs: () => void; title: string }) {
   return (
-    <div className="mt-3 rounded-md border-l-4 border-info bg-[#e4effb] p-3">
-      <p className="font-semibold text-text">{title}</p>
-      <p className="mt-1 text-sm text-text">People &amp; Places (P&amp;P) can help with anything not covered here.</p>
+    <div className="mt-3 rounded-md border-l-4 border-mixed bg-mixed-tint p-3">
+      <p className="font-semibold text-ink">{title}</p>
+      <p className="mt-1 text-sm text-ink">People &amp; Places (P&amp;P) can help with anything not covered here.</p>
       <div className="mt-3 flex flex-wrap gap-2">
         <ContactPnpLink contact={contact} variant="primary" />
         <button type="button" onClick={onSearchFaqs} className={btnSecondary}>
@@ -168,40 +169,38 @@ export function ChatSheet({ open, onClose, contact, onCiteFaq, onSearchFaqs }: C
       onClick={(e) => {
         if (e.target === dialogRef.current) onClose(); // backdrop click
       }}
-      className="fixed inset-x-0 bottom-0 top-auto m-0 h-[90dvh] max-h-[90dvh] w-full max-w-none flex-col rounded-t-lg bg-surface p-0 text-text shadow-card backdrop:bg-text/50 open:flex lg:inset-y-0 lg:left-auto lg:right-0 lg:h-dvh lg:max-h-dvh lg:w-[420px] lg:rounded-none lg:rounded-l-lg"
+      className="fixed inset-x-0 bottom-0 top-auto m-0 h-[90dvh] max-h-[90dvh] w-full max-w-none flex-col rounded-t-lg bg-card p-0 text-ink backdrop:bg-ink/50 open:flex lg:inset-y-0 lg:left-auto lg:right-0 lg:h-dvh lg:max-h-dvh lg:w-[420px] lg:rounded-none lg:rounded-l-lg"
     >
-      <div aria-hidden="true" className="mx-auto mt-2 h-1 w-10 rounded-full bg-border lg:hidden" />
-      <div className="flex items-center justify-between gap-2 border-b border-border/40 px-4 py-2">
-        <h2 id={titleId} className="text-lg font-semibold text-brand-strong">
+      <div aria-hidden="true" className="mx-auto mt-2 h-1 w-10 rounded-full bg-line-strong lg:hidden" />
+      <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-2">
+        <h2 id={titleId} className="text-xl font-bold">
           Ask the assistant
         </h2>
-        <button type="button" onClick={onClose} className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-text hover:bg-surface-alt ${focusRing}`}>
-          <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
+        <button type="button" onClick={onClose} className={buttonClass("ghost", "icon")}>
+          <X aria-hidden className="size-5" strokeWidth={1.8} />
           <span className="sr-only">Close assistant</span>
         </button>
       </div>
 
-      <p id={noticeId} className="mx-4 mt-3 rounded-md bg-surface-alt p-3 text-sm text-text-muted">
+      <p id={noticeId} className="mx-4 mt-3 rounded-md bg-page p-3 text-sm text-muted">
         Answers come from LBG onboarding content (demo content). Don&apos;t share personal data. The assistant can make mistakes, so check the linked source.
       </p>
 
       <div role="log" aria-live="polite" aria-relevant="additions" aria-label="Conversation" className="flex-1 overflow-y-auto px-4 py-3">
         {messages.length === 0 && (
-          <p className="text-text-muted">Ask about pay, holidays, equipment, vetting, your first day and more.</p>
+          <p className="text-muted">Ask about pay, holidays, equipment, vetting, your first day and more.</p>
         )}
         <ul className="flex flex-col gap-3">
           {messages.map((m) => (
             <li key={m.id} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
               {m.role === "user" && (
-                <div className="max-w-[85%] rounded-md bg-brand-soft px-3 py-2">
+                <div className="max-w-[85%] rounded-md bg-brand-tint px-3.5 py-2">
                   <span className="sr-only">You: </span>
                   <span className="whitespace-pre-line break-words">{m.text}</span>
                 </div>
               )}
               {m.role === "bot" && (
-                <div className="w-full max-w-[95%] rounded-md border border-border/40 bg-surface px-3 py-2">
+                <div className="w-full max-w-[95%] rounded-md border border-line bg-card px-3 py-2">
                   <span className="sr-only">Assistant: </span>
                   <p className="whitespace-pre-line break-words">{m.reply.answer}</p>
                   <Citations items={m.reply.citations} onCiteFaq={onCiteFaq} />
@@ -215,12 +214,12 @@ export function ChatSheet({ open, onClose, contact, onCiteFaq, onSearchFaqs }: C
                 </div>
               )}
               {m.role === "error" && (
-                <div className="w-full max-w-[95%] rounded-md border-l-4 border-danger bg-[#fbe6e4] px-3 py-2">
-                  <p className="font-semibold text-danger">
+                <div className="w-full max-w-[95%] rounded-md border-l-4 border-blocked bg-blocked-tint px-3 py-2">
+                  <p className="font-semibold text-blocked">
                     <span aria-hidden="true">! </span>
                     {m.text}
                   </p>
-                  <p className="mt-1 text-sm text-text">You can still search the FAQs or contact P&amp;P.</p>
+                  <p className="mt-1 text-sm text-ink">You can still search the FAQs or contact P&amp;P.</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <ContactPnpLink contact={contact} variant="primary" />
                     <button type="button" onClick={onSearchFaqs} className={btnSecondary}>
@@ -233,10 +232,10 @@ export function ChatSheet({ open, onClose, contact, onCiteFaq, onSearchFaqs }: C
           ))}
         </ul>
         {pending && (
-          <div className="mt-3 flex items-center gap-2 text-text-muted">
+          <div className="mt-3 flex items-center gap-2 text-muted">
             <span aria-hidden="true" className="flex gap-1">
               {[0, 1, 2].map((i) => (
-                <span key={i} className="h-2 w-2 rounded-full bg-text-muted motion-safe:animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
+                <span key={i} className="h-2 w-2 rounded-full bg-muted motion-safe:animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
               ))}
             </span>
             <span role="status">Assistant is replying</span>
@@ -245,7 +244,7 @@ export function ChatSheet({ open, onClose, contact, onCiteFaq, onSearchFaqs }: C
         <div ref={logEndRef} />
       </div>
 
-      <form onSubmit={send} className="border-t border-border/40 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
+      <form onSubmit={send} className="border-t border-line px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
         <label htmlFor={inputId} className="block text-sm font-semibold">
           Your question
         </label>
@@ -264,17 +263,17 @@ export function ChatSheet({ open, onClose, contact, onCiteFaq, onSearchFaqs }: C
                 e.currentTarget.form?.requestSubmit();
               }
             }}
-            className="min-h-12 w-full resize-none rounded-md border-2 border-border bg-surface px-3 py-2 text-base focus-visible:border-info focus-visible:outline-none"
+            className={`${controlClass} resize-none`}
           />
           <button type="submit" disabled={pending || !draft.trim()} aria-busy={pending} className={btnPrimary}>
             Send
           </button>
         </div>
-        <p id={countId} className={`mt-1 text-sm ${remaining < 50 ? "text-warning" : "text-text-muted"}`}>
+        <p id={countId} className={`mt-1 text-sm ${remaining < 50 ? "text-blocked" : "text-muted"}`}>
           {remaining} characters left
         </p>
         <div className="mt-1 flex items-center justify-between gap-2 text-sm">
-          <span className="text-text-muted">Need a person?</span>
+          <span className="text-muted">Need a person?</span>
           <ContactPnpLink contact={contact} variant="text" />
         </div>
       </form>

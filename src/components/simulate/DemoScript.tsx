@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+
 export type DemoStepId =
   | "firstadvantage_action_needed"
   | "firstadvantage_cleared"
@@ -25,30 +28,28 @@ interface Props {
 
 export function DemoScript({ busy, onRun }: Props) {
   return (
-    <section aria-labelledby="demo-script-h" className="rounded-md border border-border bg-surface p-4 shadow-card">
-      <h2 id="demo-script-h" className="text-lg font-semibold text-brand-strong">Demo script</h2>
-      <p className="mt-1 text-sm text-text-muted">Runs against the demo starter, Alex Morgan. Follow the steps in order.</p>
+    <Card as="section" aria-labelledby="demo-script-h" className="p-4">
+      <h2 id="demo-script-h" className="text-lg font-bold">Demo script</h2>
+      <p className="mt-1 text-sm text-muted">Runs against the demo starter, Alex Morgan. Follow the steps in order.</p>
       <ol className="mt-3 space-y-3">
         {DEMO_SCRIPT.map((s, i) => (
           <li key={s.step} className="flex flex-col gap-1">
-            <button
-              type="button"
+            <Button
+              variant={s.step === "reset" ? "danger" : "primary"}
               onClick={() => onRun(s.step)}
               disabled={busy !== null}
               aria-describedby={`demo-hint-${s.step}`}
-              aria-busy={busy === s.step}
-              className={`min-h-11 rounded-md px-4 py-2 text-left font-semibold disabled:cursor-not-allowed disabled:opacity-60 ${
-                s.step === "reset" ? "border-2 border-danger bg-surface text-danger hover:bg-surface-alt" : "bg-brand text-surface hover:bg-brand-strong"
-              }`}
+              busy={busy === s.step}
+              className="justify-start text-left"
             >
               <span className="mr-2">{i + 1}.</span>
               {s.label}
               {busy === s.step && <span className="ml-2 text-sm font-normal">Working…</span>}
-            </button>
-            <span id={`demo-hint-${s.step}`} className="px-1 text-sm text-text-muted">{s.hint}</span>
+            </Button>
+            <span id={`demo-hint-${s.step}`} className="px-1 text-sm text-muted">{s.hint}</span>
           </li>
         ))}
       </ol>
-    </section>
+    </Card>
   );
 }

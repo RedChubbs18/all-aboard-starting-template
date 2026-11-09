@@ -36,14 +36,14 @@ export function AdaptersManager() {
       {list.error && <Alert kind="danger">{list.error}</Alert>}
       <p>
         To run integration events for a demo (for example &quot;First Advantage cleared&quot;), use{" "}
-        <Link href="/admin/simulate" className="font-medium text-brand underline">Simulate</Link>.
+        <Link href="/admin/simulate" className="font-medium text-brand-strong underline">Simulate</Link>.
       </p>
-      <ul className="divide-y divide-border/40 rounded-lg bg-surface px-4 shadow-card">
+      <ul className="divide-y divide-line rounded-lg bg-card px-4 border border-line">
         {(list.data ?? []).map((a) => (
           <li key={a.key} className="flex flex-wrap items-center justify-between gap-2 py-3">
             <div>
-              <p className="font-medium">{LABELS[a.key] ?? a.key}{LABELS[a.key] && <span className="text-sm font-normal text-text-muted"> (key {a.key})</span>}</p>
-              <p className="text-sm text-text-muted">
+              <p className="font-medium">{LABELS[a.key] ?? a.key}{LABELS[a.key] && <span className="text-sm font-normal text-muted"> (key {a.key})</span>}</p>
+              <p className="text-sm text-muted">
                 Mode: <strong>{a.mode}</strong>
                 {a.envOverride && <> | Set by environment variable ADAPTER_{a.key.toUpperCase()}_MODE, which overrides this switch</>}
               </p>
@@ -59,7 +59,7 @@ export function AdaptersManager() {
             </button>
           </li>
         ))}
-        {list.loading && <li className="py-3 text-text-muted">Loading…</li>}
+        {list.loading && <li className="py-3 text-muted">Loading…</li>}
       </ul>
       <Confirm
         open={!!confirm}

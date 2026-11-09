@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useApi } from "@/lib/auth/use-api";
 import { CONTENT_TYPES, STAGES } from "@/domain/types";
 import { renderMarkdownSafe } from "@/server/admin-validation";
+import { Chip } from "@/components/ui/Chip";
 import { Alert, Confirm, Drawer, Field, btnCls, csv, inputCls, useNotice, useSend, type Fields } from "./common";
 
 interface Content {
@@ -33,7 +34,7 @@ function Preview({ md }: { md: string }) {
   return (
     <div
       aria-label="Preview"
-      className="space-y-2 rounded-md border border-border bg-surface-alt p-3 [&_a]:text-brand [&_a]:underline [&_h3]:text-lg [&_h3]:font-semibold [&_h4]:font-semibold [&_ol]:list-decimal [&_ol]:pl-6 [&_ul]:list-disc [&_ul]:pl-6"
+      className="space-y-2 rounded-md border border-line bg-page p-3 [&_a]:text-brand-strong [&_a]:underline [&_h3]:text-lg [&_h3]:font-semibold [&_h4]:font-semibold [&_ol]:list-decimal [&_ol]:pl-6 [&_ul]:list-disc [&_ul]:pl-6"
       dangerouslySetInnerHTML={{ __html: html || "<p>Nothing to preview yet.</p>" }}
     />
   );
@@ -89,24 +90,16 @@ export function ContentManager() {
   }
 
   const tabBtn = (id: "content" | "faqs", label: string) => (
-    <button
-      type="button"
-      role="tab"
-      id={`tab-${id}`}
-      aria-selected={tab === id}
-      aria-controls={`panel-${id}`}
-      onClick={() => setTab(id)}
-      className={`min-h-11 rounded-t-md px-4 font-medium ${tab === id ? "border-b-4 border-brand bg-brand-soft text-brand-strong" : "hover:bg-surface-alt"}`}
-    >
+    <Chip role="tab" id={`tab-${id}`} selected={tab === id} aria-controls={`panel-${id}`} onClick={() => setTab(id)}>
       {label}
-    </button>
+    </Chip>
   );
 
   return (
     <div className="space-y-4">
       <Alert kind="info">The chatbot answers only from this content and these FAQs. If something is not here, the chatbot will say it does not know.</Alert>
       {n.notice}
-      <div role="tablist" aria-label="Content type" className="flex gap-1 border-b border-border">
+      <div role="tablist" aria-label="Content type" className="flex gap-2 overflow-x-auto pb-1">
         {tabBtn("content", `Content items (${content.data?.length ?? 0})`)}
         {tabBtn("faqs", `FAQs (${faqs.data?.length ?? 0})`)}
       </div>
@@ -115,12 +108,12 @@ export function ContentManager() {
         <section role="tabpanel" id="panel-content" aria-labelledby="tab-content" className="space-y-3">
           {content.error && <Alert kind="danger">{content.error}</Alert>}
           <button type="button" className={btnCls.primary} onClick={() => openC(blankContent())}>New content item</button>
-          <ul className="divide-y divide-border/40 rounded-lg bg-surface px-4 shadow-card">
+          <ul className="divide-y divide-line rounded-lg bg-card px-4 border border-line">
             {(content.data ?? []).map((x) => (
               <li key={x.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
                 <div>
                   <p className="font-medium">{x.title}</p>
-                  <p className="text-sm text-text-muted">{x.type} | {x.slug}{x.stage ? ` | ${x.stage}` : ""}</p>
+                  <p className="text-sm text-muted">{x.type} | {x.slug}{x.stage ? ` | ${x.stage}` : ""}</p>
                 </div>
                 <div className="flex gap-2">
                   <button type="button" className={btnCls.secondary} onClick={() => openC(x)} aria-label={`Edit ${x.title}`}>Edit</button>
@@ -128,7 +121,7 @@ export function ContentManager() {
                 </div>
               </li>
             ))}
-            {content.loading && <li className="py-3 text-text-muted">Loading…</li>}
+            {content.loading && <li className="py-3 text-muted">Loading…</li>}
           </ul>
         </section>
       )}
@@ -137,12 +130,12 @@ export function ContentManager() {
         <section role="tabpanel" id="panel-faqs" aria-labelledby="tab-faqs" className="space-y-3">
           {faqs.error && <Alert kind="danger">{faqs.error}</Alert>}
           <button type="button" className={btnCls.primary} onClick={() => openF(blankFaq())}>New FAQ</button>
-          <ul className="divide-y divide-border/40 rounded-lg bg-surface px-4 shadow-card">
+          <ul className="divide-y divide-line rounded-lg bg-card px-4 border border-line">
             {(faqs.data ?? []).map((x) => (
               <li key={x.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
                 <div className="min-w-0">
                   <p className="font-medium">{x.question}</p>
-                  <p className="text-sm text-text-muted">{x.sourceSlug ? `Source: ${x.sourceSlug}` : "No source content"}{x.tags.length ? ` | ${x.tags.join(", ")}` : ""}</p>
+                  <p className="text-sm text-muted">{x.sourceSlug ? `Source: ${x.sourceSlug}` : "No source content"}{x.tags.length ? ` | ${x.tags.join(", ")}` : ""}</p>
                 </div>
                 <div className="flex gap-2">
                   <button type="button" className={btnCls.secondary} onClick={() => openF(x)} aria-label={`Edit FAQ ${x.question}`}>Edit</button>
@@ -150,7 +143,7 @@ export function ContentManager() {
                 </div>
               </li>
             ))}
-            {faqs.loading && <li className="py-3 text-text-muted">Loading…</li>}
+            {faqs.loading && <li className="py-3 text-muted">Loading…</li>}
           </ul>
         </section>
       )}

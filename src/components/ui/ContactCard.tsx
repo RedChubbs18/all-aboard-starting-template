@@ -34,31 +34,31 @@ export function ContactCard({ name, role, upn, photoUrl, bio, subtitle, variant 
   return (
     <Card as="article" aria-label={`${role}: ${name}`} className={cn("space-y-3", className)}>
       <div className="flex items-center gap-3">
-        <Avatar name={name} photoUrl={photoUrl} size={variant === "compact" ? 44 : 56} />
+        <Avatar name={name} photoUrl={photoUrl} size={variant === "compact" ? 44 : 84} />
         <div className="min-w-0">
-          <h3 className="truncate text-base font-semibold">{name}</h3>
-          <p className="text-sm text-text-muted">{role}</p>
-          {subtitle && variant === "full" && <p className="text-sm text-text-muted">{subtitle}</p>}
+          <h3 className="truncate text-lg font-bold">{name}</h3>
+          <p className="text-sm font-bold text-brand-strong">{role}</p>
+          {subtitle && variant === "full" && <p className="text-sm text-muted">{subtitle}</p>}
         </div>
       </div>
 
       {variant === "full" &&
         (hasBio ? (
           <div>
-            <p className={cn("text-text", !open && "line-clamp-3")}>{bio}</p>
+            <p className={cn("text-ink", !open && "line-clamp-3")}>{bio}</p>
             {long && (
               <button
                 type="button"
                 aria-expanded={open}
                 onClick={() => setOpen((o) => !o)}
-                className="mt-1 min-h-11 text-brand underline underline-offset-2"
+                className="mt-1 min-h-11 font-semibold text-brand-strong underline underline-offset-2"
               >
                 {open ? "Show less" : "Read more"}
               </button>
             )}
           </div>
         ) : (
-          <p className="text-sm text-text-muted">{firstName(name)} hasn&apos;t added a bio yet. Say hello on Teams.</p>
+          <p className="text-sm text-muted">{firstName(name)} hasn&apos;t added a bio yet. Say hello on Teams.</p>
         ))}
 
       {chat && call ? (
@@ -85,7 +85,7 @@ export function ContactCard({ name, role, upn, photoUrl, bio, subtitle, variant 
           </a>
         </div>
       ) : (
-        <p className="text-sm text-text-muted">Teams link unavailable.</p>
+        <p className="text-sm text-muted">Teams link unavailable.</p>
       )}
     </Card>
   );
