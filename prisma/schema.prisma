@@ -1,0 +1,206 @@
+// SQLite data model. Enums are plain strings validated by the TS unions in
+// src/domain/types.ts (and zod in src/domain/seed-schema.ts).
+// FR-1.9: NO PII beyond name, work email/UPN and IDs. Workday and HireView stay
+// the systems of record. Personal email is never stored; a guest is just an Entra oid.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Team {
+  id        String   @id
+  name      String
+  area      String? // business area (MI filter, FR-MI.1)
+  lmId      String? // team line manager (informational)
+  members   User[]
+  journeys  Journey[]
+  templates TaskTemplate[]
+}
+
+model User {
+  id            String   @id
+  entraOid      String?  @unique // Entra object id; null until mapped
+  upn           String   @unique // work email / UPN
+  displayName   String
+  roles         Json // string[] of STARTER|BUDDY|LM|PNP|ADMIN
+  teamId        String?
+  team          Team?    @relation(fields: [teamId], references: [id])
+  jobTitle      String?
+  teamRole      String? // e.g. "Line Manager", "Team member" (team page, FR-1.8)
+  photoUrl      String?
+  bio           String?
+  reportsToId   String?
+  reportsTo     User?    @relation("ReportsTo", fields: [reportsToId], references: [id])
+  reports       User[]   @relation("ReportsTo")
+  buddyEligible Boolean  @default(false)
+  createdAt     DateTime @default(now())
+}
+
+model Journey {
+  id           String   @id
+  starterId    String   @unique
+  lmId         String
+  buddyId      String?
+  teamId       String
+  team         Team     @relation(fields: [teamId], references: [id])
+  startDate    DateTime
+  currentStage String // Stage
+  status       String   @default("active") // active|completed|exited
+  exitReason   String?
+  exitStage    String?
+  completedAt  DateTime?
+  flagged      Boolean  @default(false)
+  flagReason   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tasks        Task[]
+  checkIns     CheckIn[]
+  goals        Goal[]
+  day0         Day0Arrangement?
+
+  @@index([lmId])
+  @@index([buddyId])
+}
+
+model TaskTemplate {
+  id            String  @id @default(cuid())
+  key           String  @unique
+  title         String
+  description   String  @default("")
+  stage         String
+  owner         String
+  type          String
+  dueOffsetDays Int     @default(0)
+  dependsOn     Json // string[] of template keys
+  source        String  @default("CORE") // CORE|TEAM|BESPOKE
+  teamId        String?
+  team          Team?   @relation(fields: [teamId], references: [id])
+  adapterKey    String?
+  gating        Boolean @default(false)
+  contentSlug   String?
+  condition     String? // e.g. "notDone:book-induction" (FR-4.5)
+  sortOrder     Int     @default(0)
+  active        Boolean @default(true)
+}
+
+// A task is a denormalised snapshot of its template, so bespoke tasks and
+// later template edits never change in-flight journeys.
+model Task {
+  id            String    @id
+  journeyId     String
+  journey       Journey   @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+  templateId    String?
+  key           String
+  title         String
+  description   String    @default("")
+  stage         String
+  owner         String
+  type          String
+  status        String    @default("LOCKED") // LOCKED|TODO|IN_PROGRESS|BLOCKED|DONE
+  dueDate       DateTime
+  completedAt   DateTime?
+  blockedReason String?
+  evidence      String? // reference only, never content
+  dependsOn     Json
+  source        String    @default("CORE")
+  adapterKey    String?
+  gating        Boolean   @default(false)
+  contentSlug   String?
+  condition     String?
+  applicable    Boolean   @default(true) // false when `condition` is not met
+  sortOrder     Int       @default(0)
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([journeyId, key])
+  @@index([journeyId, status])
+}
+
+model ContentItem {
+  id      String  @id @default(cuid())
+  slug    String  @unique
+  type    String
+  title   String
+  summary String  @default("")
+  body    String  @default("")
+  stage   String?
+  tags    Json
+}
+
+model Faq {
+  id         String  @id
+  question   String
+  answer     String
+  tags       Json
+  sourceSlug String?
+}
+
+model CheckIn {
+  id          String   @id @default(cuid())
+  journeyId   String
+  journey     Journey  @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+  cadence     String // e.g. WEEKLY, FORTNIGHTLY
+  scheduledAt DateTime
+  meetingLink String?
+}
+
+model Goal {
+  id        String  @id @default(cuid())
+  journeyId String
+  journey   Journey @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+  horizon   String // 30|60|90|CASCADED
+  text      String
+  done      Boolean @default(false)
+  authorId  String?
+}
+
+model Day0Arrangement {
+  id            String    @id @default(cuid())
+  journeyId     String    @unique
+  journey       Journey   @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+  where         String
+  whenAt        DateTime
+  who           String // who to meet / ask for
+  proposedById  String
+  confirmedAt   DateTime?
+}
+
+// Mock/real integration status per journey. journeyId "GLOBAL" holds
+// adapter-wide state (e.g. induction sessions, notification outbox).
+model IntegrationState {
+  id         String   @id @default(cuid())
+  journeyId  String
+  adapterKey String
+  status     String
+  payload    Json
+  updatedAt  DateTime @updatedAt
+
+  @@unique([journeyId, adapterKey])
+}
+
+model AdapterConfig {
+  adapterKey String @id
+  mode       String @default("MOCK") // MOCK|REAL
+}
+
+// Append-only audit trail. Used for MI funnel/time-in-stage.
+model Event {
+  id        String   @id @default(cuid())
+  journeyId String?
+  actorId   String?
+  type      String
+  entity    String
+  entityId  String?
+  from      String?
+  to        String?
+  data      Json?
+  createdAt DateTime @default(now())
+
+  @@index([journeyId, createdAt])
+  @@index([type])
+}

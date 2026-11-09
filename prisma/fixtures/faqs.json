@@ -1,0 +1,28 @@
+[
+  {
+    "id": "fx-faq-1",
+    "question": "When do I get paid?",
+    "answer": "Fixture answer: last working day of the month.",
+    "tags": [
+      "pay"
+    ],
+    "sourceSlug": "fx-welcome"
+  },
+  {
+    "id": "fx-faq-2",
+    "question": "Where do I collect my laptop?",
+    "answer": "Fixture answer: the tech bar.",
+    "tags": [
+      "laptop",
+      "equipment"
+    ]
+  },
+  {
+    "id": "fx-faq-3",
+    "question": "What is the dress code?",
+    "answer": "Fixture answer: smart casual.",
+    "tags": [
+      "dress"
+    ]
+  }
+]

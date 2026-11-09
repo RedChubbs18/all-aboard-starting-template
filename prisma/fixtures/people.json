@@ -1,0 +1,170 @@
+{
+  "teams": [
+    {
+      "key": "fx-team",
+      "name": "Fixture Team",
+      "businessArea": "Fixtures",
+      "lmKey": "fx-lm"
+    }
+  ],
+  "users": [
+    {
+      "key": "fx-lm",
+      "name": "Fixture Manager",
+      "email": "fx.lm@example.test",
+      "roles": [
+        "LM"
+      ],
+      "teamKey": "fx-team",
+      "teamRole": "Line Manager",
+      "jobTitle": "Manager",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "fx-buddy",
+      "name": "Fixture Buddy",
+      "email": "fx.buddy@example.test",
+      "roles": [
+        "BUDDY"
+      ],
+      "teamKey": "fx-team",
+      "teamRole": "Team member",
+      "jobTitle": null,
+      "reportsToKey": "fx-lm",
+      "bio": "Happy to help.",
+      "buddyEligible": true,
+      "photo": null
+    },
+    {
+      "key": "fx-pnp",
+      "name": "Fixture PeoplePlaces",
+      "email": "fx.pnp@example.test",
+      "roles": [
+        "PNP"
+      ],
+      "teamKey": null,
+      "teamRole": null,
+      "jobTitle": null,
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "fx-admin",
+      "name": "Fixture Admin",
+      "email": "fx.admin@example.test",
+      "roles": [
+        "ADMIN"
+      ],
+      "teamKey": null,
+      "teamRole": null,
+      "jobTitle": null,
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "fx-starter-1",
+      "name": "Fixture Starter One",
+      "email": "fx.starter.1@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "fx-team",
+      "teamRole": null,
+      "jobTitle": null,
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "fx-starter-2",
+      "name": "Fixture Starter Two",
+      "email": "fx.starter.2@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "fx-team",
+      "teamRole": null,
+      "jobTitle": null,
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "fx-starter-3",
+      "name": "Fixture Starter Three",
+      "email": "fx.starter.3@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "fx-team",
+      "teamRole": null,
+      "jobTitle": null,
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    }
+  ],
+  "journeys": [
+    {
+      "key": "fx-journey-1",
+      "starterKey": "fx-starter-1",
+      "lmKey": "fx-lm",
+      "buddyKey": "fx-buddy",
+      "teamKey": "fx-team",
+      "startDate": "2026-12-14",
+      "currentStage": "CONDITIONAL_OFFER",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "hireviewStatus": "NOT_STARTED",
+      "taskStates": []
+    },
+    {
+      "key": "fx-journey-2",
+      "starterKey": "fx-starter-2",
+      "lmKey": "fx-lm",
+      "buddyKey": "fx-buddy",
+      "teamKey": "fx-team",
+      "startDate": "2026-12-01",
+      "currentStage": "PEV",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "hireviewStatus": "ACTION_NEEDED",
+      "taskStates": [
+        {
+          "templateKey": "fx-vetting",
+          "status": "BLOCKED",
+          "blockedReason": "Action needed in HireView"
+        }
+      ]
+    },
+    {
+      "key": "fx-journey-3",
+      "starterKey": "fx-starter-3",
+      "lmKey": "fx-lm",
+      "buddyKey": "fx-buddy",
+      "teamKey": "fx-team",
+      "startDate": "2026-11-09",
+      "currentStage": "DAY_0",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "hireviewStatus": "CLEARED",
+      "taskStates": []
+    }
+  ]
+}

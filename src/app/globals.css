@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. Names are a contract with design/tokens.css (final values).
+ * Values here are temporary; swap them by pasting the :root block from design/tokens.css
+ * over this @theme block (same names). `@theme` (not `inline`) keeps utilities
+ * reading var(--token), so a later :root override also works.
+ * Light mode only.
+ */
+@theme {
+  --color-brand: #00573f;
+  --color-brand-strong: #003d2c;
+  --color-brand-soft: #e3f1ea;
+  --color-accent: #f2b705;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f3f6f4;
+  --color-border: #6f7f78;
+  --color-text: #14211c;
+  --color-text-muted: #4a5a53;
+  --color-success: #1b6e3a;
+  --color-warning: #8a5300;
+  --color-danger: #b3261e;
+  --color-info: #0b5cad;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --shadow-card: 0 1px 2px rgb(20 33 28 / 0.08), 0 4px 12px rgb(20 33 28 / 0.06);
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-info);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,13 @@
+[
+  {
+    "slug": "fx-welcome",
+    "type": "GUIDE",
+    "title": "Welcome (fixture)",
+    "summary": "A short welcome.",
+    "body": "## Welcome\n\nSynthetic fixture content.",
+    "stage": "CONDITIONAL_OFFER",
+    "tags": [
+      "welcome"
+    ]
+  }
+]

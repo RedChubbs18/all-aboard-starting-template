@@ -21,3 +21,19 @@ appsettings.Development.json
 
 # Claude Code local config
 .claude/
+
+# Next.js / build output
+.next/
+out/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+
+# Local database and seed overrides
+prisma/seed.local.json
+*.db
+*.db-journal
+
+# Editor
+.vscode/
