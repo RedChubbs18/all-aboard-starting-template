@@ -11,8 +11,8 @@ export interface PhotoCheckResult {
   pass: boolean;
   issues: string[];
   /**
-   * Set when the automated check could not run (AI unavailable, refusal, error). The result is
-   * then issue-free so the starter is not blocked, and a line manager or P&P should review and recertify the photo manually (D12).
+   * Set when the automated check could not run (AI unavailable, refusal, error, daily cap). The result is then
+   * `pass: false` (fail closed): no pass token is issued and a line manager or P&P reviews and recertifies the photo (D12).
    */
   needsManualReview?: boolean;
 }

@@ -1,9 +1,11 @@
 /**
  * FR-3.12 real photo check: Claude vision with structured output `{pass, issues}`.
  * Image bytes are sent to the API only; they are never logged or persisted here.
- * Any failure (no key, API error, refusal, bad output) falls back to the mock rules with
- * `needsManualReview: true`, so a line manager or P&P can review and recertify it by hand.
+ * Any failure (no key, API error, refusal, bad output, daily cap reached) fails closed:
+ * `{ pass: false, needsManualReview: true }`, so a line manager or P&P reviews and recertifies it by hand.
+ * The client-supplied file name is never used to decide in REAL mode (that heuristic is mock-only).
  */
+import "server-only";
 import type { MessageCreateParamsNonStreaming } from "@anthropic-ai/sdk/resources/beta/messages/messages";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
@@ -16,10 +18,10 @@ import {
   withDegradedStatus,
   type AnthropicLike,
 } from "../chatbot/real";
+import { takeAiCall } from "../ai-budget";
 import { statusMock } from "../mock-helpers";
 import { memoryStore } from "../store";
 import type { StateStore } from "../types";
-import { createPhotoCheckMock } from "./mock";
 import type { PhotoCheckAdapter, PhotoCheckInput, PhotoCheckResult } from "./types";
 
 export const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
@@ -110,14 +112,10 @@ export interface PhotoCheckRealOptions {
 export function createPhotoCheckReal(opts: PhotoCheckRealOptions = {}): PhotoCheckAdapter & ReturnType<typeof statusMock> {
   const store = opts.store ?? memoryStore();
   const client = opts.client === undefined ? defaultAnthropicClient() : opts.client;
-  const mock = createPhotoCheckMock(store);
   const base = withDegradedStatus(statusMock(store, "photocheck", "ready", ["ready"]), !!client);
 
-  /** Mock rules (file-name based); an otherwise clean result is flagged for manual review (LM or P&P). */
-  const degrade = async (input: PhotoCheckInput): Promise<PhotoCheckResult> => {
-    const r = await mock.check(input);
-    return r.pass ? { pass: true, issues: [], needsManualReview: true } : r;
-  };
+  /** Fail closed: no pass without a real check; a line manager or P&P reviews it instead (D12). */
+  const degrade = (): PhotoCheckResult => ({ pass: false, issues: [], needsManualReview: true });
 
   return {
     ...base,
@@ -125,17 +123,18 @@ export function createPhotoCheckReal(opts: PhotoCheckRealOptions = {}): PhotoChe
     async check(input) {
       const v = validatePhoto(input);
       if (!v.ok) return { pass: false, issues: [v.issue] };
-      if (!client) return degrade(input);
+      if (!client) return degrade();
+      if (!takeAiCall()) return degrade();
       try {
         const msg = await client.beta.messages.create(buildPhotoRequest(input.image!, v.mime));
-        if (msg.stop_reason === "refusal") return degrade(input);
+        if (msg.stop_reason === "refusal") return degrade();
         if (msg.stop_reason !== "end_turn") throw new Error(`unexpected stop_reason ${msg.stop_reason}`);
         const text = firstText(msg);
         if (text === null) throw new Error("no text block");
         return normalisePhotoOutput(photoOutputSchema.parse(JSON.parse(text)));
       } catch (e) {
         console.warn(`[photocheck] Claude unavailable (${describeClaudeError(e)}); flagged for manual review`);
-        return degrade(input);
+        return degrade();
       }
     },
   };

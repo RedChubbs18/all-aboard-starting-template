@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { fakeClient, jsonMessage, message } from "../chatbot/fake-claude";
 import { runAdapterContract } from "../contract";
 import type { StateStore } from "../types";
+import { resetAiBudget } from "../ai-budget";
 import {
   ISSUE_NO_PHOTO,
   ISSUE_SIZE,
@@ -96,14 +97,14 @@ describe("photocheck real adapter", () => {
 
   it("treats a refusal as 'needs manual review' without reading content", async () => {
     const { client } = fakeClient(() => message("I can't help with that", "refusal"));
-    expect(await createPhotoCheckReal({ client }).check({ image: jpeg(), fileName: "me.jpg" })).toEqual({ pass: true, issues: [], needsManualReview: true });
+    expect(await createPhotoCheckReal({ client }).check({ image: jpeg(), fileName: "me.jpg" })).toEqual({ pass: false, issues: [], needsManualReview: true });
   });
 
   it.each([
     ["rate limit", () => new Anthropic.RateLimitError(429, { type: "error" }, "slow down", new Headers())],
     ["overloaded", () => new Anthropic.APIError(529, { type: "error" }, "overloaded", new Headers())],
     ["bad output", () => "not json"],
-  ])("falls back to mock behaviour flagged for manual review on %s", async (_label, make) => {
+  ])("fails closed and flags for manual review on %s", async (_label, make) => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const { client } = fakeClient(() => {
       const v = make();
@@ -111,11 +112,9 @@ describe("photocheck real adapter", () => {
       throw v;
     });
     const a = createPhotoCheckReal({ client });
-    expect(await a.check({ image: jpeg(), fileName: "me.jpg" })).toEqual({ pass: true, issues: [], needsManualReview: true });
-    // Mock file-name rules still apply in fallback (demo: "sunglasses" in the name fails).
-    const bad = await a.check({ image: jpeg(), fileName: "me-sunglasses.jpg" });
-    expect(bad.pass).toBe(false);
-    expect(bad.needsManualReview).toBeUndefined();
+    expect(await a.check({ image: jpeg(), fileName: "me.jpg" })).toEqual({ pass: false, issues: [], needsManualReview: true });
+    // The client-supplied file name never decides in REAL mode (mock heuristic is not used).
+    expect(await a.check({ image: jpeg(), fileName: "me-sunglasses.jpg" })).toEqual({ pass: false, issues: [], needsManualReview: true });
     // Image bytes never reach the logs.
     expect(JSON.stringify(warn.mock.calls)).not.toMatch(/\/9j\/|base64/);
     warn.mockRestore();
@@ -123,7 +122,25 @@ describe("photocheck real adapter", () => {
 
   it("degrades without a client (no API key)", async () => {
     const a = createPhotoCheckReal({ client: null });
-    expect(await a.check({ image: jpeg() })).toEqual({ pass: true, issues: [], needsManualReview: true });
+    expect(await a.check({ image: jpeg() })).toEqual({ pass: false, issues: [], needsManualReview: true });
     expect((await a.getStatus("GLOBAL")).status).toBe("degraded");
+  });
+
+  it("stops calling Claude once the shared daily cap is reached (pending manual review)", async () => {
+    resetAiBudget();
+    process.env.AI_DAILY_CALL_CAP = "2";
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const { client, calls } = fakeClient(() => json({ pass: true, issues: [] }));
+      const a = createPhotoCheckReal({ client });
+      expect((await a.check({ image: jpeg() })).pass).toBe(true);
+      expect((await a.check({ image: jpeg() })).pass).toBe(true);
+      expect(await a.check({ image: jpeg() })).toEqual({ pass: false, issues: [], needsManualReview: true });
+      expect(calls).toHaveLength(2);
+    } finally {
+      delete process.env.AI_DAILY_CALL_CAP;
+      resetAiBudget();
+      warn.mockRestore();
+    }
   });
 });

@@ -65,13 +65,14 @@ export function PhotoFlow({ task, detail, onChanged }: { task: TaskDto; detail: 
     const form = new FormData();
     form.set("taskId", task.id);
     form.set("photo", file, file.name); // file name is passed through: the mock decides by name
-    const r = await post<{ pass: boolean; issues: string[]; photoRef?: string; token?: string }>("/api/starter/photo-check", form);
+    const r = await post<{ pass: boolean; issues: string[]; photoRef?: string; token?: string; pendingReview?: boolean }>("/api/starter/photo-check", form);
     if (!r.ok || !r.data) {
       dispatch({ type: "CHECK_FAILED", message: r.error ?? "We couldn't check your photo. Try again or ask P&P." });
     } else if (r.data.pass && r.data.photoRef && r.data.token) {
       dispatch({ type: "PASSED", photoRef: r.data.photoRef, token: r.data.token });
     } else {
       dispatch({ type: "REJECTED", issues: r.data.issues?.length ? r.data.issues : ["We couldn't use that photo."] });
+      if (r.data.pendingReview) dispatch({ type: "REVIEW_REQUESTED" }); // server already queued an LM / P&P review
     }
   }
 
