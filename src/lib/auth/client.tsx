@@ -39,8 +39,37 @@ export interface SessionValue {
 export type GraphTokenResult = { ok: true; accessToken: string; upn: string } | { ok: false; reason: "no_token" | "consent_required" };
 
 const GRAPH_REDIRECT_FLAG = "graph-consent-redirect";
+const TOKEN_REDIRECT_FLAG = "token-renew-redirect";
 
 const Ctx = createContext<SessionValue | null>(null);
+
+/**
+ * One MSAL instance per page load, and the redirect response handled exactly once.
+ * React (dev Strict Mode) runs effects twice; creating a client and calling
+ * handleRedirectPromise inside the effect made two instances race over the redirect
+ * response and keep re-navigating to the start page (an infinite loading loop).
+ * We also don't navigate back to the start page: the app lands on "/", and the home page
+ * routes each role to its own home.
+ */
+type MsalBoot = { app: PublicClientApplication };
+let msalBoot: Promise<MsalBoot> | null = null;
+function bootMsal(): Promise<MsalBoot> {
+  if (!msalBoot) {
+    msalBoot = (async () => {
+      const { PublicClientApplication } = await import("@azure/msal-browser");
+      const app = new PublicClientApplication(getMsalConfig());
+      await app.initialize();
+      const redirect = await app.handleRedirectPromise({ navigateToLoginRequestUrl: false });
+      if (redirect?.account) app.setActiveAccount(redirect.account);
+      else if (!app.getActiveAccount() && app.getAllAccounts()[0]) app.setActiveAccount(app.getAllAccounts()[0]);
+      return { app };
+    })().catch((e) => {
+      msalBoot = null; // allow a retry on the next mount
+      throw e;
+    });
+  }
+  return msalBoot;
+}
 
 export function useSession(): SessionValue {
   const v = useContext(Ctx);
@@ -64,8 +93,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!app || !account) return null;
     try {
       const r = await app.acquireTokenSilent({ scopes: LOGIN_SCOPES, account });
+      sessionStorage.removeItem(TOKEN_REDIRECT_FLAG);
       return r.idToken;
     } catch {
+      // At most one interactive redirect per failure; if we're already back from one, give up
+      // (the caller then sees 401 and shows the sign-in screen) instead of looping.
+      if (sessionStorage.getItem(TOKEN_REDIRECT_FLAG)) {
+        sessionStorage.removeItem(TOKEN_REDIRECT_FLAG);
+        return null;
+      }
+      sessionStorage.setItem(TOKEN_REDIRECT_FLAG, "1");
       await app.acquireTokenRedirect({ scopes: LOGIN_SCOPES, account });
       return null;
     }
@@ -134,12 +171,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (p.ok) setPersonas((await p.json()).personas);
           else setError((await p.json().catch(() => ({}))).message ?? "Demo sign-in is not available");
         } else {
-          const { PublicClientApplication } = await import("@azure/msal-browser");
-          const app = new PublicClientApplication(getMsalConfig());
-          await app.initialize();
-          const redirect = await app.handleRedirectPromise();
-          if (redirect?.account) app.setActiveAccount(redirect.account);
-          else if (app.getAllAccounts()[0]) app.setActiveAccount(app.getAllAccounts()[0]);
+          const { app } = await bootMsal();
+          if (cancelled) return;
           msal.current = app;
           if (!app.getActiveAccount()) {
             setStatus("unauthenticated");

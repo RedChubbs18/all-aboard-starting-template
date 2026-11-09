@@ -92,7 +92,7 @@ export async function seedDatabase(prisma: PrismaClient, log: (m: string) => voi
   const faqs = readJson(src.faqs, faqsFileSchema, "faqs.json");
   const templates = readJson(src.templates, templatesFileSchema, "templates.json");
   const people: SeedPeople = readJson(src.people, peopleFileSchema, "people.json");
-  const local = existsSync(LOCAL_FILE) ? readJson(LOCAL_FILE, seedLocalSchema, "seed.local.json") : null;
+  const local = process.env.SEED_SKIP_LOCAL !== "1" && existsSync(LOCAL_FILE) ? readJson(LOCAL_FILE, seedLocalSchema, "seed.local.json") : null;
 
   // Referential checks (fail loudly rather than seed a broken graph).
   const tkeys = new Set(templates.map((t) => t.key));

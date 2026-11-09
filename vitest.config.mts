@@ -30,6 +30,7 @@ export default defineConfig({
       NEXT_PUBLIC_BRAND_FONTS: "",
       DEMO_PIN: "",
       ALLOWED_DEV_ORIGINS: "",
+      SEED_SKIP_LOCAL: "1",
     },
   },
 });
