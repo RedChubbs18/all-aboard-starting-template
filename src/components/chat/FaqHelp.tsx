@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { ChevronDown, MessageCircle, Search } from "lucide-react";
 import { useApi } from "@/lib/auth/use-api";
+import { buttonClass } from "@/components/ui/Button";
+import { Chip, ChipRow } from "@/components/ui/Chip";
+import { Alert } from "@/components/ui/Alert";
 import { ChatSheet, ContactPnpLink } from "./ChatSheet";
 import { FAQ_TOPICS, filterFaqs, resultCountText, type FaqTopicKey } from "./faq-filter";
 import type { FaqItem, PnpContact } from "./types";
 
 type RawFaq = { id: string; question: string; answer: string; tags: unknown; sourceSlug?: string | null };
 
-const focusRing =
-  "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-info focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
 
 const toItem = (f: RawFaq): FaqItem => ({
   id: f.id,
@@ -82,71 +84,64 @@ export function FaqHelp() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-2xl font-semibold text-brand-strong">Help and FAQs</h1>
-        <p className="mt-1 text-text-muted">Search common questions, or ask the assistant. Demo content for illustration only.</p>
+        <h1 className="text-[28px] font-bold leading-tight text-ink">Help and FAQs</h1>
+        <p className="mt-1 text-muted">Search common questions, or ask the assistant. Demo content for illustration only.</p>
       </div>
 
       <div role="search">
-        <label htmlFor={searchId} className="block font-semibold">
+        <label htmlFor={searchId} className="block text-sm font-semibold">
           Search FAQs
         </label>
-        <input
-          id={searchId}
-          ref={searchRef}
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          autoComplete="off"
-          className="mt-1 min-h-12 w-full rounded-md border-2 border-border bg-surface px-3 text-base focus-visible:border-info focus-visible:outline-none"
-        />
-        <div role="group" aria-label="Filter by topic" className="mt-3 flex flex-wrap gap-2">
+        <div className="relative mt-1">
+          <Search aria-hidden className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted" strokeWidth={1.8} />
+          <input
+            id={searchId}
+            ref={searchRef}
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            autoComplete="off"
+            placeholder="Search questions"
+            className="min-h-12 w-full rounded-full border border-line-strong bg-card py-3 pl-11 pr-4 text-base placeholder:text-muted"
+          />
+        </div>
+        <ChipRow label="Filter by topic" className="mt-3">
           {FAQ_TOPICS.map((t) => {
             const on = topic === t.key;
             return (
-              <button
-                key={t.key}
-                type="button"
-                aria-pressed={on}
-                onClick={() => setTopic(on ? null : t.key)}
-                className={`inline-flex min-h-11 items-center gap-1 rounded-full border-2 px-4 text-sm font-semibold ${
-                  on ? "border-brand bg-brand text-surface" : "border-border bg-surface text-text hover:bg-brand-soft"
-                } ${focusRing}`}
-              >
-                {on && <span aria-hidden="true">✓</span>}
+              <Chip key={t.key} selected={on} onClick={() => setTopic(on ? null : t.key)}>
                 {t.label}
-              </button>
+              </Chip>
             );
           })}
-        </div>
+        </ChipRow>
       </div>
 
-      <p role="status" className="text-sm text-text-muted">
+      <p role="status" className="text-sm text-muted">
         {data ? resultCountText(results.length) : ""}
       </p>
 
       {loading && (
         <ul aria-hidden="true" className="flex flex-col gap-2">
           {[0, 1, 2, 3].map((i) => (
-            <li key={i} className="h-14 rounded-md bg-surface motion-safe:animate-pulse" />
+            <li key={i} className="h-14 rounded-md bg-card motion-safe:animate-pulse" />
           ))}
         </ul>
       )}
       {loading && <p className="sr-only">Loading FAQs…</p>}
 
       {error && (
-        <div role="alert" className="rounded-md border-l-4 border-danger bg-[#fbe6e4] p-3">
-          <p className="font-semibold text-danger">We couldn&apos;t load the FAQs.</p>
-          <p className="text-sm text-text">{error}</p>
-          <button type="button" onClick={reload} className={`mt-2 min-h-11 font-semibold text-brand underline underline-offset-2 ${focusRing}`}>
+        <Alert tone="danger" live="alert" title="We couldn't load the FAQs.">
+          <p className="text-sm">{error}</p>
+          <button type="button" onClick={reload} className="mt-2 min-h-11 font-semibold text-brand-strong underline underline-offset-2">
             Try again
           </button>
-        </div>
+        </Alert>
       )}
-
       {data && results.length === 0 && (
-        <div className="rounded-md bg-surface p-6 text-center shadow-card">
-          <h2 className="text-lg font-semibold">No FAQs match</h2>
-          <p className="mt-1 text-text-muted">Try different words, clear the topic filter, or ask the assistant.</p>
+        <div className="rounded-md border border-line bg-card p-6 text-center">
+          <h2 className="text-lg font-bold">No FAQs match</h2>
+          <p className="mt-1 text-muted">Try different words, clear the topic filter, or ask the assistant.</p>
         </div>
       )}
 
@@ -154,30 +149,17 @@ export function FaqHelp() {
         <ul className="flex flex-col gap-2">
           {results.map((f) => (
             <li key={f.id}>
-              <details id={f.id} className="group scroll-mt-4 rounded-md border border-border/40 bg-surface shadow-card">
-                <summary
-                  className={`flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 rounded-md px-4 py-3 font-semibold hover:bg-brand-soft [&::-webkit-details-marker]:hidden ${focusRing}`}
-                >
+              <details id={f.id} className="group scroll-mt-4 rounded-md border border-line bg-card">
+                <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 rounded-md px-[22px] py-3 font-bold hover:bg-page [&::-webkit-details-marker]:hidden">
                   <span>{f.question}</span>
-                  <svg
-                    aria-hidden="true"
-                    viewBox="0 0 24 24"
-                    width="20"
-                    height="20"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    className="shrink-0 text-brand motion-safe:transition-transform group-open:rotate-180"
-                  >
-                    <path d="M6 9l6 6 6-6" />
-                  </svg>
+                  <ChevronDown aria-hidden className="size-5 shrink-0 text-muted motion-safe:transition-transform group-open:rotate-180" strokeWidth={1.8} />
                 </summary>
-                <div className="px-4 pb-4">
-                  <p className="whitespace-pre-line">{f.answer}</p>
+                <div className="px-[22px] pb-4">
+                  <p className="whitespace-pre-line text-muted">{f.answer}</p>
                   {f.sourceSlug && (
                     <Link
                       href={`/content/${encodeURIComponent(f.sourceSlug)}`}
-                      className={`mt-2 inline-flex min-h-11 items-center text-brand underline underline-offset-2 ${focusRing}`}
+                      className="mt-2 inline-flex min-h-11 items-center font-semibold text-brand-strong underline underline-offset-2"
                     >
                       Read more<span className="sr-only">: {f.question}</span>
                     </Link>
@@ -189,25 +171,23 @@ export function FaqHelp() {
         </ul>
       )}
 
-      <div className="rounded-md bg-surface p-4 shadow-card">
-        <h2 className="font-semibold">Still stuck?</h2>
-        <p className="mt-1 text-sm text-text-muted">People &amp; Places (P&amp;P) can help with anything not covered here.</p>
+      <div className="rounded-md border border-line bg-card px-[22px] py-5">
+        <h2 className="text-lg font-bold">Still stuck?</h2>
+        <p className="mt-1 text-sm text-muted">People &amp; Places (P&amp;P) can help with anything not covered here.</p>
         <div className="mt-2">
           <ContactPnpLink contact={contact} variant="secondary" />
         </div>
       </div>
 
-      <div className="sticky bottom-20 z-30 md:bottom-4">
+      <div className="sticky bottom-[88px] z-30">
         <button
           ref={askRef}
           type="button"
           aria-haspopup="dialog"
           onClick={() => setChatOpen(true)}
-          className={`flex min-h-14 w-full items-center justify-center gap-2 rounded-md bg-brand px-4 text-base font-semibold text-surface shadow-card hover:bg-brand-strong ${focusRing}`}
+          className={buttonClass("primary", "lg", "w-full")}
         >
-          <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
-            <path d="M4 5h16v11H9l-5 4z" />
-          </svg>
+          <MessageCircle aria-hidden className="size-5" strokeWidth={1.8} />
           Ask the assistant
         </button>
       </div>

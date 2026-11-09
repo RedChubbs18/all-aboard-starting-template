@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "@/lib/auth/client";
 import type { ApiErrorBody, StarterDetail } from "./types";
-import type { ToastMsg } from "./ui";
 
 export interface MutateResult {
   ok: boolean;
@@ -90,12 +89,4 @@ export function useStarterDetail(journeyId: string) {
   );
 
   return { data, error, loading, reload: load, mutate };
-}
-
-export function useToasts() {
-  const [toasts, setToasts] = useState<ToastMsg[]>([]);
-  const next = useRef(1);
-  const dismiss = useCallback((id: number) => setToasts((t) => t.filter((x) => x.id !== id)), []);
-  const push = useCallback((tone: ToastMsg["tone"], text: string) => setToasts((t) => [...t, { id: next.current++, tone, text }]), []);
-  return { toasts, dismiss, success: (t: string) => push("success", t), fail: (t: string) => push("error", t) };
 }

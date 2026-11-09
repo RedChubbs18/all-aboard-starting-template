@@ -1,12 +1,13 @@
 import { Check, ChevronDown, Flag, Lock, type LucideIcon } from "lucide-react";
 import { cn } from "./cn";
+import { ProgressBar } from "./ProgressBar";
 
 export type StageState = "done" | "current" | "locked";
 
 const icon: Record<StageState, { Icon: LucideIcon; cls: string; word: string }> = {
-  done: { Icon: Check, cls: "bg-brand text-surface", word: "Complete" },
-  current: { Icon: Flag, cls: "border-[3px] border-brand bg-surface text-brand", word: "Current" },
-  locked: { Icon: Lock, cls: "border-2 border-border bg-surface-alt text-text-muted", word: "Locked" },
+  done: { Icon: Check, cls: "bg-brand text-card", word: "Complete" },
+  current: { Icon: Flag, cls: "border-2 border-now bg-card text-brand-strong shadow-[0_0_0_4px_rgba(0,163,108,0.18)]", word: "Current" },
+  locked: { Icon: Lock, cls: "border-2 border-disabled bg-card text-muted", word: "Locked" },
 };
 
 interface Props {
@@ -25,12 +26,17 @@ interface Props {
   level?: 2 | 3;
 }
 
-/** Whole row is one 56px+ button (aria-expanded, aria-controls). State is always written in words. */
+/**
+ * Stage card header (STYLE section 13): stage name, thin progress bar and the count on the right.
+ * Whole row is one 56px+ button (aria-expanded, aria-controls). State is always written in words.
+ * Locked stages show only the name and the reason.
+ */
 export function StageHeader({ number, total = 5, label, state, doneCount, totalCount, expanded, controlsId, onToggle, unlockHint, level = 3 }: Props) {
   const { Icon, cls, word } = icon[state];
   const Heading = level === 2 ? "h2" : "h3";
+  const locked = state === "locked";
   const summary = `Stage ${number} of ${total}, ${label}. ${word}, ${doneCount} of ${totalCount} tasks done.${
-    state === "locked" && unlockHint ? ` ${unlockHint}` : ""
+    locked && unlockHint ? ` ${unlockHint}` : ""
   }`;
   return (
     <Heading className="m-0">
@@ -41,23 +47,29 @@ export function StageHeader({ number, total = 5, label, state, doneCount, totalC
         aria-controls={controlsId}
         aria-current={state === "current" ? "step" : undefined}
         aria-label={summary}
+        aria-disabled={locked || undefined}
         onClick={onToggle}
-        className="flex min-h-14 w-full items-center gap-3 rounded-md px-3 py-2 text-left hover:bg-brand-soft"
+        className={cn("flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left", !locked && "hover:bg-page")}
       >
-        <span aria-hidden className={cn("flex size-10 shrink-0 items-center justify-center rounded-full", cls)}>
-          <Icon className="size-5" />
+        <span aria-hidden className={cn("flex size-8 shrink-0 items-center justify-center rounded-full", cls)}>
+          <Icon className="size-4" strokeWidth={2} />
         </span>
         <span aria-hidden className="min-w-0 flex-1">
-          <span className="block text-lg font-semibold leading-tight">{label}</span>
-          <span className="block text-sm text-text-muted">
-            {word}
-            {state === "locked" && unlockHint ? `. ${unlockHint}` : ""}
+          <span className="block text-[17px] font-bold leading-tight">{label}</span>
+          {locked ? (
+            unlockHint && <span className="mt-0.5 block text-sm text-muted">{unlockHint}</span>
+          ) : (
+            <span className="mt-1.5 block">
+              <ProgressBar value={totalCount ? (doneCount / totalCount) * 100 : 0} label={`${label} progress`} size="thin" />
+            </span>
+          )}
+        </span>
+        {!locked && (
+          <span aria-hidden className="tabular shrink-0 text-sm font-semibold text-muted">
+            {doneCount} of {totalCount}
           </span>
-        </span>
-        <span aria-hidden className="tabular text-sm text-text-muted">
-          {doneCount} of {totalCount} done
-        </span>
-        <ChevronDown aria-hidden className={cn("size-5 shrink-0 text-text-muted motion-safe:transition-transform", expanded && "rotate-180")} />
+        )}
+        {!locked && <ChevronDown aria-hidden className={cn("size-5 shrink-0 text-muted motion-safe:transition-transform", expanded && "rotate-180")} strokeWidth={1.8} />}
       </button>
     </Heading>
   );

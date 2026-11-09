@@ -1,17 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
-import Link from "next/link";
+import { useCallback, useId, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { useSession } from "@/lib/auth/client";
 import { isPnpAdminPath } from "@/lib/auth/roles";
+import { Alert as SharedAlert } from "@/components/ui/Alert";
+import { buttonClass } from "@/components/ui/Button";
+import { ChipLink } from "@/components/ui/Chip";
+import { controlClass } from "@/components/ui/Field";
+import { Sheet } from "@/components/ui/Sheet";
 
-export const inputCls =
-  "min-h-11 w-full rounded-sm border-2 border-border bg-surface px-3 py-2 text-base text-text focus-visible:outline-3 focus-visible:outline-info";
+export const inputCls = controlClass;
+
 export const btnCls = {
-  primary: "inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-brand px-4 font-semibold text-surface hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60",
-  secondary: "inline-flex min-h-11 items-center justify-center gap-2 rounded-md border-2 border-brand bg-surface px-4 font-semibold text-brand hover:bg-brand-soft disabled:cursor-not-allowed disabled:opacity-60",
-  danger: "inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-danger px-4 font-semibold text-surface hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-60",
+  primary: buttonClass("primary"),
+  secondary: buttonClass("secondary"),
+  danger: buttonClass("danger"),
 };
 
 export type Fields = Record<string, string>;
@@ -41,18 +45,12 @@ export function useSend() {
 }
 
 export function Alert({ kind = "info", children }: { kind?: "info" | "success" | "warning" | "danger"; children: ReactNode }) {
-  const styles = {
-    info: "bg-[#e4effb] text-text border-info",
-    success: "bg-[#e2f3e8] text-text border-success",
-    warning: "bg-[#fdf1d8] text-text border-warning",
-    danger: "bg-[#fbe6e4] text-text border-danger",
-  }[kind];
   const label = { info: "Note", success: "Success", warning: "Warning", danger: "Error" }[kind];
   return (
-    <div role={kind === "danger" ? "alert" : "status"} className={`rounded-md border-l-4 p-3 ${styles}`}>
+    <SharedAlert tone={kind} live={kind === "danger" ? "alert" : "status"}>
       <strong className="mr-1">{label}:</strong>
       {children}
-    </div>
+    </SharedAlert>
   );
 }
 
@@ -62,17 +60,17 @@ export function Field({ label, error, hint, children }: { label: string; error?:
   const desc = [error && `${id}-err`, hint && `${id}-hint`].filter(Boolean).join(" ") || undefined;
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={id} className="font-medium">
+      <label htmlFor={id} className="text-sm font-semibold">
         {label}
       </label>
       {children({ id, "aria-describedby": desc, "aria-invalid": error ? true : undefined })}
       {hint && (
-        <p id={`${id}-hint`} className="text-sm text-text-muted">
+        <p id={`${id}-hint`} className="text-sm text-muted">
           {hint}
         </p>
       )}
       {error && (
-        <p id={`${id}-err`} className="text-sm font-medium text-danger">
+        <p id={`${id}-err`} className="text-sm font-medium text-blocked">
           Error: {error}
         </p>
       )}
@@ -97,19 +95,15 @@ export function AdminTabs() {
   const isAdmin = !!user?.roles.includes("ADMIN");
   const tabs = isAdmin ? TABS : TABS.filter((t) => isPnpAdminPath(t.href)); // P&P only sees the pages they may use
   return (
-    <nav aria-label="Admin sections" className="mb-4 overflow-x-auto">
-      <ul className="flex gap-1 border-b border-border">
+    <nav aria-label="Admin sections" className="mb-4">
+      <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
         {tabs.map((t) => {
           const active = t.href === "/admin" ? path === "/admin" : path.startsWith(t.href);
           return (
-            <li key={t.href}>
-              <Link
-                href={t.href}
-                aria-current={active ? "page" : undefined}
-                className={`flex min-h-11 items-center whitespace-nowrap rounded-t-md px-3 text-sm font-medium ${active ? "border-b-4 border-brand bg-brand-soft text-brand-strong" : "text-text hover:bg-surface-alt"}`}
-              >
+            <li key={t.href} className="shrink-0">
+              <ChipLink href={t.href} current={active}>
                 {t.label}
-              </Link>
+              </ChipLink>
             </li>
           );
         })}
@@ -118,56 +112,20 @@ export function AdminTabs() {
   );
 }
 
-/** Native <dialog> modal: focus trap, Esc to close, focus returns to the opener. Right drawer on desktop. */
+/** Right drawer on desktop, bottom sheet on mobile (the shared Sheet). */
 export function Drawer({ title, open, onClose, children }: { title: string; open: boolean; onClose: () => void; children: ReactNode }) {
-  const ref = useRef<HTMLDialogElement>(null);
-  const titleId = useId();
-  useEffect(() => {
-    const d = ref.current;
-    if (!d) return;
-    if (open && !d.open) d.showModal();
-    if (!open && d.open) d.close();
-  }, [open]);
   return (
-    <dialog
-      ref={ref}
-      aria-labelledby={titleId}
-      onClose={onClose}
-      className="m-0 mt-auto max-h-[90dvh] w-full overflow-y-auto rounded-t-lg bg-surface p-4 text-text shadow-card backdrop:bg-text/50 lg:ml-auto lg:mt-0 lg:h-dvh lg:max-h-none lg:w-[480px] lg:rounded-none lg:rounded-l-lg"
-    >
-      {open && (
-        <>
-          <div className="mb-4 flex items-start justify-between gap-2">
-            <h2 id={titleId} className="text-xl font-semibold text-brand-strong">
-              {title}
-            </h2>
-            <button type="button" onClick={onClose} className={btnCls.secondary}>
-              Close
-            </button>
-          </div>
-          {children}
-        </>
-      )}
-    </dialog>
+    <Sheet open={open} onClose={onClose} title={title}>
+      {children}
+    </Sheet>
   );
 }
 
 /** Confirm dialog (cancel first in DOM order). */
 export function Confirm({ title, message, confirmLabel, open, onCancel, onConfirm, busy }: { title: string; message: ReactNode; confirmLabel: string; open: boolean; onCancel: () => void; onConfirm: () => void; busy?: boolean }) {
-  const ref = useRef<HTMLDialogElement>(null);
-  const id = useId();
-  useEffect(() => {
-    const d = ref.current;
-    if (!d) return;
-    if (open && !d.open) d.showModal();
-    if (!open && d.open) d.close();
-  }, [open]);
   return (
-    <dialog ref={ref} aria-labelledby={id} onClose={onCancel} className="m-auto w-[calc(100%-2rem)] max-w-sm rounded-lg bg-surface p-6 text-text shadow-card backdrop:bg-text/50">
-      <h2 id={id} className="text-lg font-semibold">
-        {title}
-      </h2>
-      <div className="mt-2 text-text-muted">{message}</div>
+    <Sheet open={open} onClose={onCancel} title={title} variant="dialog">
+      <div className="text-muted">{message}</div>
       <div className="mt-6 flex justify-end gap-2">
         <button type="button" onClick={onCancel} className={btnCls.secondary}>
           Cancel
@@ -176,7 +134,7 @@ export function Confirm({ title, message, confirmLabel, open, onCancel, onConfir
           {confirmLabel}
         </button>
       </div>
-    </dialog>
+    </Sheet>
   );
 }
 

@@ -41,12 +41,12 @@ export function JourneysManager() {
       <Alert kind="info">Record an exit when a starter withdraws, fails vetting or does not turn up. The journey stops and the reason feeds the MI funnel.</Alert>
       {n.notice}
       {list.error && <Alert kind="danger">{list.error}</Alert>}
-      <ul className="divide-y divide-border/40 rounded-lg bg-surface px-4 shadow-card">
+      <ul className="divide-y divide-line rounded-lg bg-card px-4 border border-line">
         {(list.data ?? []).map((j) => (
           <li key={j.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
             <div>
               <p className="font-medium">{j.starterName}</p>
-              <p className="text-sm text-text-muted">{j.teamName} | starts {j.startDate.slice(0, 10)} | {j.stage} | {j.status}{j.exitReason ? ` (${reasonLabel(j.exitReason)})` : ""}</p>
+              <p className="text-sm text-muted">{j.teamName} | starts {j.startDate.slice(0, 10)} | {j.stage} | {j.status}{j.exitReason ? ` (${reasonLabel(j.exitReason)})` : ""}</p>
             </div>
             {j.status === "active" && (
               <button type="button" className={btnCls.secondary} aria-label={`Record exit for ${j.starterName}`} onClick={() => { setTarget(j); setReason(""); setNote(""); setErrors({}); }}>
@@ -55,7 +55,7 @@ export function JourneysManager() {
             )}
           </li>
         ))}
-        {list.loading && <li className="py-3 text-text-muted">Loading…</li>}
+        {list.loading && <li className="py-3 text-muted">Loading…</li>}
       </ul>
       <Drawer title={target ? `Record exit: ${target.starterName}` : "Record exit"} open={!!target} onClose={() => setTarget(null)}>
         <form onSubmit={submit} className="space-y-3" noValidate>

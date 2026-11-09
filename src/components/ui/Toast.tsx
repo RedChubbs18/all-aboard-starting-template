@@ -10,10 +10,11 @@ interface ToastItem {
   id: number;
   tone: Tone;
   message: string;
+  lines?: string[];
 }
 interface ToastApi {
-  success(message: string): void;
-  error(message: string): void;
+  success(message: string, lines?: string[]): void;
+  error(message: string, lines?: string[]): void;
 }
 
 const Ctx = createContext<ToastApi | null>(null);
@@ -40,11 +41,20 @@ function ToastView({ item, onDismiss }: { item: ToastItem; onDismiss: (id: numbe
       onMouseLeave={() => (paused.current = false)}
       onFocus={() => (paused.current = true)}
       onBlur={() => (paused.current = false)}
-      className={cn("flex items-center gap-2 rounded-md p-3 text-surface shadow-card", item.tone === "success" ? "bg-brand-strong" : "bg-danger")}
+      className={cn("flex items-center gap-2 rounded-md p-3 text-card", item.tone === "success" ? "bg-dark-green" : "bg-blocked")}
     >
       <Icon aria-hidden className="size-5 shrink-0" />
-      <p className="min-w-0 flex-1">{item.message}</p>
-      <Button variant="ghost" size="icon" aria-label="Dismiss" className="text-surface hover:bg-surface/20" onClick={() => onDismiss(item.id)}>
+      <div className="min-w-0 flex-1">
+        <p>{item.message}</p>
+        {item.lines && item.lines.length > 0 && (
+          <ul className="mt-1 list-disc pl-5 text-sm">
+            {item.lines.map((l, i) => (
+              <li key={i}>{l}</li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <Button variant="ghost" size="icon" aria-label="Dismiss" className="text-card hover:bg-card/20" onClick={() => onDismiss(item.id)}>
         <X aria-hidden className="size-5" />
       </Button>
     </div>
@@ -55,8 +65,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([]);
   const seq = useRef(0);
   const dismiss = useCallback((id: number) => setItems((l) => l.filter((x) => x.id !== id)), []);
-  const push = useCallback((tone: Tone, message: string) => setItems((l) => [...l, { id: ++seq.current, tone, message }]), []);
-  const api = useMemo<ToastApi>(() => ({ success: (m) => push("success", m), error: (m) => push("error", m) }), [push]);
+  const push = useCallback((tone: Tone, message: string, lines?: string[]) => setItems((l) => [...l.slice(-3), { id: ++seq.current, tone, message, lines }]), []);
+  const api = useMemo<ToastApi>(() => ({ success: (m, lines) => push("success", m, lines), error: (m, lines) => push("error", m, lines) }), [push]);
 
   return (
     <Ctx.Provider value={api}>

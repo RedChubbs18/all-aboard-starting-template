@@ -24,7 +24,7 @@ function Panel({ id, title, children }: { id: string; title: string; children: R
   return (
     <section aria-labelledby={id}>
       <Card className="space-y-3">
-        <h2 id={id} className="text-xl font-semibold text-brand-strong">
+        <h2 id={id} className="text-xl font-bold text-ink">
           {title}
         </h2>
         {children}
@@ -63,7 +63,7 @@ export function BuddyPanel(p: PanelProps) {
         <div className="flex flex-wrap items-center gap-2">
           <p className="mr-auto">
             <span className="font-semibold">{d.buddy.displayName}</span>
-            {d.buddy.jobTitle && <span className="text-text-muted"> · {d.buddy.jobTitle}</span>}
+            {d.buddy.jobTitle && <span className="text-muted"> · {d.buddy.jobTitle}</span>}
           </p>
           <ExternalLink href={d.buddy.chatUrl}>
             <Icon name="chat" /> Chat with buddy
@@ -75,7 +75,7 @@ export function BuddyPanel(p: PanelProps) {
       {d.journey.status === "active" && (
         <form onSubmit={submit} noValidate className="space-y-3">
           {d.buddyCandidates.length === 0 ? (
-            <p className="text-text-muted">No buddy-eligible people in this team. Ask P&P to mark team members as eligible.</p>
+            <p className="text-muted">No buddy-eligible people in this team. Ask P&P to mark team members as eligible.</p>
           ) : (
             <>
               <SelectField label={d.buddy ? "Change buddy" : "Choose a buddy"} value={choice} onChange={(e) => setChoice(e.target.value)} error={errors.buddyId} hint="Team members who have said they can be a buddy.">
@@ -138,10 +138,10 @@ export function CheckInPanel(p: PanelProps) {
               <Icon name="link" /> Open Teams meeting
             </ExternalLink>
           )}
-          {d.checkIns.length > 1 && <p className="text-sm text-text-muted">{d.checkIns.length - 1} earlier check-in {d.checkIns.length === 2 ? "arrangement" : "arrangements"} replaced.</p>}
+          {d.checkIns.length > 1 && <p className="text-sm text-muted">{d.checkIns.length - 1} earlier check-in {d.checkIns.length === 2 ? "arrangement" : "arrangements"} replaced.</p>}
         </div>
       ) : (
-        <p className="text-text-muted">No check-ins agreed yet.</p>
+        <p className="text-muted">No check-ins agreed yet.</p>
       )}
       {d.journey.status === "active" && (
         <form onSubmit={submit} noValidate className="space-y-3">
@@ -212,7 +212,7 @@ export function Day0Panel(p: PanelProps) {
           )}
         </div>
       ) : (
-        <p className="text-text-muted">Not proposed yet. Agree where, when and who the starter meets on Day 0.</p>
+        <p className="text-muted">Not proposed yet. Agree where, when and who the starter meets on Day 0.</p>
       )}
       {d.journey.status === "active" && !open && (
         <Button variant="secondary" onClick={() => setOpen(true)}>
@@ -293,7 +293,7 @@ function GoalRow({ g, p }: { g: GoalDto; p: PanelProps }) {
         }}
         className="mt-2 size-6 shrink-0 accent-brand"
       />
-      <label htmlFor={`goal-${g.id}`} className={`flex-1 pt-2 ${g.done ? "text-text-muted line-through" : ""}`}>
+      <label htmlFor={`goal-${g.id}`} className={`flex-1 pt-2 ${g.done ? "text-muted line-through" : ""}`}>
         {g.text}
       </label>
       <Button variant="ghost" onClick={() => setEditing(true)} aria-label={`Edit goal: ${g.text}`}>
@@ -328,17 +328,17 @@ export function GoalsPanel(p: PanelProps) {
 
   return (
     <Panel id="goals" title="Goals">
-      <p className="text-sm text-text-muted">The starter sees and can edit the same list.</p>
+      <p className="text-sm text-muted">The starter sees and can edit the same list.</p>
       {GOAL_HORIZONS.map((h) => {
         const list = d.goals.filter((g) => g.horizon === h);
         return (
           <div key={h}>
             <h3 className="mb-1 font-semibold">{HORIZON_LABEL[h]}</h3>
-            {list.length === 0 ? <p className="text-sm text-text-muted">No goals yet.</p> : <ul className="space-y-1">{list.map((g) => <GoalRow key={g.id} g={g} p={p} />)}</ul>}
+            {list.length === 0 ? <p className="text-sm text-muted">No goals yet.</p> : <ul className="space-y-1">{list.map((g) => <GoalRow key={g.id} g={g} p={p} />)}</ul>}
           </div>
         );
       })}
-      <form onSubmit={add} noValidate className="space-y-3 border-t border-border/40 pt-3">
+      <form onSubmit={add} noValidate className="space-y-3 border-t border-line pt-3">
         <SelectField label="Add a goal for" value={horizon} onChange={(e) => setHorizon(e.target.value)} error={errors.horizon}>
           {GOAL_HORIZONS.map((h) => (
             <option key={h} value={h}>
@@ -388,7 +388,7 @@ export function PhotoReviewPanel(p: PanelProps) {
           ))}
         </ul>
       ) : (
-        <p className="text-text-muted">No issue details were recorded.</p>
+        <p className="text-muted">No issue details were recorded.</p>
       )}
       <form onSubmit={submit} noValidate className="space-y-3">
         <TextArea label="Why is this photo acceptable?" value={justification} maxLength={300} onChange={(e) => setJustification(e.target.value)} error={error} hint="Required. Recorded in the audit trail. Do not include personal details." />

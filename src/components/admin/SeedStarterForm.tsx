@@ -56,19 +56,19 @@ export function SeedStarterForm() {
     <div className="max-w-xl space-y-4">
       <Alert kind="info">Synthetic data only. The invite goes through the mocked identity adapter and no real email is sent. The work email must end in @example.test.</Alert>
       {result && (
-        <section aria-live="polite" className="rounded-lg border-l-4 border-success bg-[#e2f3e8] p-4">
-          <h2 className="text-lg font-semibold">Journey created for {result.starterName}</h2>
+        <section aria-live="polite" className="rounded-lg border-l-4 border-brand-strong bg-brand-tint p-4">
+          <h2 className="text-lg font-bold">Journey created for {result.starterName}</h2>
           <p>{result.taskCount} tasks created. {result.identity.ok ? `Guest invite: ${result.identity.status}.` : `Guest invite failed: ${result.identity.message}. The journey was still created.`}</p>
           <p className="mt-3 flex flex-wrap gap-4">
-            <Link className="min-h-11 font-medium text-brand underline" href={result.links.lm}>Open the line manager view</Link>
-            <Link className="min-h-11 font-medium text-brand underline" href={result.links.journey}>Open the journey</Link>
-            <Link className="min-h-11 font-medium text-brand underline" href="/admin/simulate">Simulate integration events</Link>
+            <Link className="min-h-11 font-medium text-brand-strong underline" href={result.links.lm}>Open the line manager view</Link>
+            <Link className="min-h-11 font-medium text-brand-strong underline" href={result.links.journey}>Open the journey</Link>
+            <Link className="min-h-11 font-medium text-brand-strong underline" href="/admin/simulate">Simulate integration events</Link>
           </p>
         </section>
       )}
       {msg && !Object.keys(errors).length && <Alert kind="danger">{msg}</Alert>}
       {dir.error && <Alert kind="danger">{dir.error}</Alert>}
-      <form onSubmit={submit} className="space-y-3 rounded-lg bg-surface p-4 shadow-card" noValidate>
+      <form onSubmit={submit} className="space-y-3 rounded-lg bg-card p-4 border border-line" noValidate>
         <fieldset>
           <legend className="font-medium">Starter</legend>
           <div className="flex gap-4">

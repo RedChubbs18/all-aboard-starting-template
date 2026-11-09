@@ -18,7 +18,7 @@ export function OfflineBanner() {
   }, []);
   if (online) return null;
   return (
-    <div role="status" className="flex items-center gap-2 rounded-md bg-warning-soft p-3 text-warning">
+    <div role="status" className="flex items-center gap-2 rounded-md bg-blocked-tint p-3 text-blocked">
       <WifiOff aria-hidden className="size-5 shrink-0" />
       You&apos;re offline. Showing saved content.
     </div>

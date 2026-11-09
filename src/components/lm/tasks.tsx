@@ -68,21 +68,21 @@ export function TaskRow({ t, p }: { t: TaskDto; p: PanelProps }) {
         {t.overdue && <OverdueBadge label={mine ? "Overdue: P&P may chase" : "Overdue"} />}
         <OwnerBadge owner={t.owner} />
       </div>
-      {t.description && <p className="text-text-muted">{t.description}</p>}
-      <p className="text-sm text-text-muted">
+      {t.description && <p className="text-muted">{t.description}</p>}
+      <p className="text-sm text-muted">
         Due {formatDate(t.dueDate)}
         {t.completedAt && ` · Done ${formatDate(t.completedAt)}`}
         {t.source === "BESPOKE" && " · Added by you"}
       </p>
-      {t.status === "BLOCKED" && t.blockedReason && <p className="text-sm font-semibold text-danger">Blocked: {t.blockedReason}</p>}
-      {t.status === "LOCKED" && t.waitingFor.length > 0 && <p className="text-sm text-text-muted">Waiting for: {t.waitingFor.join(", ")}</p>}
+      {t.status === "BLOCKED" && t.blockedReason && <p className="text-sm font-semibold text-blocked">Blocked: {t.blockedReason}</p>}
+      {t.status === "LOCKED" && t.waitingFor.length > 0 && <p className="text-sm text-muted">Waiting for: {t.waitingFor.join(", ")}</p>}
       {t.canAct && (
         <Button variant={t.status === "DONE" ? "ghost" : "primary"} busy={busy} disabled={busy} onClick={toggle} aria-label={`${t.status === "DONE" ? "Reopen" : "Mark done"}: ${t.title}`}>
           <Icon name="check" />
           {t.status === "DONE" ? "Reopen" : "Mark done"}
         </Button>
       )}
-      {mine && t.status === "LOCKED" && <p className="text-sm text-text-muted">You can act on this once the task it is waiting for is done.</p>}
+      {mine && t.status === "LOCKED" && <p className="text-sm text-muted">You can act on this once the task it is waiting for is done.</p>}
     </Card>
   );
 }
@@ -113,9 +113,9 @@ function LinksEditor({ t, p }: { t: TaskDto; p: PanelProps }) {
   }
 
   return (
-    <div className="mt-2 space-y-2 border-t border-border/40 pt-3">
+    <div className="mt-2 space-y-2 border-t border-line pt-3">
       <p className="font-semibold">Teams links for recurring calls (optional)</p>
-      {links.length === 0 && <p className="text-sm text-text-muted">No links added yet.</p>}
+      {links.length === 0 && <p className="text-sm text-muted">No links added yet.</p>}
       <ul className="space-y-2">
         {links.map((l) => (
           <li key={l} className="flex items-center gap-2">
@@ -167,8 +167,8 @@ export function TeamChecklist({ p }: { p: PanelProps }) {
 
   return (
     <section aria-labelledby="team-checklist" className="space-y-3">
-      <h2 id="team-checklist" className="text-xl font-semibold text-brand-strong">
-        Team checklist <span className="text-base font-normal text-text-muted">({done} of {items.length} done)</span>
+      <h2 id="team-checklist" className="text-xl font-bold text-ink">
+        Team checklist <span className="text-base font-normal text-muted">({done} of {items.length} done)</span>
       </h2>
       <ul className="space-y-3">
         {items.map((t) => {
@@ -193,11 +193,11 @@ export function TeamChecklist({ p }: { p: PanelProps }) {
                     <div className="flex flex-wrap items-center gap-2">
                       <StatusBadge status={t.status} />
                       {t.overdue && <OverdueBadge label="Overdue: P&P may chase" />}
-                      <span className="text-sm text-text-muted">Due {formatDate(t.dueDate)}</span>
+                      <span className="text-sm text-muted">Due {formatDate(t.dueDate)}</span>
                     </div>
-                    {t.description && <p className="text-sm text-text-muted">{t.description}</p>}
+                    {t.description && <p className="text-sm text-muted">{t.description}</p>}
                     {!editable && t.status === "LOCKED" && t.waitingFor.length > 0 && (
-                      <p className="text-sm text-text-muted">Waiting for: {t.waitingFor.join(", ")}</p>
+                      <p className="text-sm text-muted">Waiting for: {t.waitingFor.join(", ")}</p>
                     )}
                   </div>
                 </div>

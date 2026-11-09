@@ -1,5 +1,9 @@
 "use client";
 
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+
 export interface AdapterViewData {
   key: string;
   mode: string;
@@ -40,18 +44,18 @@ export function AdapterCard({ adapter, busy, onSimulate }: Props) {
   const buttons = adapter.statuses.length > 1 ? adapter.statuses : [];
   const headingId = `adapter-${adapter.key}`;
   return (
-    <li className="rounded-md border border-border bg-surface p-4 shadow-card">
+    <Card as="li" className="p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 id={headingId} className="font-semibold">{label}</h3>
-        <span className="rounded-sm border border-border px-2 py-0.5 text-sm font-semibold">{adapter.mode === "MOCK" ? "Mock" : "Real"}</span>
+        <h3 id={headingId} className="font-bold">{label}</h3>
+        <Badge>{adapter.mode === "MOCK" ? "Mock" : "Real"}</Badge>
       </div>
       <p className="mt-2 text-sm">
-        <span className="text-text-muted">Status: </span>
+        <span className="text-muted">Status: </span>
         <strong>{human(adapter.status)}</strong>
       </p>
-      {adapter.error && <p role="alert" className="mt-1 text-sm text-danger">Unavailable: {adapter.error}</p>}
+      {adapter.error && <p role="alert" className="mt-1 text-sm text-blocked">Unavailable: {adapter.error}</p>}
       {adapter.facts.length > 0 && (
-        <ul className="mt-1 list-disc pl-5 text-sm text-text-muted">
+        <ul className="mt-1 list-disc pl-5 text-sm text-muted">
           {adapter.facts.map((f, i) => <li key={i}>{f}</li>)}
         </ul>
       )}
@@ -61,23 +65,21 @@ export function AdapterCard({ adapter, busy, onSimulate }: Props) {
             const id = `${adapter.key}:${s}`;
             const current = s === adapter.status;
             return (
-              <button
+              <Button
                 key={s}
-                type="button"
+                variant={current ? "primary" : "secondary"}
                 onClick={() => onSimulate(adapter.key, s)}
                 disabled={busy !== null}
                 aria-pressed={current}
-                aria-busy={busy === id}
-                className={`min-h-11 rounded-md px-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60 ${
-                  current ? "bg-brand text-surface" : "border-2 border-brand bg-surface text-brand hover:bg-brand-soft"
-                }`}
+                busy={busy === id}
+                className="px-4 py-2 text-sm"
               >
                 {human(s)}
-              </button>
+              </Button>
             );
           })}
         </div>
       )}
-    </li>
+    </Card>
   );
 }

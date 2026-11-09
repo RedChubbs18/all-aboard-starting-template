@@ -11,7 +11,7 @@ export function initialsOf(name: string): string {
 
 /** Photo when available, otherwise initials on brand-soft. */
 export function Avatar({ name, photoUrl, size = 56, className }: { name: string; photoUrl?: string | null; size?: number; className?: string }) {
-  const style = { width: size, height: size, fontSize: Math.round(size / 2.6) };
+  const style = { width: size, height: size, fontSize: size >= 80 ? 26 : Math.round(size / 2.6) };
   if (photoUrl) {
     return <img src={photoUrl} alt={name} width={size} height={size} className={cn("shrink-0 rounded-full object-cover", className)} style={style} />;
   }
@@ -20,7 +20,7 @@ export function Avatar({ name, photoUrl, size = 56, className }: { name: string;
       role="img"
       aria-label={name}
       style={style}
-      className={cn("inline-flex shrink-0 items-center justify-center rounded-full bg-brand-soft font-semibold text-brand-strong", className)}
+      className={cn("inline-flex shrink-0 items-center justify-center rounded-full bg-brand-tint font-bold text-brand-strong", className)}
     >
       <span aria-hidden>{initialsOf(name)}</span>
     </span>

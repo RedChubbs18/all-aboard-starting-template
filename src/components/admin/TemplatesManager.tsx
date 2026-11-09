@@ -125,27 +125,27 @@ export function TemplatesManager({ readOnly = false }: { readOnly?: boolean }) {
           </button>
         )}
       </div>
-      {tpl.loading && <p role="status" className="text-text-muted">Loading templates…</p>}
+      {tpl.loading && <p role="status" className="text-muted">Loading templates…</p>}
       {STAGES.map((stage) => {
         const inStage = rows.filter((t) => t.stage === stage).sort((a, b) => a.sortOrder - b.sortOrder);
         return (
-          <section key={stage} aria-labelledby={`h-${stage}`} className="rounded-lg bg-surface p-4 shadow-card">
-            <h2 id={`h-${stage}`} className="text-lg font-semibold">
-              {STAGE_LABEL[stage]} <span className="text-text-muted">({inStage.length})</span>
+          <section key={stage} aria-labelledby={`h-${stage}`} className="rounded-lg bg-card p-4 border border-line">
+            <h2 id={`h-${stage}`} className="text-lg font-bold">
+              {STAGE_LABEL[stage]} <span className="text-muted">({inStage.length})</span>
             </h2>
-            {inStage.length === 0 && <p className="mt-2 text-text-muted">No templates for this stage.</p>}
-            <ul className="mt-2 divide-y divide-border/40">
+            {inStage.length === 0 && <p className="mt-2 text-muted">No templates for this stage.</p>}
+            <ul className="mt-2 divide-y divide-line">
               {inStage.map((t) => (
                 <li key={t.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
                   <div className="min-w-0">
                     <p className="font-medium">
-                      {t.title} {!t.active && <span className="text-text-muted">(inactive)</span>}
+                      {t.title} {!t.active && <span className="text-muted">(inactive)</span>}
                     </p>
-                    <p className="text-sm text-text-muted">
+                    <p className="text-sm text-muted">
                       {t.type} | owner {t.owner} | due {t.dueOffsetDays > 0 ? "+" : ""}{t.dueOffsetDays}d | {t.source === "TEAM" ? `TEAM: ${teamName(t.teamId)}` : t.source}
                       {t.gating && " | gating"}
                     </p>
-                    <p className="text-sm text-text-muted">
+                    <p className="text-sm text-muted">
                       key {t.key}
                       {t.dependsOn.length > 0 && ` | depends on: ${t.dependsOn.join(", ")}`}
                       {t.condition && ` | only if ${t.condition}`}
@@ -259,7 +259,7 @@ export function TemplatesManager({ readOnly = false }: { readOnly?: boolean }) {
                 </>
               )}
             </Field>
-            <fieldset aria-describedby="deps-err" className="rounded-md border-2 border-border p-3">
+            <fieldset aria-describedby="deps-err" className="rounded-md border-2 border-line p-3">
               <legend className="px-1 font-medium">Depends on</legend>
               <div className="max-h-48 overflow-y-auto">
                 {(tpl.data ?? []).filter((t) => t.key !== editing.key).map((t) => (
@@ -270,11 +270,11 @@ export function TemplatesManager({ readOnly = false }: { readOnly?: boolean }) {
                       checked={editing.dependsOn.includes(t.key)}
                       onChange={(e) => set("dependsOn", e.target.checked ? [...editing.dependsOn, t.key] : editing.dependsOn.filter((k) => k !== t.key))}
                     />
-                    <span>{t.title} <span className="text-sm text-text-muted">({t.key})</span></span>
+                    <span>{t.title} <span className="text-sm text-muted">({t.key})</span></span>
                   </label>
                 ))}
               </div>
-              {errors.dependsOn && <p id="deps-err" className="mt-1 text-sm font-medium text-danger">Error: {errors.dependsOn}</p>}
+              {errors.dependsOn && <p id="deps-err" className="mt-1 text-sm font-medium text-blocked">Error: {errors.dependsOn}</p>}
             </fieldset>
             <div className="flex justify-end gap-2 pt-2">
               <button type="button" className={btnCls.secondary} onClick={() => setEditing(null)}>Cancel</button>
