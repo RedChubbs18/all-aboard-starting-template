@@ -9,7 +9,7 @@ Prepared on 2026-11-09 while the team was away. It draws on three independent re
 - Mock Workday (port 3001). The chain recruiter offer → candidate accepts → invite → signed webhook → MyJourney creates the starter and journey was tested server-side in simulated-invite mode. No personal email reaches MyJourney.
 - Real Claude for the FAQ chatbot (grounded, cited) and the photo check. There's a daily call cap, and it falls back to the mock.
 - Everything from feedback round 1 (F1–F16).
-- 453 automated tests, all passing.
+- 465 automated tests, all passing.
 
 **Fixed while you were away** (found by the code review, verified against the real templates)
 - A starter seeded from Admin was stuck, because "guest invite sent" never completed.
@@ -25,7 +25,7 @@ Prepared on 2026-11-09 while the team was away. It draws on three independent re
 - The one-click demo steps now also work for a starter created through mock Workday, not only Alex Morgan.
 - An unused API that leaked hidden task titles to buddies and starters was removed.
 
-**In progress:** accessibility fixes (focus handling, voice-control labels, contrast, input borders, captions). See §5.
+**Also fixed:** all 24 accessibility review items (see §5). 465 tests now pass.
 
 ## 2. Questions for you (decisions only the team can make)
 
@@ -40,8 +40,8 @@ Each has a recommended default. Answering "go with the default" is fine.
 6. **Teams links.** The seeded buddy and LM have `@example.test` addresses, so "Chat on Teams" opens a non-existent user. *Default:* map the buddy and LM personas to the real `team05-kai-demo` / `team05-dana-sample` UPNs, so the links open real chats. This is a small seed change, and I can do it.
 
 ### Product and content
-7. **Locked stages:** the style guide asks for a 55% fade, which fails contrast. *Default:* a solid grey card with a lock icon and full-strength text. The accessibility agent is applying this as a STYLE.md section A override. Confirm you're happy.
-8. **Input borders:** the guide's `#c8d1cc` is 1.56:1, which fails WCAG for form fields. *Default:* `#767d79` for inputs only, with cards unchanged. Also being applied; please confirm.
+7. **Locked stages:** the style guide asks for a 55% fade, which fails contrast. *Default:* a solid grey card with a lock icon and full-strength text. Applied as STYLE.md section A item 11. Confirm you're happy.
+8. **Input borders:** the guide's `#c8d1cc` is 1.56:1, which fails WCAG for form fields. *Default:* `#767d79` for inputs only, with cards unchanged. Applied as STYLE.md section A item 12. Please confirm.
 9. **Auto-complete on open** for flex benefits and development goals means a judge sees them complete with no action. *Default:* keep auto-complete for pure reading. Make flex benefits and development goals a "Mark done" action.
 10. **Executive welcome video and office floor plan** are placeholders. *Default:* a 20–30 second synthetic MP4 (under 5 MB) plus an SVG floor plan labelled "example". Do you have real ones you're allowed to use?
 11. **"Collect equipment"** shows generic text. *Default:* list the actual device and peripherals the starter chose, plus the collection point (small change).
@@ -98,7 +98,7 @@ In §12 as written, "cleared → stage advances" skips the P&P offer-conditions 
 
 ## 5. Accessibility review: summary
 
-Being fixed now (HIGH and MEDIUM), with LOW items if quick:
+All 24 items are fixed. They're verified by component tests (jsdom) but **not yet in a real browser or screen reader**:
 - **Focus handling:** focus no longer drops to the top after "Mark done", photo retake, camera start, LM forms, buddy switch and withdrawal.
 - **Voice-control labels:** four buttons get names that contain their visible text.
 - **Switchers:** the LM and buddy starter dropdowns no longer navigate on change; there's an explicit button instead.
@@ -107,7 +107,7 @@ Being fixed now (HIGH and MEDIUM), with LOW items if quick:
 - **Video and photo:** captions on the video; photo conditions no longer rely on colour alone.
 - **Layout and errors:** focused items no longer hidden under the sticky header or bottom nav, focus ring clipping fixed, and form errors announced.
 
-Done well already: skip link, landmarks, native dialogs, a text equivalent for the horse track, live regions, tables with captions, the camera fallbacks, reduced motion, and 44px targets.
+Known small gaps: after saving an edited goal, focus isn't restored; the MI toast's Dismiss button drops focus. Done well already: skip link, landmarks, native dialogs, a text equivalent for the horse track, live regions, tables with captions, the camera fallbacks, reduced motion, and 44px targets.
 
 ## 6. Clean-up checklist (before 13 November)
 
