@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
-import { Camera, Check, ImageUp, XCircle } from "lucide-react";
+import { Check, ImageUp, RotateCcw, XCircle } from "lucide-react";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
@@ -11,18 +11,19 @@ import { formatDateTime } from "../format";
 import { canSubmitPhoto, initialPhotoState, photoReducer, validatePhotoFile } from "../photo-machine";
 import type { Detail } from "../detail-types";
 import type { TaskDto } from "../types";
+import { CameraCapture } from "./camera/CameraCapture";
 import { usePost } from "./use-post";
 
 type PhotoDetail = Extract<Detail, { kind: "photo" }>;
 
-const TIPS = ["Face the camera", "No sunglasses or hat", "Plain background", "Good light"];
+const TIPS = ["Face fully visible, looking at the camera", "No sunglasses or hat", "Plain background", "Good light"];
 
 /** FR-3.11 / FR-3.12. The image stays in this component's memory (and the one request); only a reference leaves. */
 export function PhotoFlow({ task, detail, onChanged }: { task: TaskDto; detail: PhotoDetail; onChanged: () => void | Promise<void> }) {
   const [state, dispatch] = useReducer(photoReducer, initialPhotoState);
   const [preview, setPreview] = useState<string | null>(null);
   const fileRef = useRef<File | null>(null);
-  const cameraInput = useRef<HTMLInputElement>(null);
+  const [camCaptured, setCamCaptured] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const { post, busy } = usePost();
   const toast = useToast();
@@ -121,25 +122,25 @@ export function PhotoFlow({ task, detail, onChanged }: { task: TaskDto; detail: 
 
       <div className="space-y-4">
         <div>
-          <div className="relative flex h-[min(46vh,380px)] w-full items-center justify-center overflow-hidden rounded-md bg-viewfinder">
-            {preview ? (
-              <img src={preview} alt="Preview of the photo you chose" className="h-full w-full object-cover" />
-            ) : (
-              <span className="px-4 text-center text-sm text-card">Your photo will appear here</span>
-            )}
-            {/* Dashed oval guide, centred over the preview. */}
-            <span aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-[70%] w-[48%] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border-2 border-dashed border-focus" />
-            {state.step === "passed" && (
-              <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-brand-tint px-2.5 py-0.5 text-xs font-bold text-brand-strong">
-                <Check aria-hidden className="size-4" /> Passed
-              </span>
-            )}
-            {state.step === "rejected" && (
-              <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-blocked-tint px-2.5 py-0.5 text-xs font-bold text-blocked">
-                <XCircle aria-hidden className="size-4" /> Not accepted
-              </span>
-            )}
-          </div>
+          {preview ? (
+            <div className="relative flex h-[min(46vh,380px)] w-full items-center justify-center overflow-hidden rounded-md bg-viewfinder">
+              <img src={preview ?? undefined} alt="Preview of the photo you chose" className="h-full w-full object-cover" />
+              {/* Dashed oval guide, centred over the preview. */}
+              <span aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-[70%] w-[48%] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border-2 border-dashed border-focus" />
+              {state.step === "passed" && (
+                <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-brand-tint px-2.5 py-0.5 text-xs font-bold text-brand-strong">
+                  <Check aria-hidden className="size-4" /> Passed
+                </span>
+              )}
+              {state.step === "rejected" && (
+                <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-blocked-tint px-2.5 py-0.5 text-xs font-bold text-blocked">
+                  <XCircle aria-hidden className="size-4" /> Not accepted
+                </span>
+              )}
+            </div>
+          ) : (
+            <CameraCapture onUse={(f) => void choose(f)} onCapturedChange={setCamCaptured} disabled={pickDisabled} />
+          )}
           <section aria-labelledby="photo-tips" className="mt-3 rounded-md border border-line bg-card">
             <h3 id="photo-tips" className="px-4 pt-3 font-bold">
               Before you start
@@ -149,7 +150,7 @@ export function PhotoFlow({ task, detail, onChanged }: { task: TaskDto; detail: 
                 <li key={t} className="flex items-start gap-3 border-t border-line px-4 py-2.5 first:border-t-0">
                   <span
                     aria-hidden
-                    className={`mt-1 size-4 shrink-0 rounded-full ${state.step === "passed" || state.step === "submitting" || done ? "bg-brand" : "border-2 border-disabled"}`}
+                    className={`mt-1 size-4 shrink-0 rounded-full ${camCaptured || preview || state.step === "passed" || state.step === "submitting" || done ? "bg-brand" : "border-2 border-disabled"}`}
                   />
                   {t}
                 </li>
@@ -157,15 +158,16 @@ export function PhotoFlow({ task, detail, onChanged }: { task: TaskDto; detail: 
             </ul>
           </section>
           <div className="mt-3 flex gap-2">
-            <input ref={cameraInput} type="file" accept="image/*" capture="user" className="sr-only" tabIndex={-1} aria-hidden onChange={(e) => { void choose(e.target.files?.[0]); e.target.value = ""; }} />
             <input ref={fileInput} type="file" accept="image/*" className="sr-only" tabIndex={-1} aria-hidden onChange={(e) => { void choose(e.target.files?.[0]); e.target.value = ""; }} />
-            <Button variant={state.step === "rejected" ? "primary" : "secondary"} className="flex-1" disabled={pickDisabled} onClick={() => cameraInput.current?.click()}>
-              <Camera aria-hidden className="size-5" />
-              {state.step === "rejected" || state.step === "passed" ? "Retake photo" : "Take photo"}
-            </Button>
+            {preview && (
+              <Button variant={state.step === "rejected" ? "primary" : "secondary"} className="flex-1" disabled={pickDisabled} onClick={retake}>
+                <RotateCcw aria-hidden className="size-5" />
+                Retake photo
+              </Button>
+            )}
             <Button variant="secondary" className="flex-1" disabled={pickDisabled} onClick={() => fileInput.current?.click()}>
               <ImageUp aria-hidden className="size-5" />
-              Choose file
+              Upload a photo instead
             </Button>
           </div>
           {state.step === "idle" && state.notice && (
