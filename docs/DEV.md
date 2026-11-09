@@ -108,3 +108,12 @@ Until consent exists, Graph returns 403 or a consent prompt. The app then shows 
 **Approval flag.** The invitation email can reach an address outside the tenant, which the hackathon rules forbid unless the organisers approve. Set `NEXT_PUBLIC_GRAPH_INVITE_EXTERNAL_APPROVED=yes` only after they have approved it. Without it the app never calls Graph, uses the mock invite, shows "External invite email not approved for this environment" and audits the fallback.
 
 **Cleanup.** Each invite creates a real guest user named `team05-*`. Delete them before 13 November (Entra, Users, filter on `team05-`).
+
+## Entra test users for the personas
+
+1. Ask Claude to generate the bulk-create CSV, or reuse the one in your Documents folder. It's never committed, because it holds initial passwords.
+2. In the Entra admin centre, go to **Users → Bulk operations → Bulk create**. Replace `TENANT-DOMAIN` in the CSV with the tenant domain from your team sheet, upload it, and wait for the job to finish.
+3. Go to **Users → Download users** and export a CSV.
+4. Run `node scripts/map-entra-users.mjs <export.csv>`, then `npm run db:reset`. This writes the git-ignored `prisma/seed.local.json`, which maps `team05-<persona>` users onto the seed personas by object ID.
+5. Set `AUTH_MODE=entra` in `.env`, restart, and sign in as `team05-<persona>@<tenant-domain>`.
+6. Delete the CSVs afterwards, and delete the `team05-*` users before 13 November.
