@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80" role="img" aria-labelledby="t">
+  <title id="t">Placeholder galloping horse (not the official brand asset)</title>
+  <g fill="currentColor">
+    <!-- body -->
+    <path d="M30 38c4-8 16-12 30-11 10 1 17 4 24 2l8-9 4 3-5 11c-2 5-9 8-13 9-4 8-8 8-12 8H44c-6 0-12-4-14-13z"/>
+    <!-- head and neck -->
+    <path d="M84 29l8-14 6-6 3 4 9 6c3 2 3 6 0 7l-6 2-5 4-6-3z"/>
+    <!-- ear -->
+    <path d="M97 10l2-6 3 6z"/>
+    <!-- tail -->
+    <path d="M32 36c-8-2-16 2-22 10 8-2 14-2 21 3z"/>
+    <!-- front legs (reaching) -->
+    <path d="M78 52l16 8 14 2-1 5-17-1-17-9z"/>
+    <path d="M70 55l8 14 9 6-3 4-12-5-9-15z"/>
+    <!-- hind legs (kicking back) -->
+    <path d="M44 54l-12 8-14 8-2-5 13-9 8-9z"/>
+    <path d="M52 56l-6 15-10 5-2-5 8-4 4-12z"/>
+  </g>
+  <!-- eye -->
+  <circle cx="99" cy="19" r="1.6" fill="var(--color-surface, #fff)"/>
+</svg>

@@ -1,0 +1,57 @@
+/*
+ * Team 05 onboarding app - design tokens (names are a contract with dev).
+ * Verify: node design/scripts/contrast.mjs  (exits 1 on any failing pair)
+ *
+ * WCAG 2.2 AA contrast (computed). Body text needs 4.5, large text / UI needs 3.
+ * | Foreground            | Background             | Ratio  | Use                          |
+ * |-----------------------|------------------------|--------|------------------------------|
+ * | text #14211c          | surface #ffffff        | 16.61  | body                         |
+ * | text                  | surface-alt #f3f6f4    | 15.27  | body on page bg              |
+ * | text                  | brand-soft #e3f1ea     | 14.27  | selected/current rows        |
+ * | text-muted #4a5a53    | surface                |  7.30  | secondary text               |
+ * | text-muted            | surface-alt            |  6.70  | secondary text               |
+ * | text-muted            | brand-soft             |  6.27  | secondary text               |
+ * | surface               | brand #00573f          |  8.62  | primary button text          |
+ * | surface               | brand-strong #003d2c   | 12.32  | header / hover button text   |
+ * | brand                 | surface                |  8.62  | links, outline button        |
+ * | brand                 | brand-soft             |  7.41  | link/badge on tint           |
+ * | brand                 | surface-alt            |  7.93  | link on page bg             |
+ * | brand-strong          | brand-soft             | 10.59  | strong text on tint          |
+ * | text                  | accent #f2b705         |  9.14  | text on accent fill          |
+ * | accent                | brand-strong           |  6.78  | horse/milestone on dark      |
+ * | accent                | brand                  |  4.74  | accent on brand (UI >=3)     |
+ * | border #6f7f78        | surface                |  4.21  | input/card borders (UI >=3)  |
+ * | border                | surface-alt            |  3.87  | borders on page bg           |
+ * | success #1b6e3a       | surface                |  6.29  | text/icon                    |
+ * | warning #8a5300       | surface                |  6.33  | text/icon                    |
+ * | danger  #b3261e       | surface                |  6.54  | text/icon                    |
+ * | info    #0b5cad       | surface                |  6.67  | text/icon                    |
+ * | success/warning/danger/info | surface-alt      | 5.78 / 5.82 / 6.01 / 6.13 |                |
+ * | surface               | success/danger/info    | 6.29 / 6.54 / 6.67 | solid fills w/ white text |
+ * | text                  | status tints (see components.md) | 13.9-14.8 | badge bg, dark text |
+ * | status colour         | its own tint           | 5.46-5.73 | coloured badge text          |
+ *
+ * Accent (#f2b705) must NEVER be used as text on white (1.9:1). It is a fill, or a
+ * graphic on brand/brand-strong. Warning (amber) text uses --color-warning, not accent.
+ * Never rely on colour alone: status badges always carry an icon + label.
+ */
+:root {
+  --color-brand: #00573f;
+  --color-brand-strong: #003d2c;
+  --color-brand-soft: #e3f1ea;
+  --color-accent: #f2b705;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f3f6f4;
+  --color-border: #6f7f78;
+  --color-text: #14211c;
+  --color-text-muted: #4a5a53;
+  --color-success: #1b6e3a;
+  --color-warning: #8a5300;
+  --color-danger: #b3261e;
+  --color-info: #0b5cad;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --shadow-card: 0 1px 2px rgb(20 33 28 / 0.08), 0 4px 12px rgb(20 33 28 / 0.06);
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}

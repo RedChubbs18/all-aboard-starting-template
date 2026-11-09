@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 90" role="img" aria-labelledby="t">
+  <title id="t">Placeholder horse celebrating, with stars</title>
+  <g fill="currentColor">
+    <path d="M38 52c0-10 10-16 22-16s20 6 22 14l6-18 5 2-3 16c-1 6-8 10-12 11l-2 12h-8l1-12H56l-2 12h-8l1-12c-6-2-9-5-9-9z"/>
+    <path d="M84 30l6-14 7-5 3 4 7 5c2 2 2 5-1 6l-6 2-4 4-6-2z"/>
+    <path d="M40 50c-8 0-14 4-18 12 7-3 12-2 18 2z"/>
+  </g>
+  <g fill="var(--color-accent, #f2b705)">
+    <path d="M18 18l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/>
+    <path d="M62 8l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/>
+    <path d="M108 40l2 4 4 2-4 2-2 4-2-4-4-2 4-2z"/>
+  </g>
+</svg>
