@@ -1,5 +1,6 @@
 import { expect, it } from "vitest";
 import { runAdapterContract } from "./contract";
+import { memoryStore } from "./store";
 import { createBookingMock } from "./booking/mock";
 import { createChatbotMock } from "./chatbot/mock";
 import { createEquipmentMock } from "./equipment/mock";
@@ -54,9 +55,11 @@ runAdapterContract("workday", createWorkdayMock, (make) => {
     expect(t[0]).toMatchObject({ id: expect.any(String), status: expect.stringMatching(/NOT_STARTED|IN_PROGRESS|COMPLETE/) });
   });
 });
-runAdapterContract("itrequest", createITRequestMock, (make) => {
+runAdapterContract("itrequest", createITRequestMock, () => {
   it("raises and lists requests", async () => {
-    const a = make();
+    const store = memoryStore();
+    await createSailPointMock(store).createColleagueFileId("j1"); // FR-3.3: raising needs the Colleague File ID
+    const a = createITRequestMock(store);
     const r = await a.raise("j1", "GitHub access");
     expect(r.ref).toMatch(/^ITR-/);
     await a.raise("j1", "VPN");
