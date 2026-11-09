@@ -2,7 +2,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { prisma } from "@/server/db";
 import { seedDatabase } from "@/server/seed";
-import { resetWorkdayRateLimit, signWorkday } from "@/server/workday-service";
+import { handleOfferAccepted, resetWorkdayRateLimit, signWorkday } from "@/server/workday-service";
 import { completeGuestSignIn } from "@/server/guest-sign-in";
 import { POST as offerAccepted } from "./offer-accepted/route";
 import { GET as directory } from "./directory/route";
@@ -138,6 +138,51 @@ describe("offer accepted", () => {
     const tasks = await prisma.task.findMany({ where: { journeyId: r.journeyId } });
     expect((await prisma.user.findUniqueOrThrow({ where: { id: r.starterId } })).entraOid).toBeNull();
     expect(tasks.find((t) => t.key === "guest-invite-sent")!.status).not.toBe("DONE");
+  });
+});
+
+describe("idempotency across retries and rehearsals", () => {
+  const idemKey = (offerId: string) => `WORKDAY-OFFER:${offerId}`;
+
+  it("returns the existing ids (and rewrites the idempotency record) when the starter already has a journey from the same offer", async () => {
+    const a = await (await post(offer())).json();
+    await prisma.integrationState.delete({ where: { journeyId_adapterKey: { journeyId: idemKey("wd-offer-1"), adapterKey: "workday" } } });
+    const res = await post(offer());
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual(a);
+    expect((await prisma.integrationState.findUniqueOrThrow({ where: { journeyId_adapterKey: { journeyId: idemKey("wd-offer-1"), adapterKey: "workday" } } })).payload).toEqual(a);
+  });
+
+  it("finds the starter by the offer's placeholder UPN when there is no guest object id", async () => {
+    const body = offer({ guest: { objectId: null, inviteStatus: "simulated" } });
+    const a = await (await post(body)).json();
+    await prisma.integrationState.delete({ where: { journeyId_adapterKey: { journeyId: idemKey("wd-offer-1"), adapterKey: "workday" } } });
+    expect(await (await post(body)).json()).toEqual(a);
+    expect(await prisma.journey.count({ where: { starterId: a.starterId } })).toBe(1);
+  });
+
+  it("writes the idempotency record in the same transaction: a failed creation leaves nothing and the retry succeeds", async () => {
+    // A template whose due date overflows makes the task insert fail, after the user and journey rows were written.
+    const base = await prisma.taskTemplate.findFirstOrThrow({ where: { source: "CORE", key: "guest-sign-in" } });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id: _id, ...rest } = base;
+    const bad = await prisma.taskTemplate.create({ data: { ...rest, dependsOn: [], key: "overflow-due-date", dueOffsetDays: 2_000_000_000 } });
+    const before = { users: await prisma.user.count(), journeys: await prisma.journey.count(), states: await prisma.integrationState.count() };
+    await expect(handleOfferAccepted(JSON.stringify(offer()))).rejects.toThrow();
+    expect({ users: await prisma.user.count(), journeys: await prisma.journey.count(), states: await prisma.integrationState.count() }).toEqual(before);
+    await prisma.taskTemplate.delete({ where: { id: bad.id } });
+    const a = await (await post(offer())).json();
+    expect(await (await post(offer())).json()).toEqual(a);
+  });
+
+  it("returns 409 with a clear message when a rehearsal reuses the same guest under a different offer", async () => {
+    await post(offer());
+    const res = await post(offer({ offerId: "wd-offer-rehearsal" }));
+    expect(res.status).toBe(409);
+    const body = await res.json();
+    expect(body.error).toBe("starter_has_journey");
+    expect(body.message).toBe("This guest already has a journey; run npm run db:reset or use a different email");
+    expect(await prisma.integrationState.findUnique({ where: { journeyId_adapterKey: { journeyId: idemKey("wd-offer-rehearsal"), adapterKey: "workday" } } })).toBeNull();
   });
 });
 

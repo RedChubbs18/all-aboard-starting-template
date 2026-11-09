@@ -46,9 +46,9 @@ Body (**no personal email or other PII beyond name**):
   "guest": { "objectId": "<guest user object id or null>", "inviteStatus": "invited" }
 }
 ```
-`inviteStatus`: `invited` | `simulated` | `failed`. It's idempotent on `offerId`: a repeat returns the same journey.
+`inviteStatus`: `invited` | `simulated` | `failed`. It's idempotent on `offerId`: a repeat (or a retry after a failure; everything is created in one transaction) returns the same journey.
 
-Response `200 {"journeyId": "...", "starterId": "..."}`. Errors: `401` bad signature or timestamp, `400` validation, `409` unknown team/LM.
+Response `200 {"journeyId": "...", "starterId": "..."}`. Errors: `401` bad signature or timestamp, `400` validation, `409` unknown team/LM, or a guest that already has a journey from a different offer (a rehearsal reusing the same email: run `npm run db:reset` or use a different email).
 
 `GET {MYJOURNEY_INTERNAL_URL}/api/integrations/workday/directory`: the same signature scheme over `"<timestamp>."` (empty body). Returns `{ "teams": [{ "key", "name", "businessArea", "lineManagers": [{ "key", "name" }] }] }` for the recruiter form.
 

@@ -8,6 +8,7 @@ import { prisma as defaultPrisma } from "./db";
 import {
   addBespokeTask as engAddBespoke,
   applyIntegrationStatus as engApplyIntegration,
+  requestPhotoReview as engRequestPhotoReview,
   createJourney as engCreate,
   exitJourney as engExit,
   progress as engProgress,
@@ -223,32 +224,44 @@ export interface CreateJourneyInput {
 
 /** Creates a journey from the active templates (CORE + the team's TEAM templates). */
 export async function createJourneyForStarter(input: CreateJourneyInput, db: PrismaClient = defaultPrisma): Promise<JourneyState> {
-  return db.$transaction(async (tx) => {
-    const rows = await tx.taskTemplate.findMany({ where: { active: true } });
-    const templates: TemplateInput[] = rows.map((t) => ({
-      id: t.id,
-      key: t.key,
-      title: t.title,
-      description: t.description,
-      stage: t.stage as Stage,
-      owner: t.owner as TemplateInput["owner"],
-      type: t.type as TemplateInput["type"],
-      dueOffsetDays: t.dueOffsetDays,
-      dependsOn: strArr(t.dependsOn),
-      source: t.source as TemplateInput["source"],
-      teamId: t.teamId,
-      adapterKey: t.adapterKey,
-      gating: t.gating,
-      optional: t.optional,
-      autoCompleteOnOpen: t.autoCompleteOnOpen,
-      contentSlug: t.contentSlug,
-      condition: t.condition,
-      sortOrder: t.sortOrder,
-    }));
-    const result = engCreate(templates, input);
-    await persistEngineResult(tx, null, result);
-    return result.journey;
-  });
+  return db.$transaction((tx) => createJourneyInTx(tx, input));
+}
+
+/** As createJourneyForStarter, inside a caller-owned transaction (so callers can write related rows atomically). */
+export async function createJourneyInTx(tx: Prisma.TransactionClient, input: CreateJourneyInput): Promise<JourneyState> {
+  const rows = await tx.taskTemplate.findMany({ where: { active: true } });
+  const templates: TemplateInput[] = rows.map((t) => ({
+    id: t.id,
+    key: t.key,
+    title: t.title,
+    description: t.description,
+    stage: t.stage as Stage,
+    owner: t.owner as TemplateInput["owner"],
+    type: t.type as TemplateInput["type"],
+    dueOffsetDays: t.dueOffsetDays,
+    dependsOn: strArr(t.dependsOn),
+    source: t.source as TemplateInput["source"],
+    teamId: t.teamId,
+    adapterKey: t.adapterKey,
+    gating: t.gating,
+    optional: t.optional,
+    autoCompleteOnOpen: t.autoCompleteOnOpen,
+    contentSlug: t.contentSlug,
+    condition: t.condition,
+    sortOrder: t.sortOrder,
+  }));
+  const result = engCreate(templates, input);
+  await persistEngineResult(tx, null, result);
+  return result.journey;
+}
+
+/** Sets one task's status inside a caller-owned transaction (same engine path and events as setTaskStatus). */
+export async function setTaskStatusInTx(tx: Prisma.TransactionClient, journeyId: string, taskKey: string, status: TaskStatus, opts: ActorOpts = {}): Promise<JourneyState> {
+  const before = await loadJourney(journeyId, tx);
+  if (!before) throw new NotFoundError(`Journey ${journeyId} not found`);
+  const result = engSetStatus(before, taskKey, status, opts);
+  await persistEngineResult(tx, before, result);
+  return result.journey;
 }
 
 export interface ActorOpts extends Ctx {
@@ -285,6 +298,20 @@ export async function applyIntegrationStatus(
   });
 }
 
+/** FR-3.12: ask a person to review a rejected photo (flags the journey and surfaces the override task). */
+export async function requestPhotoReview(journeyId: string, ctx: Ctx & { detail?: string } = {}, db: PrismaClient = defaultPrisma): Promise<JourneyState> {
+  return db.$transaction(async (tx) => {
+    const before = await loadJourney(journeyId, tx);
+    if (!before) throw new NotFoundError(`Journey ${journeyId} not found`);
+    const result = engRequestPhotoReview(before, ctx);
+    await persistEngineResult(tx, before, result);
+    const existing = await tx.integrationState.findUnique({ where: { journeyId_adapterKey: { journeyId, adapterKey: "photocheck" } } });
+    if (existing) await tx.integrationState.update({ where: { id: existing.id }, data: { status: "action_needed" } });
+    else await tx.integrationState.create({ data: { journeyId, adapterKey: "photocheck", status: "action_needed", payload: {} } });
+    return result.journey;
+  });
+}
+
 /** `ctx.data` (e.g. `{ reasonSource, comment }`) is merged into the JOURNEY_EXITED event. */
 export const exitJourney = (journeyId: string, reason: string, ctx: ExitOptions = {}) =>
   mutateJourney(journeyId, (j) => engExit(j, reason, ctx));
@@ -310,6 +337,14 @@ const evt = (journeyId: string, actorId: string | null | undefined, type: string
   journeyId, actorId: actorId ?? null, type, entity, entityId, from: null, to: null, data: data ?? null, createdAt: new Date(),
 });
 
+/** Completes `key` inside `tx` when the journey is active and the task is open (the engine's events are persisted with it). */
+async function completeIfOpen(tx: Prisma.TransactionClient, journeyId: string, key: string, actorId: string | null) {
+  const before = await loadJourney(journeyId, tx);
+  const t = before?.tasks.find((x) => x.key === key && x.applicable);
+  if (!before || before.status !== "active" || !t || !(t.status === "TODO" || t.status === "IN_PROGRESS" || t.status === "BLOCKED")) return;
+  await persistEngineResult(tx, before, engSetStatus(before, key, "DONE", { actorId }));
+}
+
 /** FR-1.3: buddy must be a different person from the LM and the starter. */
 export async function allocateBuddy(journeyId: string, buddyId: string, actorId: string | null, db: PrismaClient = defaultPrisma) {
   return db.$transaction(async (tx) => {
@@ -320,6 +355,7 @@ export async function allocateBuddy(journeyId: string, buddyId: string, actorId:
     if (!buddy || !buddy.buddyEligible) throw new ValidationError("User is not buddy-eligible");
     await tx.journey.update({ where: { id: journeyId }, data: { buddyId } });
     await tx.event.create({ data: eventData({ ...evt(journeyId, actorId, "BUDDY_ALLOCATED", "Journey", journeyId, { buddyId }), from: j.buddyId, to: buddyId }) });
+    await completeIfOpen(tx, journeyId, "allocate-buddy", actorId);
   });
 }
 
@@ -331,6 +367,7 @@ export async function proposeDay0(journeyId: string, v: { where: string; whenAt:
       update: { ...v, proposedById, confirmedAt: null },
     });
     await tx.event.create({ data: eventData(evt(journeyId, proposedById, "DAY0_PROPOSED", "Day0Arrangement", journeyId, v)) });
+    await completeIfOpen(tx, journeyId, "propose-day-0-arrangements", proposedById);
   });
 }
 

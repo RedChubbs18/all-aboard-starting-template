@@ -11,7 +11,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "./db";
 import { parseRoles } from "@/lib/auth/roles";
 import { isPlaceholderSecret } from "@/lib/auth/server";
-import { completeTask, createJourneyForStarter, recordEvent } from "./journey-service";
+import { createJourneyInTx, recordEvent, setTaskStatusInTx } from "./journey-service";
 import { createRateLimiter } from "./rate-limit";
 
 export const SIGNATURE_HEADER = "x-workday-signature";
@@ -102,6 +102,30 @@ const lookupOffer = async (offerId: string) => {
   return p?.journeyId && p.starterId ? { journeyId: p.journeyId, starterId: p.starterId } : null;
 };
 
+const OFFER_ROW = "workday-offer";
+const GUEST_HAS_JOURNEY = "This guest already has a journey; run npm run db:reset or use a different email";
+
+/** Writes the per-offer idempotency record, ignoring a concurrent delivery that already wrote it. */
+async function writeIdempotency(offerId: string, ids: { journeyId: string; starterId: string }, status: string) {
+  try {
+    await prisma.integrationState.create({ data: { journeyId: lookupKey(offerId), adapterKey: ADAPTER, status, payload: ids } });
+  } catch (e) {
+    if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002")) throw e;
+  }
+}
+
+/** True when this starter's journey was created from this same offer (workday-offer row, or the offer's own placeholder UPN). */
+async function journeyIsFromOffer(starter: { id: string; upn: string }, journeyId: string, offerId: string, placeholderUpn: string): Promise<boolean> {
+  if (starter.upn === placeholderUpn) return true;
+  const row = await prisma.integrationState.findUnique({ where: { journeyId_adapterKey: { journeyId, adapterKey: OFFER_ROW } } });
+  return (row?.payload as { offerId?: string } | undefined)?.offerId === offerId;
+}
+
+/**
+ * Idempotent on `offerId`. Everything is created in ONE transaction, idempotency record included, so a failed
+ * delivery leaves nothing behind and a retry returns the same ids. A guest that already has a journey from a
+ * different offer (a rehearsal reusing the same email) is refused with 409.
+ */
 export async function handleOfferAccepted(rawBody: string): Promise<{ journeyId: string; starterId: string }> {
   const o = parseOffer(rawBody);
   const existing = await lookupOffer(o.offerId);
@@ -113,45 +137,54 @@ export async function handleOfferAccepted(rawBody: string): Promise<{ journeyId:
 
   const displayName = `${o.candidate.firstName} ${o.candidate.lastName}`;
   const oid = o.guest.objectId;
+  // Work contact field only: a non-PII placeholder, never the candidate's personal email.
+  const upn = `guest-${o.offerId}@myjourney.invalid`.toLowerCase();
   let starter = oid ? await prisma.user.findUnique({ where: { entraOid: oid } }) : null;
-  let created = false;
-  if (!starter) {
-    // Work contact field only: a non-PII placeholder, never the candidate's personal email.
-    const upn = `guest-${o.offerId}@myjourney.invalid`.toLowerCase();
-    starter = await prisma.user.findUnique({ where: { upn } });
-    if (!starter) {
-      starter = await prisma.user.create({
-        data: { id: `u-${randomUUID().slice(0, 8)}`, upn, displayName, entraOid: oid, roles: ["STARTER"], teamId: team.id, reportsToId: lm.id, jobTitle: o.jobTitle, teamRole: "Team member" },
-      });
-      created = true;
+  starter ??= await prisma.user.findUnique({ where: { upn } });
+  if (starter) {
+    const j = await prisma.journey.findUnique({ where: { starterId: starter.id }, select: { id: true } });
+    if (j) {
+      if (!(await journeyIsFromOffer(starter, j.id, o.offerId, upn))) throw new WorkdayError(409, "starter_has_journey", GUEST_HAS_JOURNEY);
+      const ids = { journeyId: j.id, starterId: starter.id };
+      await writeIdempotency(o.offerId, ids, "created");
+      return ids;
     }
   }
-  if (await prisma.journey.findUnique({ where: { starterId: starter.id } })) throw new WorkdayError(409, "starter_has_journey", "That starter already has a journey");
-  if (created) await recordEvent({ journeyId: null, actorId: null, type: "WORKDAY_STARTER_CREATED", entity: "User", entityId: starter.id, data: { offerId: o.offerId, teamId: team.id } });
 
-  const journey = await createJourneyForStarter({ starterId: starter.id, lmId: lm.id, teamId: team.id, startDate: new Date(`${o.startDate}T00:00:00.000Z`), actorId: null });
-  if (o.guest.inviteStatus !== "failed") await completeTask(journey.id, "guest-invite-sent", { actorId: null, evidence: o.guest.inviteStatus });
-
-  const ids = { journeyId: journey.id, starterId: starter.id };
-  await prisma.integrationState.create({
-    data: { journeyId: journey.id, adapterKey: "workday-offer", status: o.guest.inviteStatus, payload: { offerId: o.offerId, jobTitle: o.jobTitle, conditions: o.conditions, inviteStatus: o.guest.inviteStatus } },
-  });
-  await recordEvent({
-    journeyId: journey.id,
-    actorId: null,
-    type: "WORKDAY_OFFER_ACCEPTED",
-    entity: "Journey",
-    entityId: journey.id,
-    data: { offerId: o.offerId, jobTitle: o.jobTitle, conditionCount: o.conditions.length, inviteStatus: o.guest.inviteStatus, guestLinked: oid !== null },
-  });
   try {
-    await prisma.integrationState.create({ data: { journeyId: lookupKey(o.offerId), adapterKey: ADAPTER, status: "created", payload: ids } });
+    return await prisma.$transaction(async (tx) => {
+      const created = !starter;
+      const s =
+        starter ??
+        (await tx.user.create({
+          data: { id: `u-${randomUUID().slice(0, 8)}`, upn, displayName, entraOid: oid, roles: ["STARTER"], teamId: team.id, reportsToId: lm.id, jobTitle: o.jobTitle, teamRole: "Team member" },
+        }));
+      if (created) await recordEvent({ journeyId: null, actorId: null, type: "WORKDAY_STARTER_CREATED", entity: "User", entityId: s.id, data: { offerId: o.offerId, teamId: team.id } }, tx);
+      const journey = await createJourneyInTx(tx, { starterId: s.id, lmId: lm.id, teamId: team.id, startDate: new Date(`${o.startDate}T00:00:00.000Z`), actorId: null });
+      if (o.guest.inviteStatus !== "failed") await setTaskStatusInTx(tx, journey.id, "guest-invite-sent", "DONE", { actorId: null, evidence: o.guest.inviteStatus });
+      const ids = { journeyId: journey.id, starterId: s.id };
+      await tx.integrationState.create({
+        data: { journeyId: journey.id, adapterKey: OFFER_ROW, status: o.guest.inviteStatus, payload: { offerId: o.offerId, jobTitle: o.jobTitle, conditions: o.conditions, inviteStatus: o.guest.inviteStatus } },
+      });
+      await recordEvent(
+        {
+          journeyId: journey.id, actorId: null, type: "WORKDAY_OFFER_ACCEPTED", entity: "Journey", entityId: journey.id,
+          data: { offerId: o.offerId, jobTitle: o.jobTitle, conditionCount: o.conditions.length, inviteStatus: o.guest.inviteStatus, guestLinked: oid !== null },
+        },
+        tx,
+      );
+      await tx.integrationState.create({ data: { journeyId: lookupKey(o.offerId), adapterKey: ADAPTER, status: "created", payload: ids } });
+      return ids;
+    });
   } catch (e) {
-    // A concurrent delivery of the same offer won the race: return what it created.
-    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") return (await lookupOffer(o.offerId)) ?? ids;
+    // A concurrent delivery of the same offer won the race (unique constraint): return what it created.
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      const won = await lookupOffer(o.offerId);
+      if (won) return won;
+      throw new WorkdayError(409, "starter_has_journey", GUEST_HAS_JOURNEY);
+    }
     throw e;
   }
-  return ids;
 }
 
 /** Teams with business area and their line managers (keys and names only). */
