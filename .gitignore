@@ -37,3 +37,6 @@ prisma/seed.local.json
 
 # Editor
 .vscode/
+
+# Official brand assets: local only until the team confirms they may be published in this public repo (see docs/DECISIONS.md D18)
+public/brand/official/
