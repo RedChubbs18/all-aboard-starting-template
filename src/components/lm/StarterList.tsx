@@ -32,7 +32,7 @@ function StarterRow({ s }: { s: StarterSummary }) {
     <li className="border-t border-line first:border-t-0">
       <Link
         href={href(s)}
-        className={`grid min-h-14 grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-[22px] py-4 hover:bg-page md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto] ${
+        className={`focus-inset grid min-h-14 grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-[22px] py-4 hover:bg-page md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto] ${
           s.redFlag ? "border-l-4 border-l-blocked" : ""
         }`}
       >
@@ -110,14 +110,14 @@ export function StarterList() {
       )}
       {past.length > 0 && (
         <details className="rounded-md border border-line bg-card">
-          <summary className="flex min-h-14 cursor-pointer items-center gap-3 px-[22px] font-semibold">
+          <summary className="focus-inset flex min-h-14 cursor-pointer items-center gap-3 px-[22px] font-semibold">
             <span className="flex-1 text-[17px] font-bold">Past starters ({past.length})</span>
             <span className="text-sm font-normal text-muted">Completed or left. Read-only.</span>
           </summary>
           <ul aria-label="Past starters" className="border-t border-line">
             {past.map((s) => (
               <li key={s.id} className="border-t border-line first:border-t-0">
-                <Link href={href(s)} className="flex min-h-14 items-center gap-3 px-[22px] py-3 hover:bg-page">
+                <Link href={href(s)} className="focus-inset flex min-h-14 items-center gap-3 px-[22px] py-3 hover:bg-page">
                   <span className="min-w-0 flex-1">
                     <span className="block text-[17px] font-bold">{s.starterName}</span>
                     <span className="block text-sm text-muted">

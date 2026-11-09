@@ -47,7 +47,7 @@ export function StageAccordion({ stages, journey, readOnly, highlightOwner, open
 
   useEffect(() => {
     if (!openRequest) return;
-    requestAnimationFrame(() => document.getElementById(`stage-${openRequest.stage}-btn`)?.scrollIntoView?.({ block: "start", behavior: "smooth" }));
+    requestAnimationFrame(() => document.getElementById(`stage-${openRequest.stage}-btn`)?.scrollIntoView?.({ block: "start", behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }));
   }, [openRequest]);
 
   const toggle = (k: Stage) => !isLocked(k) && setOverrides((o) => ({ ...o, [k]: !(o[k] ?? k === current) }));
@@ -63,7 +63,7 @@ export function StageAccordion({ stages, journey, readOnly, highlightOwner, open
         const tasks = journey.tasks.filter((t) => t.stage === s.key).sort((a, b) => (vetting ? faFirst(a) - faFirst(b) : 0));
         const faTask = vetting ? tasks.find((t) => faFirst(t) === 0) : undefined;
         return (
-          <section key={s.key} className={cn("overflow-hidden rounded-md border border-line bg-card", s.state === "locked" && "opacity-55")}>
+          <section key={s.key} className={cn("overflow-hidden rounded-md border border-line", s.state === "locked" ? "bg-page" : "bg-card")}>
             <StageHeader
               number={i + 1}
               label={s.label}

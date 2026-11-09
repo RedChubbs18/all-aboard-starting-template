@@ -3,7 +3,7 @@ import { AlertTriangle } from "lucide-react";
 import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 import { cn } from "./cn";
 
-/** Inputs and selects: 10px radius, 1px #c8d1cc border, 12px 14px padding, white (STYLE section 4). */
+/** Inputs and selects: 10px radius, 1px #767d79 border (STYLE A.12), 12px 14px padding, white (STYLE section 4). */
 export const controlClass =
   "min-h-12 w-full rounded-sm border border-line-strong bg-card px-3.5 py-3 text-base text-ink placeholder:text-muted " +
   "aria-[invalid=true]:border-2 aria-[invalid=true]:border-blocked disabled:bg-page disabled:text-muted";

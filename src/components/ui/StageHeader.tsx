@@ -7,7 +7,7 @@ export type StageState = "done" | "current" | "locked";
 const icon: Record<StageState, { Icon: LucideIcon; cls: string; word: string }> = {
   done: { Icon: Check, cls: "bg-brand text-card", word: "Complete" },
   current: { Icon: Flag, cls: "border-2 border-now bg-card text-brand-strong shadow-[0_0_0_4px_rgba(0,163,108,0.18)]", word: "Current" },
-  locked: { Icon: Lock, cls: "border-2 border-disabled bg-card text-muted", word: "Locked" },
+  locked: { Icon: Lock, cls: "border-2 border-disabled bg-card text-automated", word: "Locked" },
 };
 
 interface Props {
@@ -49,7 +49,7 @@ export function StageHeader({ number, total = 5, label, state, doneCount, totalC
         aria-label={summary}
         aria-disabled={locked || undefined}
         onClick={onToggle}
-        className={cn("flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left", !locked && "hover:bg-page")}
+        className={cn("focus-inset flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left", !locked && "hover:bg-page")}
       >
         <span aria-hidden className={cn("flex size-8 shrink-0 items-center justify-center rounded-full", cls)}>
           <Icon className="size-4" strokeWidth={2} />
@@ -57,7 +57,7 @@ export function StageHeader({ number, total = 5, label, state, doneCount, totalC
         <span aria-hidden className="min-w-0 flex-1">
           <span className="block text-[17px] font-bold leading-tight">{label}</span>
           {locked ? (
-            unlockHint && <span className="mt-0.5 block text-sm text-muted">{unlockHint}</span>
+            unlockHint && <span className="mt-0.5 block text-sm text-automated">{unlockHint}</span>
           ) : (
             <span className="mt-1.5 block">
               <ProgressBar value={totalCount ? (doneCount / totalCount) * 100 : 0} label={`${label} progress`} size="thin" />

@@ -8,6 +8,7 @@ const C = {
   ink: "#000000",
   muted: "#5a5f5c",
   line: "#e6e8e6",
+  lineStrong: "#767d79",
   brand: "#12a872",
   brandStrong: "#0b6e4b",
   brandTint: "#e4f6ee",
@@ -59,6 +60,10 @@ const checks = [
   ["Automated grey on its tint ('Automated' pill)", C.automated, C.automatedTint, 4.5],
   ["Ink on feature green (Next step card)", C.ink, C.feature, 4.5],
   ["Disabled text on disabled fill", C.disabledInk, C.disabled, 4.5],
+  ["Locked stage reason text (automated grey) on the page-grey locked card", C.automated, C.page, 4.5],
+  ["Muted on green tint (highlighted rows, 'Next step' tint)", C.muted, C.brandTint, 4.5],
+  ["Muted on blocked tint", C.muted, C.blockedTint, 4.5],
+  ["Muted on mixed tint", C.muted, C.mixedTint, 4.5],
   // Large text (at least 24px regular or 18.7px bold), 3:1
   ["Brand green on white (40px percentage)", C.brand, C.card, 3],
   ["White on brand green (20px bold logo placeholder)", C.card, C.brand, 3],
@@ -66,6 +71,8 @@ const checks = [
   ["Focus indicator: dark green outline on white", C.darkGreen, C.card, 3],
   ["Focus indicator: dark green outline on page", C.darkGreen, C.page, 3],
   ["Brand green icon/fill on white", C.brand, C.card, 3],
+  ["Input/select/textarea border on white (--color-line-strong)", C.lineStrong, C.card, 3],
+  ["Input/select/textarea border on page", C.lineStrong, C.page, 3],
 ];
 
 // Known and accepted: shown for information only (not asserted).

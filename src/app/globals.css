@@ -17,7 +17,8 @@
   --color-ink: #000000;
   --color-muted: #5a5f5c;
   --color-line: #e6e8e6;
-  --color-line-strong: #c8d1cc;
+  /* Form control borders and other UI-component boundaries: 4.2:1 on white (WCAG 1.4.11). Decorative card borders stay --color-line. */
+  --color-line-strong: #767d79;
   --color-outer: #e6e8e6;
   /* Brand green: fills, bars, rings, icons and large text only (3.06:1 on white). */
   --color-brand: #12a872;
@@ -73,6 +74,18 @@ body {
   outline: 2px solid var(--color-dark-green);
   outline-offset: 2px;
   box-shadow: 0 0 0 5px var(--color-focus);
+}
+
+/* Row-level focusables inside overflow-hidden containers: draw the ring inside so it is not clipped (WCAG 2.4.7). */
+.focus-inset:focus-visible {
+  outline-offset: -4px;
+  box-shadow: inset 0 0 0 4px var(--color-focus);
+}
+
+/* Keep focused elements clear of the sticky header, bottom nav and sticky CTA (WCAG 2.4.11). */
+html {
+  scroll-padding-top: 5rem;
+  scroll-padding-bottom: 8.5rem;
 }
 
 @media (prefers-reduced-motion: reduce) {

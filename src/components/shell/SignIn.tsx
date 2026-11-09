@@ -27,7 +27,7 @@ export function SignIn() {
           {demoPinRequired && (
             <label className="mt-4 block text-sm font-semibold text-ink">
               Demo PIN
-              <input type="password" inputMode="numeric" autoComplete="off" value={pin} onChange={(e) => setPin(e.target.value)} className="mt-1 block w-full rounded-[10px] border border-[#c8d1cc] bg-card px-3.5 py-3 text-base text-ink" />
+              <input type="password" inputMode="numeric" autoComplete="off" value={pin} onChange={(e) => setPin(e.target.value)} className="mt-1 block w-full rounded-[10px] border border-line-strong bg-card px-3.5 py-3 text-base text-ink" />
             </label>
           )}
           <ul className="mt-4 space-y-2">
