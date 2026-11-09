@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Agent worktrees live under .claude/ and are not part of this tree.
     ".claude/**",
+    // Separate demo-only app with its own package.json and lint config.
+    "demo/**",
   ]),
 ]);
 

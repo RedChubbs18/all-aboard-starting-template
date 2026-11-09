@@ -44,3 +44,6 @@ public/fonts/*.woff2
 public/fonts/*.woff
 public/fonts/*.otf
 public/fonts/*.ttf
+
+# Mock Workday demo store (holds personal emails)
+demo/mock-workday/.data/
