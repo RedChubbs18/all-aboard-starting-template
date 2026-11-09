@@ -26,3 +26,7 @@ export function getMsalConfig(): Configuration {
 
 /** We validate the ID token server-side; no extra API scopes are needed. */
 export const LOGIN_SCOPES = ["openid", "profile"];
+
+/** D19: real Graph guest invites from the admin's browser. Inlined at build time, so read the literal names. */
+export const graphInvitesEnabled = (): boolean => process.env.NEXT_PUBLIC_GRAPH_INVITES === "on";
+export const inviteDemoMailbox = (): string | undefined => process.env.NEXT_PUBLIC_INVITE_DEMO_MAILBOX || undefined;

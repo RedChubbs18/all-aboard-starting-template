@@ -295,8 +295,9 @@ export async function changeAdapterMode(actorId: string, key: string, mode: unkn
  * (CORE plus the team's), then sends the guest invite through the IdentityAdapter (FR-1.1).
  * The invite needs the journey id, so it runs after creation; if it fails the journey still exists
  * and the failure is returned and audited (INTEGRATION_FAILED).
+ * `deferInvite` (Graph invites, D19) skips the server-side invite; the browser reports the outcome later.
  */
-export async function seedNewStarter(actorId: string, input: unknown) {
+export async function seedNewStarter(actorId: string, input: unknown, opts: { deferInvite?: boolean } = {}) {
   const v = parse(seedStarterSchema, input);
   const errors: FieldErrors = {};
   const [team, lm, buddy, existing] = await Promise.all([
@@ -342,7 +343,10 @@ export async function seedNewStarter(actorId: string, input: unknown) {
   await audit(actorId, "ADMIN_STARTER_SEEDED", "Journey", journey.id, { starterId: starter.id }, journey.id);
 
   let identity: { ok: true; status: string } | { ok: false; message: string };
-  try {
+  if (opts.deferInvite) {
+    // D19: the admin's browser sends the Graph invite and reports back via seed-starter/[journeyId]/invite-result.
+    identity = { ok: true, status: "pending_graph" };
+  } else try {
     const adapter = await getAdapter("identity");
     const r = await adapter.inviteGuest(journey.id, v.inviteEmail ?? starter.upn);
     identity = { ok: true, status: r.status };
