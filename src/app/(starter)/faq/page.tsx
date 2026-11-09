@@ -1,16 +1,12 @@
 "use client";
-import { PlaceholderPage } from "@/components/shell/PlaceholderPage";
+import { RoleGate } from "@/components/shell/RoleGate";
+import { FaqHelp } from "@/components/chat/FaqHelp";
 
-type Data = { faqs: { id: string; question: string; answer: string }[] };
-
+/** FR-1.7: searchable FAQs and the grounded assistant. All signed-in roles. */
 export default function Page() {
   return (
-    <PlaceholderPage<Data>
-      title="Help and FAQs"
-      roles={["STARTER", "BUDDY", "LM", "PNP", "ADMIN"]}
-      path="/api/faqs"
-      listTitle="FAQs"
-      toItems={(d) => d.faqs.map((f) => ({ id: f.id, primary: f.question, secondary: f.answer }))}
-    />
+    <RoleGate roles={["STARTER", "BUDDY", "LM", "PNP", "ADMIN"]}>
+      <FaqHelp />
+    </RoleGate>
   );
 }

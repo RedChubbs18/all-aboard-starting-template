@@ -2,6 +2,7 @@ import { prisma } from "@/server/db";
 import { ADAPTER_KEYS } from "@/domain/types";
 import { createBookingMock } from "./booking/mock";
 import { createChatbotMock } from "./chatbot/mock";
+import { createChatbotReal } from "./chatbot/real";
 import { createEquipmentMock } from "./equipment/mock";
 import { createHireViewMock } from "./hireview/mock";
 import { createIdentityMock } from "./identity/mock";
@@ -9,6 +10,7 @@ import { createITRequestMock } from "./itrequest/mock";
 import { createNotificationMock } from "./notification/mock";
 import { createPassMock } from "./pass/mock";
 import { createPhotoCheckMock } from "./photocheck/mock";
+import { createPhotoCheckReal } from "./photocheck/real";
 import { createSailPointMock } from "./sailpoint/mock";
 import { createWorkdayMock } from "./workday/mock";
 import { realStub } from "./real-stub";
@@ -60,7 +62,11 @@ export const mockFactories: { [K in AdapterKey]: (store: StateStore) => AdapterM
  * Real implementations. Register them here when they exist; until then REAL
  * resolves to a stub that throws "not configured".
  */
-export const realFactories: Partial<{ [K in AdapterKey]: () => AdapterMap[K] }> = {};
+export const realFactories: Partial<{ [K in AdapterKey]: () => AdapterMap[K] }> = {
+  // WS6: Claude via the Anthropic API; both degrade to mock behaviour without ANTHROPIC_API_KEY.
+  chatbot: () => createChatbotReal({ store: prismaStore }),
+  photocheck: () => createPhotoCheckReal({ store: prismaStore }),
+};
 
 /** `ADAPTER_<KEY>_MODE` env wins, then the AdapterConfig row, then MOCK. */
 export async function getAdapterMode(key: AdapterKey): Promise<AdapterMode> {
