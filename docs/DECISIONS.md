@@ -16,9 +16,11 @@
 | D13 | Offer-to-start gap | Can be up to 3 months. Due dates are computed from the start date and clamped so none falls before the journey was created (offer acceptance) plus a small grace period. | 2026-11-09 |
 | D14 | Exit reasons | Wherever possible the reason comes from the colleague. A starter can withdraw from the app, choosing a reason category and optionally adding a short comment (with a warning not to include personal details). Categories: `ACCEPTED_ANOTHER_OFFER, ROLE_NOT_RIGHT, PERSONAL_CIRCUMSTANCES, PAY_OR_BENEFITS, LOCATION_OR_HYBRID, ONBOARDING_EXPERIENCE, PREFER_NOT_TO_SAY, OTHER`, plus P&P-recorded `FAILED_PEV, OFFER_WITHDRAWN_BY_LBG, NO_SHOW`. Also stored: who supplied the reason (COLLEAGUE or PNP). | 2026-11-09 |
 | D15 | Buddy | Buddies sign in with their own access. They get a read-only view of their starter, plus a chat link, and can complete BUDDY-owned tasks only. | 2026-11-09 |
+| D16 | Visual style | Follow `docs/STYLE.md` (team-supplied guide). Its section A records the contrast fixes (deep green for small green text, a darker "Shared" pill, a dual-colour focus ring, readable disabled text), the 430px column for starter screens with wider LM/MI/admin layouts, the "Your bank" logo placeholder, and the original horse kept in the marker. |  2026-11-09 |
+| D17 | Epture → Eptura Engage (FR-3.10) | Eptura Engage is the internal desk and meeting room booking tool. The template `eptura-engage-access` is a SYSTEM task, with content page `eptura-engage` and FAQ faq-17. Sticky-note colours on the board are ignored, per the team. | 2026-11-09 |
 | D7 | Horse graphics | Original placeholder SVGs until the team supplies official assets. | 2026-11-09 |
 
 ## Still open
 
-- Epture (FR-3.10): what is it and who provisions it? Currently a mocked SYSTEM status task.
-- Sticky colours on the board (red, green, pink, blue): owner or priority?
+- Official logo and horse artwork files (placeholders are in use).
+
