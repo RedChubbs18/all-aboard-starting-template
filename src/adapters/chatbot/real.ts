@@ -5,10 +5,12 @@
  * Degrades to the keyword mock with `fallback: true` on a missing key, API error, refusal or
  * unparseable output, so the demo never crashes. The client is injectable for tests.
  */
+import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import type { BetaMessage, MessageCreateParamsNonStreaming } from "@anthropic-ai/sdk/resources/beta/messages/messages";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
+import { takeAiCall } from "../ai-budget";
 import { statusMock } from "../mock-helpers";
 import { memoryStore } from "../store";
 import type { AdapterStatus, StateStore } from "../types";
@@ -106,6 +108,9 @@ export function serialiseCorpus(corpus: ChatCorpus): string {
   return parts.join("\n");
 }
 
+/** The question is untrusted: escape it so it cannot close the <question> tag or forge corpus markup. */
+export const escapeQuestion = (q: string) => q.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!);
+
 export function buildChatRequest(question: string, corpus: ChatCorpus): MessageCreateParamsNonStreaming {
   return {
     model: CLAUDE_MODEL,
@@ -117,7 +122,7 @@ export function buildChatRequest(question: string, corpus: ChatCorpus): MessageC
       { type: "text", text: INSTRUCTIONS },
       { type: "text", text: serialiseCorpus(corpus), cache_control: { type: "ephemeral" } },
     ],
-    messages: [{ role: "user", content: `<question>\n${question}\n</question>` }],
+    messages: [{ role: "user", content: `<question>\n${escapeQuestion(question)}\n</question>` }],
   };
 }
 
@@ -170,6 +175,8 @@ export function createChatbotReal(opts: ChatbotRealOptions = {}): ChatbotAdapter
       const question = cleanQuestion(rawQuestion ?? "");
       if (!question) return notFound();
       if (!client) return degrade(question, corpus);
+      // Over the shared daily cap: safe fallback (contact P&P), no API call.
+      if (!takeAiCall()) return notFound();
       try {
         const msg = await client.beta.messages.create(buildChatRequest(question, corpus));
         if (msg.stop_reason === "refusal") return notFound();
