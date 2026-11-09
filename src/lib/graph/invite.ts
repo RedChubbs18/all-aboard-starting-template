@@ -9,7 +9,7 @@ export const GRAPH_BASE = "https://graph.microsoft.com/v1.0";
 /** Only the invite scope is needed; Entra sends the email itself. Requested only when sending. */
 export const GRAPH_INVITE_SCOPES = ["User.Invite.All"];
 export const DISPLAY_NAME_PREFIX = "team05-";
-export const INVITE_MESSAGE = "Welcome to Lloyds Banking Group. Accept this invitation to start your onboarding.";
+export const INVITE_MESSAGE = "Welcome to MyJourney. Accept this invitation, sign in with this email address, then open MyJourney to see your journey.";
 
 export type FallbackReason = "consent_required" | "not_approved" | "invalid_email" | "no_token" | "error";
 export const FALLBACK_REASONS = ["consent_required", "not_approved", "invalid_email", "no_token", "error"] as const;

@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { PublicClientApplication } from "@azure/msal-browser";
 import { LOGIN_SCOPES, getMsalConfig } from "./config";
+import { buildLoginRequest } from "./login-request";
 import type { SessionUser } from "./roles";
 
 export type SessionStatus = "loading" | "unauthenticated" | "authenticated" | "not_onboarded" | "error";
@@ -103,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return null;
       }
       sessionStorage.setItem(TOKEN_REDIRECT_FLAG, "1");
-      await app.acquireTokenRedirect({ scopes: LOGIN_SCOPES, account });
+      await app.acquireTokenRedirect({ ...buildLoginRequest(), account });
       return null;
     }
   }, []);
@@ -203,7 +204,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       apiFetch,
       acquireGraphToken,
       async signIn() {
-        if (modeRef.current === "entra") await msal.current?.loginRedirect({ scopes: LOGIN_SCOPES });
+        if (modeRef.current === "entra") await msal.current?.loginRedirect(buildLoginRequest());
       },
       async signOut() {
         if (modeRef.current === "demo") {
@@ -211,7 +212,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(null);
           setStatus("unauthenticated");
         } else {
-          await msal.current?.logoutRedirect();
+          const app = msal.current;
+          const account = app?.getActiveAccount() ?? app?.getAllAccounts()[0];
+          await app?.logoutRedirect(account ? { account } : undefined);
         }
       },
       async switchPersona(userId: string, pin?: string) {

@@ -117,3 +117,9 @@ Until consent exists, Graph returns 403 or a consent prompt. The app then shows 
 4. Run `node scripts/map-entra-users.mjs <export.csv>`, then `npm run db:reset`. This writes the git-ignored `prisma/seed.local.json`, which maps `team05-<persona>` users onto the seed personas by object ID.
 5. Set `AUTH_MODE=entra` in `.env`, restart, and sign in as `team05-<persona>@<tenant-domain>`.
 6. Delete the CSVs afterwards, and delete the `team05-*` users before 13 November.
+
+## Mock Workday demo
+
+A separate demo-only app in `demo/mock-workday/` (port 3001) stands in for an HR system and starts journeys in MyJourney through a signed webhook. The contract, flow and env vars are in [DEMO-WORKDAY.md](DEMO-WORKDAY.md).
+
+MyJourney side: generate a secret with `openssl rand -hex 32`, put it in `.env` as `WORKDAY_WEBHOOK_SECRET`, and use the same value in `demo/mock-workday/.env`. Without it (or with a placeholder or fewer than 32 characters) `/api/integrations/workday/*` returns 404. The routes are server-to-server: they use the HMAC signature instead of cookies or bearer tokens, so they skip the CSRF/Origin check. In Entra mode, a starter's first sign-in completes their `guest-sign-in` task automatically.

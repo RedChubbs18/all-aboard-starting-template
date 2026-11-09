@@ -6,11 +6,11 @@ import { BRAND } from "@/lib/brand";
 import { ServiceWorkerRegister } from "@/components/shell/ServiceWorkerRegister";
 
 export const metadata: Metadata = {
-  title: { default: "All Aboard", template: "%s | All Aboard" },
+  title: { default: "MyJourney", template: "%s | MyJourney" },
   description: "Your onboarding journey, from offer to day 30.",
   manifest: "/manifest.webmanifest",
   icons: { icon: BRAND.favicon },
-  appleWebApp: { capable: true, title: "All Aboard", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "MyJourney", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {

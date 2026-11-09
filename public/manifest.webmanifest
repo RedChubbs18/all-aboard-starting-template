@@ -1,6 +1,6 @@
 {
-  "name": "All Aboard onboarding",
-  "short_name": "All Aboard",
+  "name": "MyJourney",
+  "short_name": "MyJourney",
   "description": "Your onboarding journey, from offer to day 30.",
   "start_url": "/",
   "scope": "/",
