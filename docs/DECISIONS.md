@@ -8,6 +8,7 @@
 | D4 | Hosting | Run locally for the demo. Mobile access and PWA install go through an HTTPS tunnel. That tunnel URL must be added as an Entra SPA redirect URI. No Azure hosting spend. | 2026-11-09 |
 | D5 | Git | Commit and push freely to the fork. Run a secret scan before every push. | 2026-11-09 |
 | D6 | Roles | Roles are stored in the app DB, keyed by Entra `oid`, not Entra app roles. That way the admin UI (FR-AD.3) can manage them. | 2026-11-09 |
+| D8 | AI model | `claude-opus-5-5` at effort `low` for both the chatbot and the photo check. Uses structured outputs and prompt-caches the FAQ corpus. Server-side refusal fallbacks (`fallbacks: "default"`) are on. If the API errors or there's no key, it falls back to the mock. | 2026-11-09 |
 | D7 | Horse graphics | Original placeholder SVGs until the team supplies official assets. | 2026-11-09 |
 
 ## Still open
