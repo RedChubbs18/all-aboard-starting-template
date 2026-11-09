@@ -1,7 +1,9 @@
 /**
  * Manual smoke test of the REAL WS6 adapters against the Anthropic API. Not run in CI.
  *
- *   npx tsx scripts/try-ai.mts ["your question"] [path/to/photo.jpg]
+ *   npx tsx --conditions=react-server scripts/try-ai.mts ["your question"] [path/to/photo.jpg]
+ *
+ * (`--conditions=react-server` satisfies the `server-only` guard in the adapters.)
  *
  * Needs ANTHROPIC_API_KEY in .env (server-side only, never committed). Uses the synthetic
  * corpus in content/seed/. Use a synthetic or consenting test photo; nothing is stored.

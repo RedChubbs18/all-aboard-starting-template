@@ -12,7 +12,7 @@
     "test:watch": "vitest",
     "postinstall": "prisma generate",
     "db:push": "prisma db push --skip-generate",
-    "db:seed": "tsx prisma/seed.ts",
+    "db:seed": "tsx --conditions=react-server prisma/seed.ts",
     "db:reset": "rm -f prisma/dev.db prisma/dev.db-journal && npm run db:push && npm run db:seed",
     "dev:lan": "next dev -H 0.0.0.0",
     "dev:lan:https": "next dev -H 0.0.0.0 --experimental-https"
@@ -26,6 +26,7 @@
     "next": "16.4.5",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
     "zod": "^4.6.7"
   },
   "devDependencies": {
