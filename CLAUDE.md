@@ -23,7 +23,7 @@ Next.js (App Router, `src/`), TypeScript strict, Tailwind v4, Prisma 6 + SQLite,
 - `src/adapters/<name>/{types,mock}.ts` plus `registry.ts` (`getAdapter(key)` returns mock or a "not configured" real stub). Mock state lives in `IntegrationState`.
 - `src/lib/auth/`: `server.ts` (`requireRole`, `withRole`, token validation), `access.ts` (who sees which journey), `client.tsx` (`AuthProvider`, `useSession`), `use-api.ts`. `AUTH_MODE=demo` enables the persona switcher; anything else uses Entra.
 - Every API route under `src/app/api` must be wrapped in `withRole([...], handler)`. Pages are client components behind `<RoleGate>` that load data via `useApi`.
-- Design tokens are CSS variables in `src/app/globals.css` (`@theme`); final values come from `design/tokens.css`.
+- Design tokens live in `src/app/globals.css` (`@theme`) and follow `docs/STYLE.md` (semantic classes: `bg-page`, `bg-card`, `text-ink`, `text-muted`, `border-line`, `bg-brand`, `text-brand-strong`, `bg-dark-green`, `text-blocked`). Shared primitives are in `src/components/ui`. `node scripts/contrast-check.mjs` asserts the contrast pairings. Brand assets come from `src/lib/brand.ts` (`NEXT_PUBLIC_BRAND_ASSETS=official`).
 
 `NN` below is the team's two-digit number. If you don't know it, ask. Don't guess.
 

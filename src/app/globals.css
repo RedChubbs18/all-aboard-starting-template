@@ -1,36 +1,61 @@
 @import "tailwindcss";
 
 /*
- * Design tokens. Names are a contract with design/tokens.css (final values).
- * Values here are temporary; swap them by pasting the :root block from design/tokens.css
- * over this @theme block (same names). `@theme` (not `inline`) keeps utilities
- * reading var(--token), so a later :root override also works.
- * Light mode only.
+ * Design tokens from docs/STYLE.md (section A overrides section B).
+ * Semantic names; components use classes such as bg-page, bg-card, text-ink, text-muted,
+ * border-line, bg-brand, text-brand-strong, bg-brand-tint, bg-dark-green, text-blocked.
+ * Light mode only. Contrast pairings are asserted by scripts/contrast-check.mjs.
+ *
+ * Brand typeface: a customised GT Ultra (licensed, not in the repo). To use it, drop the
+ * licensed file at public/fonts/brand.woff2 and uncomment the @font-face below. Left
+ * commented out because a missing file would 404 on every page load.
  */
+/*
+@font-face {
+  font-family: "Brand";
+  src: url("/fonts/brand.woff2") format("woff2");
+  font-weight: 400 800;
+  font-display: swap;
+}
+*/
 @theme {
-  --color-brand: #00573f;
-  --color-brand-strong: #003d2c;
-  --color-brand-soft: #e3f1ea;
-  --color-accent: #f2b705;
-  --color-surface: #ffffff;
-  --color-surface-alt: #f3f6f4;
-  --color-border: #6f7f78;
-  --color-text: #14211c;
-  --color-text-muted: #4a5a53;
-  --color-success: #1b6e3a;
-  --color-warning: #8a5300;
-  --color-danger: #b3261e;
-  --color-info: #0b5cad;
-  /* Status tints (design/components.md); contrast verified in design/scripts/contrast.mjs */
-  --color-success-soft: #e2f3e8;
-  --color-warning-soft: #fdf1d8;
-  --color-danger-soft: #fbe6e4;
-  --color-info-soft: #e4effb;
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
-  --shadow-card: 0 1px 2px rgb(20 33 28 / 0.08), 0 4px 12px rgb(20 33 28 / 0.06);
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --color-page: #f2f2f2;
+  --color-card: #ffffff;
+  --color-ink: #000000;
+  --color-muted: #5a5f5c;
+  --color-line: #e6e8e6;
+  --color-line-strong: #c8d1cc;
+  --color-outer: #e6e8e6;
+  /* Brand green: fills, bars, rings, icons and large text only (3.06:1 on white). */
+  --color-brand: #12a872;
+  /* Deep green: small green text and links (6.28:1 on white). */
+  --color-brand-strong: #0b6e4b;
+  --color-brand-tint: #e4f6ee;
+  --color-dark-green: #0b3b2b;
+  --color-now: #00a36c;
+  --color-feature: #14a870;
+  --color-positive: #1d7a52;
+  --color-sage: #8fc7a9;
+  --color-blocked: #c0392b;
+  --color-blocked-tint: #fbe9e6;
+  --color-mixed: #2a64a0;
+  --color-mixed-tint: #e5eef8;
+  --color-automated: #3d4440;
+  --color-automated-tint: #eceeed;
+  --color-track: #dfe6e2;
+  --color-mint: #bffccb;
+  --color-pale-lime: #c9e8b3;
+  --color-disabled: #b8c5bf;
+  --color-disabled-ink: #3d4440;
+  --color-focus: #9fd8c0;
+  --color-viewfinder: #0d1512;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 16px;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.05);
+  --shadow-marker: 0 2px 6px rgb(0 0 0 / 0.15);
+  --font-brand: "Brand", "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-sans: var(--font-brand);
 }
 
 :root {
@@ -38,14 +63,18 @@
 }
 
 body {
-  background: var(--color-surface-alt);
-  color: var(--color-text);
+  background: var(--color-outer);
+  color: var(--color-ink);
   font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
 }
 
+/* Focus: 3px #9fd8c0 ring, 2px offset, plus a 2px dark-green outline so it reaches 3:1 (STYLE A.3). */
 :focus-visible {
-  outline: 3px solid var(--color-info);
+  outline: 2px solid var(--color-dark-green);
   outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--color-focus);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -83,4 +112,4 @@ body {
   .halo-pulse, .milestone-pop, .sheet-up { animation: none !important; }
   .star-burst { display: none; }
 }
-dialog.app-dialog::backdrop { background: rgb(20 33 28 / 0.5); }
+dialog.app-dialog::backdrop { background: rgb(0 0 0 / 0.5); }
