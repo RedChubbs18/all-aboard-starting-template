@@ -73,3 +73,12 @@ export async function parseBody<T>(req: Request, schema: ZodType<T>): Promise<T>
   }
   return r.data;
 }
+
+/** For writes: as requireManagedJourney, but completed and exited journeys are read-only records (F15). */
+export async function requireWritableJourney(journeyId: string, user: SessionUser) {
+  const j = await requireManagedJourney(journeyId, user);
+  if (j.status !== "active") {
+    throw new HttpError(409, "read_only", `This starter's journey is ${j.status}, so it is a read-only record. No changes can be made.`);
+  }
+  return j;
+}

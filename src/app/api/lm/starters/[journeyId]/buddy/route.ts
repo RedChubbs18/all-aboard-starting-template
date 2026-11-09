@@ -1,5 +1,5 @@
 import { buildDetail } from "../../../_lib/detail";
-import { HttpError, lmRoute, parseBody, requireManagedJourney, type JourneyParams } from "../../../_lib/guard";
+import { HttpError, lmRoute, parseBody, requireWritableJourney, type JourneyParams } from "../../../_lib/guard";
 import { buddySchema } from "@/components/lm/schemas";
 import { prisma } from "@/server/db";
 import { allocateBuddy } from "@/server/journey-service";
@@ -7,7 +7,7 @@ import { allocateBuddy } from "@/server/journey-service";
 /** FR-LM.4 / FR-1.3: allocate a buddy from the starter's team. Not the LM, not the starter, must be buddy-eligible. */
 export const POST = lmRoute<JourneyParams>(async (req, ctx, user) => {
   const { journeyId } = await ctx.params;
-  const j = await requireManagedJourney(journeyId, user);
+  const j = await requireWritableJourney(journeyId, user);
   const { buddyId } = await parseBody(req, buddySchema);
   const buddy = await prisma.user.findUnique({ where: { id: buddyId } });
   const fail = (m: string) => new HttpError(400, "invalid", m, { buddyId: m });

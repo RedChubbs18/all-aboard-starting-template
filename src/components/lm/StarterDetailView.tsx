@@ -5,9 +5,10 @@ import { useState } from "react";
 import { STAGES, type Stage } from "@/domain/types";
 import { ToastProvider, useToast } from "@/components/ui/Toast";
 import { useStarterDetail } from "./hooks";
-import { BespokeTaskSheet, BuddyPanel, CheckInPanel, Day0Panel, GoalsPanel, PhotoReviewPanel } from "./panels";
+import { BespokeTaskSheet, BuddyPanel, TeamItemSheet, CheckInPanel, Day0Panel, GoalsPanel, PhotoReviewPanel } from "./panels";
 import { TaskRow, TeamChecklist, type PanelProps } from "./tasks";
 import { LINK_TASK_KEYS } from "./schemas";
+import { StarterSwitcher } from "./StarterSwitcher";
 import type { StarterDetail } from "./types";
 import { Alert, Button, Card, ExternalLink, Icon, ProgressBar, RedFlagBadge, Skeleton, STAGE_HINT, STAGE_LABEL, formatDate } from "./ui";
 
@@ -112,6 +113,7 @@ function StarterDetailBody({ journeyId }: { journeyId: string }) {
   const { data: d, error, loading, reload, mutate } = useStarterDetail(journeyId);
   const t = useToast();
   const [sheet, setSheet] = useState(false);
+  const [teamSheet, setTeamSheet] = useState(false);
 
   const back = (
     <Link href="/lm" className="inline-flex min-h-11 items-center gap-1 text-brand-strong underline underline-offset-2">
@@ -139,14 +141,23 @@ function StarterDetailBody({ journeyId }: { journeyId: string }) {
     );
 
   const p: PanelProps = { d, base: `/api/lm/starters/${journeyId}`, mutate, ok: (m) => t.success(m), fail: (m) => t.error(m) };
+  // The team checklist is hidden when there are no TEAM tasks; the recurring-calls tasks then stay in "Your tasks".
+  const hasTeam = d.tasks.some((x) => x.source === "TEAM");
+  const readOnly = d.journey.status !== "active";
   const mine = d.tasks
-    .filter((x) => x.owner === "LM" && !LINK_TASK_KEYS.includes(x.key) && x.source !== "TEAM")
+    .filter((x) => x.owner === "LM" && (!hasTeam || !LINK_TASK_KEYS.includes(x.key)) && x.source !== "TEAM")
     .sort((a, b) => Number(a.status === "DONE") - Number(b.status === "DONE") || a.dueDate.localeCompare(b.dueDate));
   const overdueMine = mine.filter((x) => x.overdue).length;
 
   return (
     <div className="space-y-4">
       {back}
+      <StarterSwitcher currentId={journeyId} />
+      {readOnly && (
+        <Alert tone="info" title={`This journey is ${d.journey.status}`} role="status">
+          It is kept as a read-only record. You can look, but not change anything.
+        </Alert>
+      )}
       <div className="grid gap-4 lg:grid-cols-3 lg:items-start">
         <div className="lg:col-span-3">
           <Header d={d} onAdd={() => setSheet(true)} />
@@ -180,10 +191,11 @@ function StarterDetailBody({ journeyId }: { journeyId: string }) {
         </div>
 
         <div className="space-y-4 lg:col-span-2 lg:col-start-1">
-          <TeamChecklist p={p} />
+          <TeamChecklist p={p} onAdd={() => setTeamSheet(true)} />
           <StageList d={d} p={p} />
         </div>
       </div>
+      <TeamItemSheet {...p} open={teamSheet} onClose={() => setTeamSheet(false)} />
       <BespokeTaskSheet {...p} open={sheet} onClose={() => setSheet(false)} />
     </div>
   );

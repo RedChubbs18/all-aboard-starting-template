@@ -10,6 +10,8 @@ import { GET as listGET } from "./starters/route";
 import { GET as detailGET } from "./starters/[journeyId]/route";
 import { POST as buddyPOST } from "./starters/[journeyId]/buddy/route";
 import { POST as taskPOST } from "./starters/[journeyId]/tasks/route";
+import { POST as teamItemPOST } from "./starters/[journeyId]/team-items/route";
+import { exitJourney } from "@/server/journey-service";
 import { PATCH as taskPATCH } from "./starters/[journeyId]/tasks/[key]/route";
 import { PUT as day0PUT } from "./starters/[journeyId]/day0/route";
 import { POST as checkInPOST } from "./starters/[journeyId]/check-ins/route";
@@ -255,5 +257,81 @@ describe("check-ins, Day 0 and goals", () => {
     const upd = await call<StarterDetail>("lmA", goalPATCH, { method: "PATCH", params: { journeyId: jA, goalId: goal.id }, body: { text: "Ship the pilot", done: true } });
     expect(upd.body.goals.find((g) => g.id === goal.id)).toMatchObject({ text: "Ship the pilot", done: true });
     expect((await call("lmA", goalPOST, { method: "POST", params: { journeyId: jA }, body: { horizon: "7", text: "" } })).status).toBe(400);
+  });
+});
+
+describe("team checklist items (F11)", () => {
+  it("has no TEAM tasks until the LM adds one, then creates a TEAM task owned by the LM", async () => {
+    const before = await call<StarterDetail>("lmA", detailGET, { params: { journeyId: jA } });
+    expect(before.body.tasks.some((t) => t.source === "TEAM")).toBe(false);
+    const r = await call<StarterDetail>("lmA", teamItemPOST, {
+      method: "POST",
+      params: { journeyId: jA },
+      body: { title: "Add to team rota", description: "", dueDate: "2026-12-10", owner: "LM" },
+    });
+    expect(r.status).toBe(201);
+    expect(r.body.tasks.find((t) => t.title === "Add to team rota")).toMatchObject({ source: "TEAM", owner: "LM", type: "CHECKLIST" });
+  });
+
+  it("can be owned by the starter, validates input and is LM-scoped", async () => {
+    const post = (as: string, body: unknown) => call<StarterDetail>(as, teamItemPOST, { method: "POST", params: { journeyId: jA }, body });
+    const r = await post("lmA", { title: "Read the team charter", dueDate: "2026-12-11", owner: "STARTER" });
+    expect(r.body.tasks.find((t) => t.title === "Read the team charter")).toMatchObject({ source: "TEAM", owner: "STARTER", canAct: false });
+    const bad = await post("lmA", { title: " ", dueDate: "", owner: "BUDDY" });
+    expect(bad.status).toBe(400);
+    expect(Object.keys(bad.body.fields ?? {})).toEqual(expect.arrayContaining(["title", "dueDate", "owner"]));
+    expect((await post("lmB", { title: "Nope", dueDate: "2026-12-11", owner: "LM" })).status).toBe(403);
+  });
+});
+
+describe("past starters and the switcher list (F15)", () => {
+  let past = "";
+  beforeAll(async () => {
+    await prisma.user.create({ data: { id: id("starterPast"), upn: `${P}starterPast@example.test`, displayName: "starterPast", roles: ["STARTER"], teamId: id("team-a") } });
+    past = (await createJourneyForStarter({ starterId: id("starterPast"), lmId: id("lmA"), teamId: id("team-a"), startDate: new Date("2026-12-21T00:00:00Z") })).id;
+    await exitJourney(past, "NO_SHOW");
+  });
+
+  it("lists exited journeys separately and only for the owning LM", async () => {
+    const a = await call<StarterListResponse>("lmA", listGET);
+    expect(a.body.past.map((s) => s.id)).toEqual([past]);
+    expect(a.body.starters.map((s) => s.id)).not.toContain(past);
+    expect(a.body.starters.every((s) => s.status === "active")).toBe(true);
+    const b = await call<StarterListResponse>("lmB", listGET);
+    expect(b.body.past).toEqual([]);
+    expect(b.body.starters.map((s) => s.id)).toEqual([jB]);
+  });
+
+  it("opens a past journey read-only and rejects every write with a clear message", async () => {
+    const d = await call<StarterDetail>("lmA", detailGET, { params: { journeyId: past } });
+    expect(d.status).toBe(200);
+    expect(d.body.tasks.every((t) => !t.canAct)).toBe(true);
+    const params = { journeyId: past };
+    const writes = await Promise.all([
+      call<{ message: string }>("lmA", taskPOST, { method: "POST", params, body: { title: "x", stage: "DAY_0", dueDate: "2026-12-30" } }),
+      call<{ message: string }>("lmA", teamItemPOST, { method: "POST", params, body: { title: "x", dueDate: "2026-12-30", owner: "LM" } }),
+      call<{ message: string }>("lmA", day0PUT, { method: "PUT", params, body: { where: "a", who: "b", whenAt: "2026-12-21T09:00:00.000Z" } }),
+      call<{ message: string }>("lmA", goalPOST, { method: "POST", params, body: { horizon: "30", text: "x" } }),
+      call<{ message: string }>("lmA", taskPATCH, { method: "PATCH", params: { ...params, key: "forward-team-calls" }, body: { status: "DONE" } }),
+    ]);
+    expect(writes.map((w) => w.status)).toEqual([409, 409, 409, 409, 409]);
+    expect(writes[0].body.message).toMatch(/read-only/);
+    expect(await prisma.day0Arrangement.findUnique({ where: { journeyId: past } })).toBeNull();
+    expect((await loadJourney(past))!.status).toBe("exited");
+  });
+});
+
+describe("Day 0 LM state (F13)", () => {
+  it("is null before the LM sets it up, waiting after proposing, confirmed once the starter confirms", async () => {
+    const fresh = await call<StarterDetail>("lmA", detailGET, { params: { journeyId: jA } });
+    const had = fresh.body.day0;
+    if (had) await prisma.day0Arrangement.delete({ where: { journeyId: jA } });
+    expect((await call<StarterDetail>("lmA", detailGET, { params: { journeyId: jA } })).body.day0).toBeNull();
+    const body = { where: "Reception", who: "Dana at the desk", whenAt: "2026-12-14T09:30:00.000Z" };
+    const waiting = await call<StarterDetail>("lmA", day0PUT, { method: "PUT", params: { journeyId: jA }, body });
+    expect(waiting.body.day0).toMatchObject({ ...body, confirmedAt: null });
+    await prisma.day0Arrangement.update({ where: { journeyId: jA }, data: { confirmedAt: new Date() } });
+    const confirmed = await call<StarterDetail>("lmA", detailGET, { params: { journeyId: jA } });
+    expect(confirmed.body.day0?.confirmedAt).toBeTruthy();
   });
 });

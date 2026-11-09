@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { LINK_TASK_KEYS, linkSchema, MAX_LINKS } from "./schemas";
+import { teamChecklistItems } from "./team";
 import type { MutateResult } from "./hooks";
 import type { StarterDetail, TaskDto } from "./types";
 import { Button, Card, ExternalLink, Icon, OverdueBadge, OwnerBadge, StatusBadge, TextField, formatDate } from "./ui";
@@ -44,6 +45,9 @@ export const markDone = (d: StarterDetail, key: string) =>
 export const reopen = (d: StarterDetail, key: string) =>
   patchTask(d, key, (t) => ({ ...t, status: "TODO", completedAt: null, overdue: new Date(t.dueDate) < new Date() }));
 
+/** IT request tasks are LM-owned and the buddy may also complete them (F10). */
+const isItRequest = (key: string) => key.includes("it-request");
+
 /** One task. LM-owned tasks are highlighted and actionable; everything else is read-only. */
 export function TaskRow({ t, p }: { t: TaskDto; p: PanelProps }) {
   const mine = t.owner === "LM";
@@ -82,6 +86,7 @@ export function TaskRow({ t, p }: { t: TaskDto; p: PanelProps }) {
           {t.status === "DONE" ? "Reopen" : "Mark done"}
         </Button>
       )}
+      {mine && isItRequest(t.key) && t.status !== "DONE" && <p className="text-sm text-muted">Your buddy can also do this.</p>}
       {mine && t.status === "LOCKED" && <p className="text-sm text-muted">You can act on this once the task it is waiting for is done.</p>}
     </Card>
   );
@@ -146,13 +151,19 @@ function LinksEditor({ t, p }: { t: TaskDto; p: PanelProps }) {
 }
 
 /** FR-3.5 / FR-3.13: TEAM-source tasks (plus the recurring calls task) as one checklist. */
-export function TeamChecklist({ p }: { p: PanelProps }) {
-  const items = p.d.tasks
-    .filter((t) => t.source === "TEAM" || LINK_TASK_KEYS.includes(t.key))
-    .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+export function TeamChecklist({ p, onAdd }: { p: PanelProps; onAdd: () => void }) {
+  const items = teamChecklistItems(p.d.tasks) as TaskDto[];
+  const active = p.d.journey.status === "active";
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const done = items.filter((t) => t.status === "DONE").length;
-  if (items.length === 0) return null;
+  if (items.length === 0) {
+    if (!active) return null;
+    return (
+      <Button variant="secondary" onClick={onAdd}>
+        <Icon name="plus" /> Add team checklist item
+      </Button>
+    );
+  }
 
   async function toggle(t: TaskDto) {
     setBusyKey(t.key);
@@ -170,6 +181,11 @@ export function TeamChecklist({ p }: { p: PanelProps }) {
       <h2 id="team-checklist" className="text-xl font-bold text-ink">
         Team checklist <span className="text-base font-normal text-muted">({done} of {items.length} done)</span>
       </h2>
+      {active && (
+        <Button variant="secondary" onClick={onAdd}>
+          <Icon name="plus" /> Add team checklist item
+        </Button>
+      )}
       <ul className="space-y-3">
         {items.map((t) => {
           const editable = t.canAct;
