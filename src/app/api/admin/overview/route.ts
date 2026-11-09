@@ -1,11 +1,5 @@
 import { withRole } from "@/lib/auth/server";
-import { listAdapterModes } from "@/adapters/registry";
-import { prisma } from "@/server/db";
+import { adminResponse, getOverview } from "@/server/admin-service";
 
-/** Placeholder admin feed (admin only). WS4 builds on this. */
-export const GET = withRole(["ADMIN"], async () => {
-  const [templates, content, faqs, users, adapters] = await Promise.all([
-    prisma.taskTemplate.count(), prisma.contentItem.count(), prisma.faq.count(), prisma.user.count(), listAdapterModes(),
-  ]);
-  return Response.json({ templates, content, faqs, users, adapters });
-});
+/** Admin home counts (admin only). */
+export const GET = withRole(["ADMIN"], () => adminResponse(getOverview));
