@@ -13,7 +13,7 @@ import { FALLBACK_REASONS } from "@/lib/graph/invite";
  * object id and status are stored. One report per journey: it is accepted only while identity is still "none".
  */
 const bodySchema = z.discriminatedUnion("status", [
-  z.object({ status: z.literal("invited"), guestObjectId: z.guid(), mailSent: z.boolean().optional() }).strict(),
+  z.object({ status: z.literal("invited"), guestObjectId: z.guid() }).strict(),
   z.object({ status: z.literal("fallback"), reason: z.enum(FALLBACK_REASONS) }).strict(),
 ]);
 
@@ -30,7 +30,7 @@ export const POST = withRole(["ADMIN"], async (req, ctx: { params: Promise<{ jou
 
   if (body.status === "invited") {
     const r = await createIdentityReal(prismaStore).recordGuestInvite(journeyId, body.guestObjectId);
-    await recordEvent({ journeyId, actorId: user.id, type: "INTEGRATION_STATUS", entity: "Integration", entityId: "identity", data: { status: r.status, via: "graph", guestObjectId: body.guestObjectId, mailSent: body.mailSent ?? false } });
+    await recordEvent({ journeyId, actorId: user.id, type: "INTEGRATION_STATUS", entity: "Integration", entityId: "identity", data: { status: r.status, via: "graph", guestObjectId: body.guestObjectId } });
     return Response.json({ status: r.status, via: "graph" });
   }
 

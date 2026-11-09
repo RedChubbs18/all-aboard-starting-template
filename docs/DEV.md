@@ -85,27 +85,26 @@ Venue Wi-Fi can isolate clients or change your IP, so check this on the day.
 
 ## Graph invites
 
-Real Entra B2B guest invites (D19, feedback F1). Active only with `AUTH_MODE=entra` and `NEXT_PUBLIC_GRAPH_INVITES=on`. In demo mode, or with the flag off, the mock invite is unchanged.
+Real Entra B2B guest invites (D19, feedback F1). Active only with `AUTH_MODE=entra`, `NEXT_PUBLIC_GRAPH_INVITES=on` **and** `NEXT_PUBLIC_GRAPH_INVITE_EXTERNAL_APPROVED=yes`. In demo mode, or with the flag off, the mock invite is unchanged.
 
 How it works: when an admin submits "Seed a new starter", the server creates the journey and returns its id. The admin's browser then calls Microsoft Graph with a delegated token from MSAL (no client secret exists; the SPA is public):
 
-1. `POST /invitations` with the starter's personal email (typed in the form, never stored), display name `team05-<first>-<last>`, `inviteRedirectUrl` set to the app origin and `sendInvitationMessage: false`.
-2. `POST /me/sendMail` sends the branded welcome email, containing the redemption link, **only to `NEXT_PUBLIC_INVITE_DEMO_MAILBOX`**. The email says "In production this goes to" followed by the personal address. The personal address is never emailed.
+1. `POST /invitations` with the personal email typed in the form at demo time (never stored), display name `team05-<first>-<last>`, `inviteRedirectUrl` set to the app origin, `sendInvitationMessage: true` and a short `customizedMessageBody`. **Microsoft Entra sends its own standard invitation email.** The app drafts no email, sets no `ccRecipients` and never calls `/me/sendMail`.
+2. The form shows a confirmation dialog ("Send a real Microsoft Entra invitation email to <address>?") before anything is created. The personal email is required for a real send.
 3. The browser reports only the guest object id and a status to `POST /api/admin/seed-starter/[journeyId]/invite-result`. The server records it through the real IdentityAdapter and writes an audit Event.
 
 The scopes are requested only at send time (incremental consent), not at sign-in.
 
-**Permissions** (delegated, Microsoft Graph), added on the `team05-onboarding` app registration under API permissions, Add a permission, Microsoft Graph, Delegated permissions:
+**Permissions** (delegated, Microsoft Graph), added on the `team05-onboarding` app registration (only this one) under API permissions, Add a permission, Microsoft Graph, Delegated permissions:
 
 | Permission | Consent |
 | --- | --- |
 | `User.Invite.All` | Needs **admin consent from the organisers**. Don't grant tenant-wide consent yourself. |
-| `Mail.Send` | Delegated. The signed-in admin sends as themselves. |
 
 Until consent exists, Graph returns 403 or a consent prompt. The app then shows "The app needs organiser-approved permission to invite guests; using the demo invite instead", uses the mock invite and audits the fallback. It tries one consent redirect and never loops.
 
-**Env vars** (`.env.example` has placeholders): `NEXT_PUBLIC_GRAPH_INVITES=on`, and `NEXT_PUBLIC_INVITE_DEMO_MAILBOX` (an in-tenant team05 test mailbox).
+**Env vars** (`.env.example` has placeholders): `NEXT_PUBLIC_GRAPH_INVITES=on` and `NEXT_PUBLIC_GRAPH_INVITE_EXTERNAL_APPROVED=yes`.
 
-**In-tenant only.** No email leaves the tenant. If the mailbox variable is unset, or its domain differs from the signed-in admin's UPN domain, the app sends nothing, creates no guest, and falls back to the mock invite.
+**Approval flag.** The invitation email can reach an address outside the tenant, which the hackathon rules forbid unless the organisers approve. Set `NEXT_PUBLIC_GRAPH_INVITE_EXTERNAL_APPROVED=yes` only after they have approved it. Without it the app never calls Graph, uses the mock invite, shows "External invite email not approved for this environment" and audits the fallback.
 
-**Cleanup.** Each invite creates a real guest user named `team05-*`. Delete them before 13 November (Entra, Users, filter on `team05-`), along with any test mail.
+**Cleanup.** Each invite creates a real guest user named `team05-*`. Delete them before 13 November (Entra, Users, filter on `team05-`).

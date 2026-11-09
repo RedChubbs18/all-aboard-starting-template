@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { allowedDemoMailbox, buildInvitationBody, guestDisplayName, sendGraphInvite } from "./invite";
-import { buildWelcomeEmail } from "./email";
+import { GRAPH_INVITE_SCOPES, INVITE_MESSAGE, buildInvitationBody, guestDisplayName, isValidEmail, sendGraphInvite } from "./invite";
 
 const GUID = "11111111-2222-3333-4444-555555555555";
 const json = (status: number, body: unknown = {}) => new Response(JSON.stringify(body), { status });
@@ -9,8 +8,7 @@ function input(fetchFn: typeof fetch, over: Partial<Parameters<typeof sendGraphI
   return {
     fetch: fetchFn,
     accessToken: "tok",
-    adminUpn: "team05-admin@contoso.example",
-    demoMailbox: "team05-inbox@contoso.example",
+    approved: true,
     personalEmail: "pat.sample@personal.example",
     starterName: "Pat Sample",
     redirectUrl: "http://localhost:3000",
@@ -28,66 +26,59 @@ describe("guestDisplayName", () => {
 });
 
 describe("buildInvitationBody", () => {
-  it("never sends Microsoft's own invitation message", () => {
-    expect(buildInvitationBody({ email: "a@b.example", displayName: "team05-a-b", redirectUrl: "http://localhost:3000" })).toEqual({
+  it("asks Entra to send its own invitation with a short message and no ccRecipients", () => {
+    const b = buildInvitationBody({ email: "a@b.example", displayName: "team05-a-b", redirectUrl: "http://localhost:3000" });
+    expect(b).toEqual({
       invitedUserEmailAddress: "a@b.example",
       invitedUserDisplayName: "team05-a-b",
       inviteRedirectUrl: "http://localhost:3000",
-      sendInvitationMessage: false,
+      sendInvitationMessage: true,
+      invitedUserMessageInfo: { customizedMessageBody: INVITE_MESSAGE },
     });
+    expect(b).not.toHaveProperty("invitedUserMessageInfo.ccRecipients");
   });
 });
 
-describe("allowedDemoMailbox", () => {
-  const admin = "team05-admin@contoso.example";
-  it("allows only the admin's own domain", () => {
-    expect(allowedDemoMailbox("box@contoso.example", admin)).toBe("box@contoso.example");
-    expect(allowedDemoMailbox("box@CONTOSO.example", admin)).toBe("box@CONTOSO.example");
-  });
-  it("refuses unset, external, look-alike and multi-recipient values", () => {
-    for (const bad of [undefined, "", "box@gmail.com", "box@evil-contoso.example", "box@sub.contoso.example", "box@contoso.example.evil.com", "a@contoso.example;b@gmail.com", "a@contoso.example,b@gmail.com", "x@y@contoso.example", "box"]) {
-      expect(allowedDemoMailbox(bad, admin), String(bad)).toBeNull();
-    }
-    expect(allowedDemoMailbox("box@contoso.example", undefined)).toBeNull();
+describe("scopes and email validation", () => {
+  it("requests User.Invite.All only", () => expect(GRAPH_INVITE_SCOPES).toEqual(["User.Invite.All"]));
+  it("validates format", () => {
+    expect(isValidEmail("a.b@c.example")).toBe(true);
+    for (const bad of ["", "a", "a@b", "a@b@c.example", "a b@c.example", "a@c.example,d@e.example", "a@c.example;d@e.example"]) expect(isValidEmail(bad), bad).toBe(false);
   });
 });
 
 describe("sendGraphInvite", () => {
-  it("invites then mails the redeem link to the demo mailbox only", async () => {
-    const f = vi.fn<typeof fetch>(async (url) =>
-      String(url).endsWith("/invitations") ? json(201, { inviteRedeemUrl: "https://redeem.example/x", invitedUser: { id: GUID } }) : json(202),
-    );
-    const r = await sendGraphInvite(input(f));
-    expect(r).toEqual({ status: "invited", guestObjectId: GUID, mailSent: true });
-    expect(f).toHaveBeenCalledTimes(2);
-
-    const [invUrl, invInit] = f.mock.calls[0];
-    expect(invUrl).toBe("https://graph.microsoft.com/v1.0/invitations");
-    expect((invInit!.headers as Record<string, string>).Authorization).toBe("Bearer tok");
-    expect(JSON.parse(invInit!.body as string)).toEqual({
-      invitedUserEmailAddress: "pat.sample@personal.example",
-      invitedUserDisplayName: "team05-pat-sample",
-      inviteRedirectUrl: "http://localhost:3000",
-      sendInvitationMessage: false,
-    });
-
-    const [mailUrl, mailInit] = f.mock.calls[1];
-    expect(mailUrl).toBe("https://graph.microsoft.com/v1.0/me/sendMail");
-    const mail = JSON.parse(mailInit!.body as string);
-    expect(mail.message.toRecipients).toEqual([{ emailAddress: { address: "team05-inbox@contoso.example" } }]);
-    expect(mail.message.body.content).toContain("https://redeem.example/x");
-    expect(mail.message.body.content).toContain("In production this goes to pat.sample@personal.example");
+  it("posts one invitation with sendInvitationMessage true to the typed address and never calls sendMail", async () => {
+    const f = vi.fn<typeof fetch>(async () => json(201, { invitedUser: { id: GUID } }));
+    expect(await sendGraphInvite(input(f))).toEqual({ status: "invited", guestObjectId: GUID });
+    expect(f).toHaveBeenCalledTimes(1);
+    const [url, init] = f.mock.calls[0];
+    expect(url).toBe("https://graph.microsoft.com/v1.0/invitations");
+    expect(String(url)).not.toContain("sendMail");
+    expect((init!.headers as Record<string, string>).Authorization).toBe("Bearer tok");
+    const body = JSON.parse(init!.body as string);
+    expect(body.sendInvitationMessage).toBe(true);
+    expect(body.invitedUserEmailAddress).toBe("pat.sample@personal.example");
+    expect(body.invitedUserDisplayName).toBe("team05-pat-sample");
+    expect(body.inviteRedirectUrl).toBe("http://localhost:3000");
+    expect(body.invitedUserMessageInfo).toEqual({ customizedMessageBody: INVITE_MESSAGE });
   });
 
-  it("refuses an external mailbox before calling Graph at all", async () => {
+  it("refuses without the approval flag, before calling Graph", async () => {
     const f = vi.fn<typeof fetch>();
-    for (const demoMailbox of [undefined, "someone@gmail.com", "team05-inbox@other.example"]) {
-      expect(await sendGraphInvite(input(f, { demoMailbox }))).toEqual({ status: "fallback", reason: "mailbox_not_allowed" });
+    expect(await sendGraphInvite(input(f, { approved: false }))).toEqual({ status: "fallback", reason: "not_approved" });
+    expect(f).not.toHaveBeenCalled();
+  });
+
+  it("refuses an invalid address before calling Graph", async () => {
+    const f = vi.fn<typeof fetch>();
+    for (const personalEmail of ["", "nope", "a@b.example,c@d.example"]) {
+      expect(await sendGraphInvite(input(f, { personalEmail }))).toEqual({ status: "fallback", reason: "invalid_email" });
     }
     expect(f).not.toHaveBeenCalled();
   });
 
-  it("falls back on 403 and 401 (consent required) without sending mail", async () => {
+  it("falls back on 403 and 401 (consent required)", async () => {
     for (const status of [403, 401]) {
       const f = vi.fn<typeof fetch>(async () => json(status, { error: { code: "Authorization_RequestDenied" } }));
       expect(await sendGraphInvite(input(f))).toEqual({ status: "fallback", reason: "consent_required" });
@@ -99,21 +90,5 @@ describe("sendGraphInvite", () => {
     expect(await sendGraphInvite(input(async () => json(500)))).toEqual({ status: "fallback", reason: "error" });
     expect(await sendGraphInvite(input(async () => json(201, { invitedUser: {} })))).toEqual({ status: "fallback", reason: "error" });
     expect(await sendGraphInvite(input(async () => Promise.reject(new Error("offline"))))).toEqual({ status: "fallback", reason: "error" });
-  });
-
-  it("reports the invite as made but mailSent=false when sendMail fails", async () => {
-    const f = vi.fn<typeof fetch>(async (url) => (String(url).endsWith("/invitations") ? json(201, { inviteRedeemUrl: "https://r.example", invitedUser: { id: GUID } }) : json(403)));
-    expect(await sendGraphInvite(input(f))).toEqual({ status: "invited", guestObjectId: GUID, mailSent: false });
-  });
-});
-
-describe("buildWelcomeEmail", () => {
-  it("escapes HTML in names and links", () => {
-    const m = buildWelcomeEmail({ starterName: "<script>x</script>", redeemUrl: 'https://a.example/?q="1"' });
-    expect(m.html).not.toContain("<script>");
-    expect(m.html).not.toContain('q="1"');
-  });
-  it("omits the production line when there is no production recipient", () => {
-    expect(buildWelcomeEmail({ starterName: "A", redeemUrl: "https://a.example" }).text).not.toContain("In production");
   });
 });

@@ -4,9 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useApi } from "@/lib/auth/use-api";
 import { useSession } from "@/lib/auth/client";
-import { graphInvitesEnabled, inviteDemoMailbox } from "@/lib/auth/config";
-import { buildWelcomeEmail, PREVIEW_REDEEM_URL } from "@/lib/graph/email";
-import { FALLBACK_MESSAGES, GRAPH_INVITE_SCOPES, sendGraphInvite, type InviteOutcome } from "@/lib/graph/invite";
+import { graphInviteExternalApproved, graphInvitesEnabled } from "@/lib/auth/config";
+import { FALLBACK_MESSAGES, GRAPH_INVITE_SCOPES, guestDisplayName, isValidEmail, sendGraphInvite, type InviteOutcome } from "@/lib/graph/invite";
 import { Alert, Field, btnCls, inputCls, useSend, type Fields } from "./common";
 
 interface Dir {
@@ -32,6 +31,9 @@ export function SeedStarterForm() {
   const send = useSend();
   const session = useSession();
   const graphOn = session.mode === "entra" && graphInvitesEnabled();
+  const approved = graphInviteExternalApproved();
+  // Real sending needs both flags. With Graph on but no approval, nothing goes to Graph and the mock runs.
+  const sendReal = graphOn && approved;
   const [mode, setMode] = useState<"new" | "existing">("new");
   const [v, setV] = useState({ existingUserId: "", displayName: "", upn: "", teamId: "", lmId: "", buddyId: "", startDate: "" });
   const [upnTouched, setUpnTouched] = useState(false);
@@ -41,23 +43,36 @@ export function SeedStarterForm() {
   const [result, setResult] = useState<Result | null>(null);
   const [personalEmail, setPersonalEmail] = useState("");
   const [inviteNote, setInviteNote] = useState<InviteNote | null>(null);
+  const [confirming, setConfirming] = useState(false);
 
   const set = (k: keyof typeof v, val: string) => setV((o) => ({ ...o, [k]: val }));
 
-  async function submit(e: React.FormEvent) {
+  const displayForGuest = mode === "new" ? v.displayName : (dir.data?.starters.find((s) => s.id === v.existingUserId)?.name ?? "");
+
+  function submit(e: React.FormEvent) {
     e.preventDefault();
+    const email = personalEmail.trim();
+    if (sendReal && !isValidEmail(email)) {
+      setErrors({ personalEmail: "Enter a valid personal email address for the invite" });
+      return;
+    }
+    if (!sendReal && email && !isValidEmail(email)) {
+      setErrors({ personalEmail: "Enter a valid email address" });
+      return;
+    }
+    if (sendReal) setConfirming(true);
+    else void run();
+  }
+
+  async function run() {
+    setConfirming(false);
     setBusy(true);
     setMsg("");
     setResult(null);
     setInviteNote(null);
     const email = personalEmail.trim();
-    if (graphOn && !/^[^@\s]+@[^@\s]+$/.test(email)) {
-      setErrors({ personalEmail: "Enter the starter's personal email" });
-      setBusy(false);
-      return;
-    }
-    // Incremental consent: ask for the invite scopes only now. May redirect once for consent (before anything is created).
-    const token = graphOn ? await session.acquireGraphToken(GRAPH_INVITE_SCOPES) : null;
+    // Incremental consent: ask for the invite scope only now. May redirect once for consent (before anything is created).
+    const token = sendReal ? await session.acquireGraphToken(GRAPH_INVITE_SCOPES) : null;
     const base = mode === "existing" ? { existingUserId: v.existingUserId, teamId: v.teamId, lmId: v.lmId, buddyId: v.buddyId || null, startDate: v.startDate } : { ...v, existingUserId: undefined, buddyId: v.buddyId || null };
     // With Graph on the personal email stays in this browser; otherwise it goes to the mock adapter, which never stores it.
     const body = graphOn ? { ...base, deferInvite: true } : email ? { ...base, inviteEmail: email } : base;
@@ -76,45 +91,35 @@ export function SeedStarterForm() {
   /** Send the Graph invite from this browser, then report only the guest object id and status to the server. */
   async function finishGraphInvite(created: Result, email: string, token: Awaited<ReturnType<typeof session.acquireGraphToken>> | null) {
     let outcome: InviteOutcome;
-    if (!token?.ok) {
+    if (!sendReal) {
+      outcome = { status: "fallback", reason: "not_approved" };
+    } else if (!token?.ok) {
       outcome = { status: "fallback", reason: token?.reason ?? "no_token" };
     } else {
       outcome = await sendGraphInvite({
         fetch: (...a) => fetch(...a),
         accessToken: token.accessToken,
-        adminUpn: token.upn,
-        demoMailbox: inviteDemoMailbox(),
+        approved,
         personalEmail: email,
         starterName: created.starterName,
         redirectUrl: window.location.origin,
-        startDate: v.startDate,
       });
     }
-    const report = outcome.status === "invited" ? { status: "invited", guestObjectId: outcome.guestObjectId, mailSent: outcome.mailSent } : { status: "fallback", reason: outcome.reason };
+    const report = outcome.status === "invited" ? { status: "invited", guestObjectId: outcome.guestObjectId } : { status: "fallback", reason: outcome.reason };
     const saved = await send("POST", `/api/admin/seed-starter/${encodeURIComponent(created.journeyId)}/invite-result`, report);
     if (outcome.status === "invited") {
-      setInviteNote({
-        kind: outcome.mailSent ? "success" : "warning",
-        text: outcome.mailSent ? "Graph invite created. The welcome email with the redemption link was sent to the team demo mailbox only." : "Graph invite created, but the welcome email could not be sent to the demo mailbox.",
-      });
+      setInviteNote({ kind: "success", text: "Invitation created. Microsoft Entra sends its standard invitation email to the address you entered." });
     } else {
       setInviteNote({ kind: "warning", text: FALLBACK_MESSAGES[outcome.reason] });
     }
     if (!saved.ok) setInviteNote({ kind: "warning", text: `The invite ran but recording it failed: ${saved.message}` });
   }
 
-  const previewMail = buildWelcomeEmail({
-    starterName: (mode === "new" ? v.displayName : "") || "the starter",
-    redeemUrl: PREVIEW_REDEEM_URL,
-    productionRecipient: personalEmail.trim() || "the starter's personal email",
-    startDate: v.startDate || undefined,
-  });
-
   return (
     <div className="max-w-xl space-y-4">
       <Alert kind="info">
         {graphOn
-          ? "Synthetic data only. A real Entra guest invite is created through Microsoft Graph, and the welcome email goes only to the team's in-tenant demo mailbox. The starter's personal email is never emailed or stored. The work email must end in @example.test."
+          ? "Synthetic data only. A real Entra guest invite is created through Microsoft Graph and Microsoft emails its standard invitation to the personal address you type. The address is never stored. The work email must end in @example.test."
           : "Synthetic data only. The invite goes through the mocked identity adapter and no real email is sent. The work email must end in @example.test."}
       </Alert>
       {result && (
@@ -160,7 +165,7 @@ export function SeedStarterForm() {
             )}
           </Field>
         )}
-        <Field label="Personal email (for the invite)" error={errors.personalEmail} hint="Used only to create the invite. Never stored. Use a synthetic address.">
+        <Field label={sendReal ? "Personal email (required, for the invite)" : "Personal email (for the invite)"} error={errors.personalEmail} hint={sendReal ? "Type it at demo time. Used only to send the invite. Never stored." : "Used only to create the invite. Never stored. Use a synthetic address."}>
           {(p) => <input {...p} type="email" className={inputCls} value={personalEmail} onChange={(e) => setPersonalEmail(e.target.value)} autoComplete="off" />}
         </Field>
         <Field label="Team" error={errors.teamId}>
@@ -190,14 +195,29 @@ export function SeedStarterForm() {
         <Field label="Start date" error={errors.startDate}>
           {(p) => <input {...p} type="date" className={inputCls} value={v.startDate} onChange={(e) => set("startDate", e.target.value)} />}
         </Field>
-        <section aria-label="Invite email preview" className="rounded border border-line bg-page p-3 text-sm">
-          <h3 className="font-bold">Email preview: what the starter receives</h3>
-          <p className="mt-1"><span className="font-medium">Subject:</span> {previewMail.subject}</p>
-          <div className="mt-2 space-y-2 whitespace-pre-line">{previewMail.text}</div>
-          {graphOn && <p className="mt-2 text-muted">Hackathon mode: this email is sent only to the team demo mailbox, with the line above noting where it would go in production.</p>}
-        </section>
+        <p className="rounded border border-line bg-page p-3 text-sm">
+          {sendReal
+            ? "Microsoft sends its standard invitation email, with a short welcome line from us. No custom email is drafted."
+            : graphOn
+              ? "External invite email not approved for this environment. The demo invite is used and no email is sent."
+              : "No real email is sent in this mode."}
+        </p>
         <button type="submit" className={btnCls.primary} disabled={busy} aria-busy={busy}>Create journey and send invite</button>
       </form>
+      {confirming && (
+        <div role="presentation" className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-invite-title" className="max-w-md space-y-4 rounded-lg bg-card p-5">
+            <h2 id="confirm-invite-title" className="text-lg font-bold">Send invitation?</h2>
+            <p>
+              Send a real Microsoft Entra invitation email to {personalEmail.trim()}? This creates a guest user {guestDisplayName(displayForGuest || "starter")} in the shared tenant.
+            </p>
+            <div className="flex gap-3">
+              <button type="button" className={btnCls.secondary} autoFocus onClick={() => setConfirming(false)}>Cancel</button>
+              <button type="button" className={btnCls.primary} onClick={() => void run()}>Send invite</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

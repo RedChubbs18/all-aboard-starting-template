@@ -65,7 +65,7 @@ describe("POST /api/admin/seed-starter/[journeyId]/invite-result", () => {
   });
 
   it("records the guest object id and status, writes an audit Event, stores no email", async () => {
-    const res = await call(ids.admin, { status: "invited", guestObjectId: GUID, mailSent: true });
+    const res = await call(ids.admin, { status: "invited", guestObjectId: GUID });
     expect(res.status).toBe(200);
     const s = await state();
     expect(s!.status).toBe("invited");

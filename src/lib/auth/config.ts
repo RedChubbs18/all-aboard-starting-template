@@ -29,4 +29,5 @@ export const LOGIN_SCOPES = ["openid", "profile"];
 
 /** D19: real Graph guest invites from the admin's browser. Inlined at build time, so read the literal names. */
 export const graphInvitesEnabled = (): boolean => process.env.NEXT_PUBLIC_GRAPH_INVITES === "on";
-export const inviteDemoMailbox = (): string | undefined => process.env.NEXT_PUBLIC_INVITE_DEMO_MAILBOX || undefined;
+/** Organiser approval for Entra to email an external address (recorded by setting the flag to "yes"). */
+export const graphInviteExternalApproved = (): boolean => process.env.NEXT_PUBLIC_GRAPH_INVITE_EXTERNAL_APPROVED === "yes";
