@@ -1,7 +1,7 @@
 import { getAdapter } from "@/adapters/registry";
 import { withRole } from "@/lib/auth/server";
 import { HOME_ITEMS, HOME_PREFIX, PERIPHERAL_OPTIONS } from "@/components/journey/detail-types";
-import { completeTask } from "@/server/journey-service";
+import { completeTask, recordEvent } from "@/server/journey-service";
 import { assertCanAct, taskContext } from "../_lib/context";
 import { guard, HttpError, readJson } from "../_lib/http";
 
@@ -43,6 +43,8 @@ export const POST = withRole(["STARTER", "LM", "PNP", "ADMIN"], (req, _ctx, user
     }
     const choice = await eq.submitChoice(journey.id, { device, peripherals });
     if (task.status !== "DONE") await completeTask(journey.id, task.key, { actorId: user.id, evidence: choice.ref });
+    // Changing the order on an already-done task: no task transition, so audit the adapter write (L3).
+    else await recordEvent({ journeyId: journey.id, actorId: user.id, type: "EQUIPMENT_CHANGED", entity: "Task", entityId: task.id, data: { key: task.key, ref: choice.ref, device, peripherals } });
     return Response.json({ ok: true, choice });
   }),
 );

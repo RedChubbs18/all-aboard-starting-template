@@ -326,7 +326,10 @@ export async function seedNewStarter(actorId: string, input: unknown) {
     await audit(actorId, "ADMIN_USER_CREATED", "User", starterId, { roles: ["STARTER"], teamId: v.teamId });
   }
   const starter = (await prisma.user.findUnique({ where: { id: starterId! } }))!;
-  if (existing && starter.teamId !== v.teamId) await prisma.user.update({ where: { id: starter.id }, data: { teamId: v.teamId, reportsToId: v.lmId } });
+  if (existing && starter.teamId !== v.teamId) {
+    await prisma.user.update({ where: { id: starter.id }, data: { teamId: v.teamId, reportsToId: v.lmId } });
+    await audit(actorId, "ADMIN_USER_UPDATED", "User", starter.id, { teamId: v.teamId, reportsToId: v.lmId, previousTeamId: starter.teamId, previousReportsToId: starter.reportsToId, via: "seed-starter" });
+  }
 
   const journey = await createJourneyForStarter({
     starterId: starter.id,

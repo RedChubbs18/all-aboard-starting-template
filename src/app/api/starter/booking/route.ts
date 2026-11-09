@@ -1,6 +1,6 @@
 import { getAdapter } from "@/adapters/registry";
 import { withRole } from "@/lib/auth/server";
-import { completeTask } from "@/server/journey-service";
+import { completeTask, recordEvent } from "@/server/journey-service";
 import { assertCanAct, findByKey, taskContext } from "../_lib/context";
 import { guard, HttpError, readJson, str } from "../_lib/http";
 
@@ -30,6 +30,9 @@ export const POST = withRole(["STARTER", "LM", "PNP", "ADMIN"], (req, _ctx, user
       await completeTask(journey.id, primary.key, { actorId: user.id, evidence: `booking:${result.sessionId}` });
     } else if (task.status !== "DONE" && task.key !== "book-induction-fallback") {
       await completeTask(journey.id, task.key, { actorId: user.id, evidence: `booking:${result.sessionId}` });
+    } else {
+      // Rebooking on an already-done task changes adapter state without a task transition, so audit it (L3).
+      await recordEvent({ journeyId: journey.id, actorId: user.id, type: "BOOKING_CHANGED", entity: "Task", entityId: task.id, data: { key: task.key, sessionId: result.sessionId } });
     }
     return Response.json({ ok: true, booking: result });
   }),
