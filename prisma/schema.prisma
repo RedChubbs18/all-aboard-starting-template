@@ -83,6 +83,8 @@ model TaskTemplate {
   team          Team?   @relation(fields: [teamId], references: [id])
   adapterKey    String?
   gating        Boolean @default(false)
+  optional      Boolean @default(false) // F12: never gating, excluded from progress
+  autoCompleteOnOpen Boolean @default(false) // F4: opening the task completes it
   contentSlug   String?
   condition     String? // e.g. "notDone:book-induction" (FR-4.5)
   sortOrder     Int     @default(0)
@@ -111,6 +113,8 @@ model Task {
   source        String    @default("CORE")
   adapterKey    String?
   gating        Boolean   @default(false)
+  optional      Boolean   @default(false)
+  autoCompleteOnOpen Boolean @default(false)
   contentSlug   String?
   condition     String?
   applicable    Boolean   @default(true) // false when `condition` is not met
@@ -166,6 +170,7 @@ model Day0Arrangement {
   where         String
   whenAt        DateTime
   who           String // who to meet / ask for
+  notes         String? // optional extra detail from the LM
   proposedById  String
   confirmedAt   DateTime?
 }

@@ -52,6 +52,8 @@ export const templateInputSchema = z.object({
   type: z.enum(TASK_TYPES),
   dueOffsetDays: z.number().int("Whole days only").min(-365).max(365),
   gating: z.boolean().default(false),
+  optional: z.boolean().default(false),
+  autoCompleteOnOpen: z.boolean().default(false),
   source: z.enum(["CORE", "TEAM"]).default("CORE"),
   teamId: nullableText,
   contentSlug: nullableText,

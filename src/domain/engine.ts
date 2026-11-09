@@ -129,7 +129,9 @@ export function taskFromTemplate(t: TemplateInput, startDate: Date, newId: () =>
     dependsOn: [...t.dependsOn],
     source: t.source,
     adapterKey: t.adapterKey ?? null,
-    gating: t.gating,
+    gating: t.gating && !t.optional,
+    optional: !!t.optional,
+    autoCompleteOnOpen: !!t.autoCompleteOnOpen,
     contentSlug: t.contentSlug ?? null,
     condition: t.condition ?? null,
     applicable: true,
@@ -218,7 +220,7 @@ export function recomputeTasks(journey: JourneyState, ctx?: Ctx): EngineResult {
     const stageReached = stageIndex(t.stage) <= at;
     const depsDone = t.dependsOn.every((k) => {
       const d = applicableByKey.get(k);
-      return !d || !d.applicable || isEffectivelyDone(d, tasks);
+      return !d || !d.applicable || d.optional || isEffectivelyDone(d, tasks);
     });
     const next: TaskStatus = stageReached && depsDone && t.applicable ? "TODO" : "LOCKED";
     if (next === t.status) return t;
@@ -240,7 +242,7 @@ export function recomputeTasks(journey: JourneyState, ctx?: Ctx): EngineResult {
 // ------------------------------------------------------------------- stages
 
 function stageDone(journey: JourneyState, stage: Stage): boolean {
-  const gating = journey.tasks.filter((t) => t.stage === stage && t.gating && t.applicable);
+  const gating = journey.tasks.filter((t) => t.stage === stage && t.gating && !t.optional && t.applicable);
   if (stage === STAGES[STAGES.length - 1] && gating.length === 0) return false;
   return gating.every((t) => isEffectivelyDone(t, journey.tasks));
 }
@@ -558,6 +560,16 @@ export function applyIntegrationStatus(
   return { journey: s.journey, events: [...events, ...s.events] };
 }
 
+// ------------------------------------------------------------------- vetting
+
+/**
+ * F7: First Advantage reported `failed`. applyIntegrationStatus blocks the task and refers it to P&P,
+ * so "BLOCKED + owned by PNP + First Advantage adapter" identifies it (action_needed keeps the SYSTEM owner).
+ */
+export function isVettingFailed(journey: Pick<JourneyState, "tasks">): boolean {
+  return journey.tasks.some((t) => t.applicable && t.adapterKey === "firstadvantage" && t.owner === "PNP" && t.status === "BLOCKED");
+}
+
 // ---------------------------------------------------------------------- exit
 
 export interface ExitOptions extends Ctx {
@@ -609,7 +621,8 @@ export interface Progress {
 }
 
 export function progress(journey: JourneyState, now: Date = new Date(), nextLimit = 5): Progress {
-  const live = journey.tasks.filter((t) => t.applicable);
+  // Optional tasks (F12) never count towards progress.
+  const live = journey.tasks.filter((t) => t.applicable && !t.optional);
   const done = live.filter((t) => t.status === "DONE").length;
   const open = live.filter((t) => t.status !== "DONE");
   const byDue = (a: TaskState, b: TaskState) =>

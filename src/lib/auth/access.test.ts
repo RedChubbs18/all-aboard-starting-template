@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canActOnTask, canManageJourney, canViewJourney, journeyScopeWhere } from "./access";
+import { canActOnTask, canManageJourney, canViewJourney, journeyScopeWhere, taskVisibleInScope, viewScope } from "./access";
 import { navFor, homePathFor } from "./roles";
 
 const j = { starterId: "s1", lmId: "lm1", buddyId: "b1" };
@@ -81,5 +81,31 @@ describe("nav and admin guards", () => {
     expect(admin).toContain("/admin/simulate");
     expect(admin).not.toContain("/admin/journeys");
     expect(navFor(u("l", "LM")).map((n) => n.href)).not.toContain("/admin/simulate");
+  });
+});
+
+describe("F10 / F16 buddy scope", () => {
+  const buddy = u("b1", "BUDDY");
+  it("buddy can complete LM-owned IT request tasks, but not other LM tasks", () => {
+    expect(canActOnTask(buddy, j, "LM", "raise-it-requests", "itrequest")).toBe(true);
+    expect(canActOnTask(buddy, j, "LM", "allocate-buddy", null)).toBe(false);
+    expect(canActOnTask(u("b2", "BUDDY"), j, "LM", "raise-it-requests", "itrequest")).toBe(false);
+    expect(canActOnTask(u("s1", "STARTER"), j, "LM", "raise-it-requests", "itrequest")).toBe(false);
+  });
+  it("viewScope and task visibility: starter sees STARTER and SYSTEM only; buddy only their own", () => {
+    const tasks = [
+      { owner: "STARTER" as const, key: "a" },
+      { owner: "SYSTEM" as const, key: "b" },
+      { owner: "LM" as const, key: "c" },
+      { owner: "BUDDY" as const, key: "d" },
+      { owner: "PNP" as const, key: "e" },
+      { owner: "LM" as const, key: "raise-it-requests", adapterKey: "itrequest" },
+    ];
+    const starter = u("s1", "STARTER");
+    expect(viewScope(starter, j)).toBe("STARTER");
+    expect(tasks.filter((t) => taskVisibleInScope("STARTER", starter, j, t)).map((t) => t.key)).toEqual(["a", "b"]);
+    expect(viewScope(buddy, j)).toBe("BUDDY");
+    expect(tasks.filter((t) => taskVisibleInScope("BUDDY", buddy, j, t)).map((t) => t.key)).toEqual(["d", "raise-it-requests"]);
+    expect(viewScope(u("lm1", "LM"), j)).toBe("FULL");
   });
 });

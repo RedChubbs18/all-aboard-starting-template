@@ -22,8 +22,8 @@
     "type": "WORKSPACE_INFO",
     "title": "Desks, monitors and your workspace",
     "summary": "What is at your desk on your first day, and how to ask for a second monitor.",
-    "body": "## Your workspace\n\nOn your first day you have a desk in your team's area of the office. Floor plans are on the office page.\n\nDesks are bookable. On days you are not on an anchor day you may share a desk with colleagues (example).\n\n### What is at your desk\n\n- A height-adjustable desk (example)\n- One monitor as standard, or two if your role needs them\n- A docking station for your laptop\n- A keyboard and mouse\n- A headset for Teams calls\n\n### Asking for a second monitor\n\nRaise a request in your IT request task, or ask your LM. Your LM approves monitor requests (example process).\n\n### Working from home\n\nYou can order home working items such as a desk, chair or monitor. The home working order guide explains how.",
-    "stage": "CONDITIONAL_OFFER",
+    "body": "## Your workspace\n\nOn your first day you have a desk in your team's area of the office. Floor plans are on the office page.\n\nDesks are bookable. On days you are not on an anchor day you may share a desk with colleagues (example).\n\n### What is at your desk\n\n- A height-adjustable desk (example)\n- One monitor as standard, or two if your role needs them\n- A docking station for your laptop\n- A keyboard and mouse\n- A headset for Teams calls\n\n### Asking for a second monitor\n\nAsk your LM. Your LM approves monitor requests and raises the IT request for you (example process).\n\n### Working from home\n\nYou can order home working items such as a desk, chair or monitor. The home working order guide explains how.",
+    "stage": "UNCONDITIONAL_OFFER",
     "tags": [
       "desk",
       "monitor",
@@ -38,19 +38,21 @@
   {
     "slug": "device-choice-mac-or-windows",
     "type": "DEVICE_INFO",
-    "title": "Choose your laptop: Mac or Windows",
-    "summary": "Pick a Mac or a Windows laptop, plus the peripherals you want on Day 0.",
-    "body": "## Choose your laptop\n\nYou can choose a Mac or a Windows laptop. Both work for the same job, so pick the one you are happier using.\n\n### Mac or Windows?\n\n- **Mac:** a good choice if you already use macOS, or prefer it.\n- **Windows:** a good choice if you already use Windows, or your team's tools are mainly Windows-based (example).\n\nIT@LBG sets up both types. You don't need to decide on the spot. Choose before the deadline on your task.\n\n### Peripherals you can pick\n\n- One or two monitors\n- Keyboard and mouse\n- A docking station\n- A headset\n\nPick only what your role needs. Your LM can help if you are not sure.\n\n### What to do\n\n1. Open the device choice task on your journey.\n2. Pick Mac or Windows, then your peripherals.\n3. Submit. You will see a confirmation.\n\nAfter the deadline, ask your LM if you need to change your choice.\n\nYou collect everything on Day 0. See the collect equipment guide.",
-    "stage": "UNCONDITIONAL_OFFER",
+    "title": "Your devices: laptop, mobile phone and headset",
+    "summary": "What you can have on day one: a Mac or Windows laptop, a mobile phone and a headset. Choose your laptop, then any optional peripherals.",
+    "body": "## Your devices on day one\n\nEvery colleague can have the following (example entitlements, figures are illustrative):\n\n### Laptop: Mac or Windows\n\n- **Mac:** a 14-inch MacBook (example). A good choice if you already use macOS, or prefer it.\n- **Windows:** a 14-inch Windows laptop (example). A good choice if you already use Windows, or your team's tools are mainly Windows-based.\n\nBoth work for the same job, so pick the one you will be happier using. IT@LBG sets up both types.\n\n### Mobile phone\n\nA work mobile phone (example: a standard smartphone) is available if your role needs one. Your line manager confirms whether you get one. Ask them if you are not sure. You collect it with your laptop.\n\n### Headset\n\nA wired or Bluetooth headset (example) for Teams calls is available to everyone. You can pick it as a peripheral.\n\n### Other peripherals (optional)\n\n- One or two monitors\n- Keyboard and mouse\n- A docking station\n- A laptop stand\n\nPick only what your role needs. Your line manager can help if you are not sure.\n\n## What to do\n\n1. Open **Choose your primary device (Mac or Windows)** on your journey and submit your choice.\n2. Optionally open **Choose peripherals** and pick any extras. You can skip this.\n\nAfter the deadline, ask your line manager if you need to change your choice.\n\nYou collect everything on Day 0. See the collect equipment guide.\n",
+    "stage": "CONDITIONAL_OFFER",
     "tags": [
       "mac",
       "windows",
       "laptop",
       "device",
+      "phone",
+      "mobile",
+      "headset",
       "peripherals",
       "monitor",
       "dock",
-      "headset",
       "choose",
       "equipment"
     ]
@@ -120,7 +122,7 @@
     "type": "GUIDE",
     "title": "IT@LBG requests explained",
     "summary": "What you can ask IT for before you start, and how to raise a request.",
-    "body": "## What are IT requests?\n\nIT requests ask IT@LBG for the access and software you need for your role, such as shared drives or team tools (examples).\n\n## When can I raise them?\n\nIT requests unlock once your Colleague File ID exists. This is the ID created when your record is set up in Workday. Your journey shows when it is ready.\n\n## How to raise one\n\n1. Open the IT request task on your journey.\n2. Choose what you need from the list.\n3. Add a short reason. Don't include passwords or personal details.\n4. Submit.\n\n## Tracking\n\nEach request shows as Submitted, In progress or Done.\n\nYour LM may also add team-specific requests, such as code repository access, from your team checklist.\n\n## Need help?\n\nUse IT@LBG self-service at https://example.test/it-help (placeholder link).",
+    "body": "## What are IT requests?\n\nIT requests ask IT@LBG for the access and software a starter needs for their role, such as shared drives or team tools (examples).\n\n## When can I raise them?\n\nYour line manager raises IT requests for you. They unlock once your Colleague File ID exists (created automatically by SailPoint). Your buddy can also help complete them.\n\n## How to raise one\n\n1. Your line manager (or your buddy) opens the IT request task.\n2. Choose what you need from the list.\n3. Add a short reason. Don't include passwords or personal details.\n4. Submit.\n\n## Tracking\n\nEach request shows as Submitted, In progress or Done.\n\nYour LM may also add team-specific requests, such as code repository access, from your team checklist.\n\n## Need help?\n\nUse IT@LBG self-service at https://example.test/it-help (placeholder link).",
     "stage": "UNCONDITIONAL_OFFER",
     "tags": [
       "it",

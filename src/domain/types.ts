@@ -82,6 +82,10 @@ export interface TemplateInput {
   teamId?: string | null;
   adapterKey?: string | null;
   gating: boolean;
+  /** F12: optional tasks are never gating, never block anything and are excluded from progress. */
+  optional?: boolean;
+  /** F4: opening the task (a read/info step) completes it. */
+  autoCompleteOnOpen?: boolean;
   contentSlug?: string | null;
   /** `done:KEY` or `notDone:KEY`. Task is only applicable when the condition holds. */
   condition?: string | null;
@@ -108,6 +112,8 @@ export interface TaskState {
   source: Source;
   adapterKey: string | null;
   gating: boolean;
+  optional?: boolean;
+  autoCompleteOnOpen?: boolean;
   contentSlug: string | null;
   condition: string | null;
   /** False when `condition` is not met: excluded from gating, progress and lists. */
