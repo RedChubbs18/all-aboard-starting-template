@@ -55,3 +55,22 @@ Roles: STARTER, BUDDY, LM, PNP, ADMIN (a user can hold several, stored in `User.
 ## PWA
 
 `public/manifest.webmanifest`, icons in `public/icons/`, and `public/sw.js`. The service worker is registered only in production builds (`npm run build && npm start`), so dev hot reload is unaffected. It caches the offline page, navigations (network first), `/_next/static` and `/content/*` (stale-while-revalidate), and never caches `/api`.
+
+## Running on the LAN (phones on the same Wi-Fi)
+
+1. Find the laptop's IP: `ipconfig getifaddr en0` on macOS.
+2. Add it to your local `.env`: `ALLOWED_DEV_ORIGINS=<that-ip>`. Don't commit it.
+3. Run `npm run dev:lan`, then open `http://<that-ip>:3000` on the phone.
+
+Over plain `http://<ip>`:
+
+- **Demo mode (`AUTH_MODE=demo`) works.** The persona switcher and every page are fine.
+- **Entra sign-in doesn't work.** Entra accepts `http` redirect URIs only for `localhost`, and MSAL needs a secure context.
+- **No PWA install or service worker.** Browsers allow these only on HTTPS or `localhost`.
+
+For Entra and PWA install on a phone, use an HTTPS URL:
+
+- **Recommended: a tunnel** (for example Microsoft Dev Tunnels: `devtunnel host -p 3000`). It gives a trusted `https://` URL. Add that URL as an extra SPA redirect URI on the `team05-onboarding` app registration, and set `NEXT_PUBLIC_ENTRA_REDIRECT_URI` to it.
+- **`npm run dev:lan:https`** serves HTTPS with a locally generated certificate. The laptop trusts it, but phones won't, so they'll show warnings and won't install the PWA.
+
+Venue Wi-Fi can isolate clients or change your IP, so check this on the day.

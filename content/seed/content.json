@@ -6,7 +6,16 @@
     "summary": "The main terms of your offer in plain English, including your anchor days.",
     "body": "## Your contract at a glance\n\nThis is a plain-English summary of the main terms in your offer. Your signed contract is the full document. If the two ever differ, the signed contract applies.\n\n- **Start date:** shown at the top of your journey\n- **Working pattern:** full time (example)\n- **Anchor days:** {{anchorDays}}\n- **Probation period:** 6 months (example)\n- **Notice period:** 1 month (example)\n\n### What are anchor days?\n\nAnchor days are the days each week when your team asks everyone to be in the office together. On other days you choose where you work, as long as you can still do your job well and meet your commitments.\n\nYour LM can talk you through how anchor days work in your team.\n\n### Important\n\nEvery figure on this page is an example for this demo. None of it is LBG policy.\n\n### Questions about your contract?\n\nAsk your LM first. If they can't help, use the Teams chat link on the help page to contact People & Places (P&P).",
     "stage": "CONDITIONAL_OFFER",
-    "tags": ["contract", "offer", "anchor days", "working pattern", "start date", "hours", "probation", "notice"]
+    "tags": [
+      "contract",
+      "offer",
+      "anchor days",
+      "working pattern",
+      "start date",
+      "hours",
+      "probation",
+      "notice"
+    ]
   },
   {
     "slug": "workspace-desks-and-monitors",
@@ -15,7 +24,16 @@
     "summary": "What is at your desk on your first day, and how to ask for a second monitor.",
     "body": "## Your workspace\n\nOn your first day you have a desk in your team's area of the office. Floor plans are on the office page.\n\nDesks are bookable. On days you are not on an anchor day you may share a desk with colleagues (example).\n\n### What is at your desk\n\n- A height-adjustable desk (example)\n- One monitor as standard, or two if your role needs them\n- A docking station for your laptop\n- A keyboard and mouse\n- A headset for Teams calls\n\n### Asking for a second monitor\n\nRaise a request in your IT request task, or ask your LM. Your LM approves monitor requests (example process).\n\n### Working from home\n\nYou can order home working items such as a desk, chair or monitor. The home working order guide explains how.",
     "stage": "CONDITIONAL_OFFER",
-    "tags": ["desk", "monitor", "workspace", "office", "headset", "dock", "hot desk", "anchor days"]
+    "tags": [
+      "desk",
+      "monitor",
+      "workspace",
+      "office",
+      "headset",
+      "dock",
+      "hot desk",
+      "anchor days"
+    ]
   },
   {
     "slug": "device-choice-mac-or-windows",
@@ -24,7 +42,18 @@
     "summary": "Pick a Mac or a Windows laptop, plus the peripherals you want on Day 0.",
     "body": "## Choose your laptop\n\nYou can choose a Mac or a Windows laptop. Both work for the same job, so pick the one you are happier using.\n\n### Mac or Windows?\n\n- **Mac:** a good choice if you already use macOS, or prefer it.\n- **Windows:** a good choice if you already use Windows, or your team's tools are mainly Windows-based (example).\n\nIT@LBG sets up both types. You don't need to decide on the spot. Choose before the deadline on your task.\n\n### Peripherals you can pick\n\n- One or two monitors\n- Keyboard and mouse\n- A docking station\n- A headset\n\nPick only what your role needs. Your LM can help if you are not sure.\n\n### What to do\n\n1. Open the device choice task on your journey.\n2. Pick Mac or Windows, then your peripherals.\n3. Submit. You will see a confirmation.\n\nAfter the deadline, ask your LM if you need to change your choice.\n\nYou collect everything on Day 0. See the collect equipment guide.",
     "stage": "UNCONDITIONAL_OFFER",
-    "tags": ["mac", "windows", "laptop", "device", "peripherals", "monitor", "dock", "headset", "choose", "equipment"]
+    "tags": [
+      "mac",
+      "windows",
+      "laptop",
+      "device",
+      "peripherals",
+      "monitor",
+      "dock",
+      "headset",
+      "choose",
+      "equipment"
+    ]
   },
   {
     "slug": "policies-and-benefits-overview",
@@ -33,7 +62,19 @@
     "summary": "A quick guide to holidays, pay, pension, wellbeing and learning.",
     "body": "## Policies and benefits overview\n\nEvery figure on this page is an example for this demo. None of it is LBG policy.\n\n### Holidays\n\n25 days' holiday a year, plus bank holidays (example). Holiday is pro rata in your first year (example). Book holiday in Workday.\n\n### Pay and pay day\n\nPay day is the last working day of each month (example). Your payslip is in Workday. If you have a question about pay, ask P&P through the help page.\n\n### Working hours and flexible working\n\nYou can ask for flexible working from day one (example). Talk to your LM about what would work for you and your team.\n\n### Pension\n\nYou are automatically enrolled into the pension scheme (example). Your contribution rate is set in Workday.\n\n### Health and wellbeing\n\nAn employee assistance helpline is available 24 hours a day (example). Details are on the intranet.\n\n### Learning\n\nYou get a learning budget each year (example) and access to the learning hub.\n\n### Full policies\n\nFull policy documents are on the intranet at https://example.test/policies (placeholder link).",
     "stage": "PEV",
-    "tags": ["policy", "benefits", "holiday", "annual leave", "pay", "pay day", "payslip", "pension", "wellbeing", "learning", "flexible working"]
+    "tags": [
+      "policy",
+      "benefits",
+      "holiday",
+      "annual leave",
+      "pay",
+      "pay day",
+      "payslip",
+      "pension",
+      "wellbeing",
+      "learning",
+      "flexible working"
+    ]
   },
   {
     "slug": "pev-vetting-explainer",
@@ -42,7 +83,18 @@
     "summary": "What vetting is, what each First Advantage status means and who to contact if something goes wrong.",
     "body": "## What is PEV?\n\nPre-employment vetting (PEV) is a set of checks we run before you can start. They confirm your identity, your right to work and your background, in line with the rules for the role (example).\n\nYour personal details and check results are held in First Advantage, not in this app. This app shows your status and links you to the right place.\n\n## What to do\n\n1. Open First Advantage from the vetting task on your journey (https://example.test/hireview, placeholder link).\n2. Complete every step listed there. Give full and accurate information.\n3. Upload documents only through First Advantage.\n\n## What each status means\n\n- **Not started:** the checks have not begun.\n- **In progress:** checks are underway. You don't need to do anything.\n- **Action needed:** we need something from you. Check First Advantage today. You will get reminders until it is done.\n- **Cleared:** checks are complete. Your journey moves on.\n- **Failed:** the checks could not be completed. P&P will contact you directly.\n\n## If something is wrong\n\nContact P&P using the Teams chat link on this page. Don't send documents by email, and don't put personal details in chat. Use First Advantage or any secure link P&P gives you.",
     "stage": "PEV",
-    "tags": ["vetting", "pev", "pre-employment vetting", "hireview", "status", "action needed", "cleared", "documents", "reminder", "contact"]
+    "tags": [
+      "vetting",
+      "pev",
+      "pre-employment vetting",
+      "hireview",
+      "status",
+      "action needed",
+      "cleared",
+      "documents",
+      "reminder",
+      "contact"
+    ]
   },
   {
     "slug": "ms-password-and-authenticator-guide",
@@ -51,7 +103,17 @@
     "summary": "Step-by-step guide to set your password and add Authenticator before Day 1.",
     "body": "## Before you start\n\nYou need your username from the welcome email (example). You can do this on your phone. You don't need your laptop yet.\n\n## Steps\n\n1. Open the password set-up link from the task: https://example.test/password-setup (placeholder link).\n2. Enter your username.\n3. Create a password. It must meet the rules shown on screen. Don't reuse a password from another account.\n4. Install **Microsoft Authenticator** from your phone's app store.\n5. On the set-up page, choose **Add sign-in method**, then **Authenticator app**.\n6. Scan the QR code with Authenticator. Type the 6-digit code it shows.\n7. Approve the test sign-in prompt on your phone.\n8. Come back to your journey and tick the task off.\n\n## Tips\n\n- Never share your password, even with IT.\n- Don't take a screenshot of your password or QR code.\n- If you get stuck, raise an IT request or contact IT@LBG (https://example.test/it-help, placeholder).\n\nYour LM can see if this task is still open a few days before your start date, so please do it early.",
     "stage": "UNCONDITIONAL_OFFER",
-    "tags": ["password", "authenticator", "mfa", "sign in", "set up", "phone", "microsoft authenticator", "security", "it"]
+    "tags": [
+      "password",
+      "authenticator",
+      "mfa",
+      "sign in",
+      "set up",
+      "phone",
+      "microsoft authenticator",
+      "security",
+      "it"
+    ]
   },
   {
     "slug": "it-requests-explainer",
@@ -60,16 +122,34 @@
     "summary": "What you can ask IT for before you start, and how to raise a request.",
     "body": "## What are IT requests?\n\nIT requests ask IT@LBG for the access and software you need for your role, such as shared drives or team tools (examples).\n\n## When can I raise them?\n\nIT requests unlock once your Colleague File ID exists. This is the ID created when your record is set up in Workday. Your journey shows when it is ready.\n\n## How to raise one\n\n1. Open the IT request task on your journey.\n2. Choose what you need from the list.\n3. Add a short reason. Don't include passwords or personal details.\n4. Submit.\n\n## Tracking\n\nEach request shows as Submitted, In progress or Done.\n\nYour LM may also add team-specific requests, such as code repository access, from your team checklist.\n\n## Need help?\n\nUse IT@LBG self-service at https://example.test/it-help (placeholder link).",
     "stage": "UNCONDITIONAL_OFFER",
-    "tags": ["it", "it@lbg", "request", "software", "access", "colleague file id", "shared drive", "locked", "raise"]
+    "tags": [
+      "it",
+      "it@lbg",
+      "request",
+      "software",
+      "access",
+      "colleague file id",
+      "shared drive",
+      "locked",
+      "raise"
+    ]
   },
   {
-    "slug": "epture-access-tbc",
+    "slug": "eptura-engage",
     "type": "GUIDE",
-    "title": "Epture access (TBC)",
-    "summary": "TBC: this page is a placeholder. The Epture access process is still to be confirmed.",
-    "body": "## Epture access (TBC)\n\nThis page is a placeholder. The process for Epture access is still to be confirmed (TBC).\n\nUntil it is confirmed:\n\n- Your journey shows an Epture access task with its current status.\n- You don't need to do anything with this task yet.\n- Ask your LM if you have questions (TBC).\n\nOnce the process is confirmed, this page will show the steps. Placeholder link for later: https://example.test/epture (TBC).",
+    "title": "Eptura Engage: booking desks and meeting rooms",
+    "summary": "Eptura Engage is the tool we use to book desks and meeting rooms. Your access is set up before your first day.",
+    "body": "## Eptura Engage\n\nEptura Engage is how colleagues book a desk or a meeting room in our offices.\n\n### When you get access\n\nAccess is set up automatically once your internal account exists, before your first day. Your journey shows the status of this task.\n\n### Booking your first desk\n\n1. Sign in to Eptura Engage with your LBG account (link: https://example.test/eptura-engage).\n2. Choose your office and the day you're coming in, for example your anchor days.\n3. Pick a desk near your team. Your line manager can tell you which area they sit in.\n4. Check in when you arrive.\n\n### Meeting rooms\n\nYou can book a meeting room in the same way. Add the Teams link to the invite so remote colleagues can join.\n\nIf your access isn't working by your first day, ask your line manager or raise it with P&P.",
     "stage": "UNCONDITIONAL_OFFER",
-    "tags": ["epture", "access", "tbc", "placeholder"]
+    "tags": [
+      "eptura",
+      "engage",
+      "desk",
+      "booking",
+      "meeting room",
+      "office",
+      "access"
+    ]
   },
   {
     "slug": "photo-id-pass-guide",
@@ -78,7 +158,20 @@
     "summary": "How to upload a photo for your pass, what the photo check looks for and where the pass goes.",
     "body": "## How it works\n\n1. Upload a photo in the photo ID task.\n2. The photo check runs straight away.\n3. If the photo passes, your pass is ordered to your Day 0 location.\n4. If it doesn't pass, you see what to fix. Take a new photo and upload it again.\n\n## Photo rules\n\n- Look straight at the camera.\n- Your face must be clear and fully visible. No blur, no heavy shadows.\n- Use a plain, light background if you can.\n- No sunglasses.\n- No hats or caps.\n- Only you in the photo.\n- Taken in the last 6 months (example).\n- JPEG or PNG, under 5 MB (example).\n\n## Head coverings\n\nIf you wear a head covering for religious or medical reasons, speak to P&P before you upload. Don't let the photo check decide this for you. P&P can review the photo and override the check.\n\n## If the check fails\n\nThe check tells you what to fix. Try again. If you are still stuck, ask P&P through the Teams chat link. P&P can review and override the check.\n\n## Your photo\n\nYour photo is used only for your pass (example). It is sent to the pass supplier and is not kept in this app (example).",
     "stage": "UNCONDITIONAL_OFFER",
-    "tags": ["pass", "photo", "id", "photo id", "photo rules", "sunglasses", "hat", "face", "upload", "rejected", "check", "override"]
+    "tags": [
+      "pass",
+      "photo",
+      "id",
+      "photo id",
+      "photo rules",
+      "sunglasses",
+      "hat",
+      "face",
+      "upload",
+      "rejected",
+      "check",
+      "override"
+    ]
   },
   {
     "slug": "mandatory-training-overview",
@@ -87,7 +180,17 @@
     "summary": "The courses you must complete, where to find them and what the status means.",
     "body": "## What is mandatory training?\n\nMandatory training is a set of courses everyone at LBG must complete (example). The list comes from Workday, and your journey shows the same list with live status.\n\n## Examples of courses\n\n- Information security awareness (example)\n- Data protection (example)\n- Health and safety (example)\n\n## Deadline\n\nComplete all courses within 30 days of your start date (example).\n\n## Status\n\n- **Not started:** you have not opened the course.\n- **In progress:** you have started it.\n- **Complete:** you have finished it.\n\nStatus can take a day to update after you finish a course (example).\n\n## Tip\n\nBook a quiet hour in your calendar for the first two courses. They are the longest.",
     "stage": "UNCONDITIONAL_OFFER",
-    "tags": ["training", "mandatory", "workday", "courses", "deadline", "compliance", "status", "data protection", "security"]
+    "tags": [
+      "training",
+      "mandatory",
+      "workday",
+      "courses",
+      "deadline",
+      "compliance",
+      "status",
+      "data protection",
+      "security"
+    ]
   },
   {
     "slug": "team-calls-and-teams-links",
@@ -96,7 +199,17 @@
     "summary": "How to forward or add your team's recurring calls and list the Teams links.",
     "body": "## For line managers\n\nThe starter should join your team's recurring calls from their start date.\n\n## Steps\n\n1. List every recurring team call, such as stand-ups, team meetings and show-and-tells.\n2. Forward or add each invite to the starter's calendar.\n3. Add each Teams link to the list on the checklist (optional).\n4. Tick the checkbox on the task.\n\n## Tips\n\n- Check time zones before you forward an invite.\n- Tell the starter which calls are optional in their first week (example).\n- Don't paste personal details into the link list. Team links only.",
     "stage": "UNCONDITIONAL_OFFER",
-    "tags": ["team calls", "teams", "recurring", "meeting", "lm", "calendar", "forward", "link", "stand-up"]
+    "tags": [
+      "team calls",
+      "teams",
+      "recurring",
+      "meeting",
+      "lm",
+      "calendar",
+      "forward",
+      "link",
+      "stand-up"
+    ]
   },
   {
     "slug": "induction-welcome-to-lloyds",
@@ -105,7 +218,17 @@
     "summary": "The monthly induction run by P&P, and how to book a session.",
     "body": "## What is it?\n\nThe Welcome to Lloyds induction is a monthly session run by P&P. It covers how LBG works, your first few weeks and who to ask for help. Sessions run monthly, online and in person (example).\n\n## How to book\n\n1. Open the induction booking task.\n2. Pick a session from the list.\n3. Confirm. A calendar invite is sent to you (example).\n\nYou can book sessions in your first month (example).\n\n## Missed the booking?\n\nIf you have not booked by Day 0, a fallback task appears on your Day 0 journey. Book a session from there.",
     "stage": "UNCONDITIONAL_OFFER",
-    "tags": ["induction", "welcome to lloyds", "booking", "book", "session", "p&p", "calendar", "first month", "fallback"]
+    "tags": [
+      "induction",
+      "welcome to lloyds",
+      "booking",
+      "book",
+      "session",
+      "p&p",
+      "calendar",
+      "first month",
+      "fallback"
+    ]
   },
   {
     "slug": "home-working-order-guide",
@@ -114,7 +237,17 @@
     "summary": "How to order a desk, chair, monitor and other home working items.",
     "body": "## What you can order\n\nYou can order a set of home working items (example list):\n\n- Desk\n- Chair\n- Monitor\n- Keyboard and mouse\n- Footrest\n\n## Steps\n\n1. Check the list above.\n2. Open the home working order task.\n3. Choose items and quantities.\n4. Check the delivery address. It is the one on your records (example).\n5. Submit.\n\nDeliveries take about 5 working days (example).\n\n## Something not on the list?\n\nAsk your LM before you order it.",
     "stage": "DAY_0",
-    "tags": ["home working", "order", "desk", "chair", "monitor", "delivery", "home", "equipment", "footrest"]
+    "tags": [
+      "home working",
+      "order",
+      "desk",
+      "chair",
+      "monitor",
+      "delivery",
+      "home",
+      "equipment",
+      "footrest"
+    ]
   },
   {
     "slug": "flex-benefits-guide",
@@ -123,7 +256,17 @@
     "summary": "How to review and choose your flex benefits, and the deadline.",
     "body": "## What are flex benefits?\n\nFlex benefits let you choose extras from a menu, for example extra holiday, health cover or a cycle-to-work scheme (examples).\n\n## How to choose\n\n1. Open the flex benefits task. It links to the benefits platform (https://example.test/benefits, placeholder).\n2. Sign in with your work account.\n3. Review the options.\n4. Make your choices and save.\n\n## Deadline\n\nMake your choices within 14 days of your start date (example).\n\n## Missed the deadline?\n\nContact P&P through the Teams chat link on the help page. Don't wait until the deadline to ask.",
     "stage": "DAY_0",
-    "tags": ["flex", "flex benefits", "benefits", "deadline", "holiday", "health cover", "cycle to work", "choose", "platform"]
+    "tags": [
+      "flex",
+      "flex benefits",
+      "benefits",
+      "deadline",
+      "holiday",
+      "health cover",
+      "cycle to work",
+      "choose",
+      "platform"
+    ]
   },
   {
     "slug": "office-wayfinding-example-house",
@@ -132,7 +275,18 @@
     "summary": "Floor plan and first-day directions for Example House, Floor 3 (a fictional office).",
     "body": "## Example House, Floor 3\n\nThis is a fictional office used for the demo. Address: [address placeholder].\n\n![Floor 3 plan](https://example.test/images/example-house-floor-3.png)\n\n### Key places\n\n- **Lifts:** north core, next to the reception desk (example)\n- **Meeting rooms:** named after birds, such as Kestrel, Heron and Wren (example)\n- **Quiet room:** near the east stairs (example)\n- **Kitchen and cafe:** south end of Floor 3 (example)\n- **Tech bar:** Floor 1, by the main reception (example)\n- **Mailroom:** ground floor, service entrance (example)\n\n### Your first-day meeting point\n\nYour LM sets your meeting point and time. It shows on your Day 0 journey once confirmed.\n\n### Getting in\n\nBring your photo ID pass. If it isn't ready, ask at the front desk (example).",
     "stage": "DAY_0",
-    "tags": ["office", "floor plan", "wayfinding", "directions", "meeting point", "lift", "meeting room", "tech bar", "mailroom", "example house"]
+    "tags": [
+      "office",
+      "floor plan",
+      "wayfinding",
+      "directions",
+      "meeting point",
+      "lift",
+      "meeting room",
+      "tech bar",
+      "mailroom",
+      "example house"
+    ]
   },
   {
     "slug": "executive-welcome-video",
@@ -141,7 +295,15 @@
     "summary": "A short welcome video from our executive sponsor (example).",
     "body": "## Welcome message\n\nTake about three minutes to hear a welcome message from our executive sponsor (example). The speaker and the content are fictional for this demo.\n\n**Video URL:** `https://example.test/videos/executive-welcome-placeholder.mp4`\n\nYour journey marks this task complete when you play the video through to the end.",
     "stage": "DAY_0",
-    "tags": ["video", "welcome", "executive", "sponsor", "day one", "watch", "message"]
+    "tags": [
+      "video",
+      "welcome",
+      "executive",
+      "sponsor",
+      "day one",
+      "watch",
+      "message"
+    ]
   },
   {
     "slug": "collect-equipment-guide",
@@ -150,7 +312,17 @@
     "summary": "What to collect, where to collect it and what to bring.",
     "body": "## What you collect\n\n- Your laptop (the Mac or Windows model you chose)\n- The peripherals you picked, such as monitors, keyboard, mouse, dock or headset\n\nYour journey lists the exact items.\n\n## Where\n\nThe tech bar, Floor 1, Example House (example). Open 9:00 to 16:00 (example). Deliveries go to the mailroom on the ground floor.\n\n## What to bring\n\n- Your photo ID pass, or other photo ID (example)\n- Your phone, with your journey open\n\n## Steps\n\n1. Show your pass at the tech bar.\n2. Check the items against the list on your journey.\n3. Sign for them (example).\n4. Tick the task off in your journey.\n\n## Something missing or damaged?\n\nTell the tech bar straight away, then let P&P know through the Teams chat link.",
     "stage": "DAY_0",
-    "tags": ["equipment", "collect", "laptop", "tech bar", "pick up", "peripherals", "mailroom", "day one", "pass"]
+    "tags": [
+      "equipment",
+      "collect",
+      "laptop",
+      "tech bar",
+      "pick up",
+      "peripherals",
+      "mailroom",
+      "day one",
+      "pass"
+    ]
   },
   {
     "slug": "check-ins-with-your-lm",
@@ -159,7 +331,17 @@
     "summary": "How regular check-ins work and how to join one on Teams.",
     "body": "## What is a check-in?\n\nA check-in is a short, regular chat with your LM. It is a chance to share progress, raise concerns and plan the next few weeks.\n\n## How often?\n\nYour LM agrees the cadence with you. For example, weekly for the first month, then fortnightly (example).\n\n## Joining\n\nEach check-in has a Teams meeting link in your journey. Join from your phone or laptop.\n\n## What to bring\n\n- One thing that went well\n- One question\n- One thing you'd like help with\n\n## Need to move one?\n\nMessage your LM on Teams. Don't just skip it.",
     "stage": "DAY_0",
-    "tags": ["check-in", "check in", "lm", "one to one", "cadence", "teams", "meeting", "regular", "catch up"]
+    "tags": [
+      "check-in",
+      "check in",
+      "lm",
+      "one to one",
+      "cadence",
+      "teams",
+      "meeting",
+      "regular",
+      "catch up"
+    ]
   },
   {
     "slug": "goals-30-60-90-guide",
@@ -168,7 +350,16 @@
     "summary": "How to write your first goals with your LM, and how to edit them together.",
     "body": "## The three stages\n\n- **Day 30:** learn the basics, such as tools, people and how the team works.\n- **Day 60:** contribute to your team's work.\n- **Day 90:** own a piece of work from start to finish.\n\n## Example goals\n\n- Day 30: set up my tools and meet my key contacts (example)\n- Day 60: take part in one sprint or project (example)\n- Day 90: lead a small piece of work (example)\n\n## Steps\n\n1. Draft your goals in the task. Keep to three per stage.\n2. Share the list with your LM.\n3. Your LM edits or agrees the list with you.\n\nYou and your LM can both see and edit the list. The task is done when you both agree.",
     "stage": "DAY_0",
-    "tags": ["goals", "30 60 90", "30-60-90", "objectives", "plan", "lm", "targets", "first 90 days"]
+    "tags": [
+      "goals",
+      "30 60 90",
+      "30-60-90",
+      "objectives",
+      "plan",
+      "lm",
+      "targets",
+      "first 90 days"
+    ]
   },
   {
     "slug": "performance-goals-guide",
@@ -177,7 +368,16 @@
     "summary": "How performance goals work, and how your LM's goals cascade to you.",
     "body": "## What are performance goals?\n\nPerformance goals describe what good work looks like in your role. They link your work to your team and business area.\n\n## Cascaded goals\n\nYour LM adds goals from your team and business area to your list. These show how your work fits into bigger priorities (example).\n\n## Your part\n\n1. Read the goals your LM has added.\n2. Write any questions in the goal notes.\n3. Agree the list with your LM.\n\n## What this page does not cover\n\nThis page explains setup only. For how performance is rated, see the performance process on the intranet (example).",
     "stage": "DAY_30",
-    "tags": ["performance", "goals", "cascade", "business area", "team goals", "lm", "objectives", "rating"]
+    "tags": [
+      "performance",
+      "goals",
+      "cascade",
+      "business area",
+      "team goals",
+      "lm",
+      "objectives",
+      "rating"
+    ]
   },
   {
     "slug": "development-goals-guide",
@@ -186,7 +386,17 @@
     "summary": "How to set development goals for your next steps, with your LM.",
     "body": "## What are development goals?\n\nDevelopment goals are about the skills you want to build. For example, learning a new tool, taking a course or trying a stretch task (examples).\n\n## Choose one to three\n\nFor each goal, note:\n\n- **What** you want to learn or do\n- **Why** it matters to you or your team\n- **How** you will know you have done it\n- **By when**\n\n## Learning resources\n\nThe learning hub has courses and reading lists (https://example.test/learning, placeholder link).\n\n## Finish this task\n\nWhen you have shared your development goals with your LM, mark this task done. It is one of the Day 30 tasks that completes your journey.",
     "stage": "DAY_30",
-    "tags": ["development", "development goals", "learning", "skills", "growth", "course", "stretch", "career", "lm"]
+    "tags": [
+      "development",
+      "development goals",
+      "learning",
+      "skills",
+      "growth",
+      "course",
+      "stretch",
+      "career",
+      "lm"
+    ]
   },
   {
     "slug": "day-one-what-to-bring",
@@ -195,7 +405,17 @@
     "summary": "A short list of what to bring and what to expect on your first day.",
     "body": "## What to bring\n\n- Your photo ID pass, once it is ready (example)\n- Your phone, with the journey app installed\n- A notebook (optional)\n- Lunch, if you like (there are places nearby)\n\n## Timing\n\nYour LM confirms your meeting time and place. They show on your journey.\n\n## What to expect\n\n1. Meet your LM at the meeting point.\n2. Say hello to your team and your buddy.\n3. Collect your equipment from the tech bar.\n4. Watch the executive welcome video.\n5. Start drafting your 30-60-90 day goals.\n\nNothing on this list needs to be perfect. Ask questions freely.",
     "stage": "DAY_0",
-    "tags": ["day one", "day 0", "first day", "bring", "pass", "meeting point", "what to expect", "lunch", "phone"]
+    "tags": [
+      "day one",
+      "day 0",
+      "first day",
+      "bring",
+      "pass",
+      "meeting point",
+      "what to expect",
+      "lunch",
+      "phone"
+    ]
   },
   {
     "slug": "meet-your-team-and-buddy",
@@ -204,7 +424,17 @@
     "summary": "Who is in your team, what your buddy does and how to say hello on Teams.",
     "body": "## Your team\n\nYour team page shows each member's role, photo and reporting line. Some members have a short bio. If a bio is missing, that is fine (example).\n\n## Your buddy\n\nYour buddy is a team member your LM picks for you. They are not your manager. Your buddy can help with everyday questions, such as where things are and how the team works.\n\nYour journey shows your buddy's profile and a Teams chat link.\n\n## Say hello\n\nUse the Teams chat link to say hello before you start. A short message is enough, such as 'Looking forward to starting on the 7th'.",
     "stage": "CONDITIONAL_OFFER",
-    "tags": ["team", "buddy", "meet", "profile", "bio", "teams chat", "say hello", "reporting line", "introduction"]
+    "tags": [
+      "team",
+      "buddy",
+      "meet",
+      "profile",
+      "bio",
+      "teams chat",
+      "say hello",
+      "reporting line",
+      "introduction"
+    ]
   },
   {
     "slug": "guest-access-sign-in",
@@ -213,7 +443,18 @@
     "summary": "How your guest invite works and how to sign in with your personal email.",
     "body": "## Your invite\n\nBefore you start, you will get an invite by email to your personal address. Follow the link in the email.\n\n## Signing in\n\n1. Sign in with your personal email address.\n2. You land on your journey.\n\nBefore you start you can see your journey, your team and your tasks. You will sign in with your internal account later, once it is set up.\n\n## Can't find the invite?\n\nCheck your spam or junk folder first. If it's still missing, contact P&P through the help page and they can resend it.\n\n## Use it on your phone\n\nThis app works in your phone's browser. You can add it to your home screen to use it like an app.",
     "stage": "CONDITIONAL_OFFER",
-    "tags": ["sign in", "guest", "invite", "personal email", "login", "entra", "journey", "phone", "home screen", "spam"]
+    "tags": [
+      "sign in",
+      "guest",
+      "invite",
+      "personal email",
+      "login",
+      "entra",
+      "journey",
+      "phone",
+      "home screen",
+      "spam"
+    ]
   },
   {
     "slug": "help-and-contacts",
@@ -221,6 +462,17 @@
     "title": "Who to contact for help",
     "summary": "Who to ask for help with each part of onboarding.",
     "body": "## Who to ask\n\n| Question | Who to contact | How |\n| --- | --- | --- |\n| Your contract, pay, or your first weeks | Your LM | Teams chat |\n| Vetting (PEV) | P&P onboarding team | Teams chat link on the PEV page |\n| Passwords, laptop, IT access | IT@LBG self-service | https://example.test/it-help (placeholder) |\n| Flex benefits | P&P | Teams chat link on the flex benefits page |\n| Everyday team questions | Your buddy | Teams chat |\n| Not sure who to ask | P&P onboarding team | Teams chat |\n\n## The FAQ assistant\n\nThe FAQ assistant answers common questions from the onboarding content. If it can't answer, it offers to connect you to P&P.",
-    "tags": ["help", "contact", "who to ask", "p&p", "lm", "buddy", "it support", "faq", "chatbot", "question"]
+    "tags": [
+      "help",
+      "contact",
+      "who to ask",
+      "p&p",
+      "lm",
+      "buddy",
+      "it support",
+      "faq",
+      "chatbot",
+      "question"
+    ]
   }
 ]

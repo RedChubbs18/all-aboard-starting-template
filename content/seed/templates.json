@@ -458,9 +458,9 @@
     "condition": null
   },
   {
-    "key": "epture-access-granted",
-    "title": "Epture access (TBC)",
-    "description": "TBC: Epture access status. Process still to be confirmed.",
+    "key": "eptura-engage-access",
+    "title": "Eptura Engage access (desk and room booking)",
+    "description": "Your access to Eptura Engage, our desk and meeting room booking tool, is set up automatically once your internal account exists.",
     "stage": "UNCONDITIONAL_OFFER",
     "owner": "SYSTEM",
     "type": "INTEGRATION_STATUS",
@@ -471,7 +471,7 @@
     "source": "CORE",
     "adapterKey": null,
     "gating": false,
-    "contentSlug": "epture-access-tbc",
+    "contentSlug": "eptura-engage",
     "condition": null
   },
   {

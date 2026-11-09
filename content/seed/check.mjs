@@ -48,7 +48,7 @@ const FR_TASK_MAP = {
   'FR-3.7': ['device-choice-submitted'],
   'FR-3.8': ['propose-day-0-arrangements', 'confirm-day-0-arrangements'],
   'FR-3.9': ['book-induction'],
-  'FR-3.10': ['epture-access-granted'],
+  'FR-3.10': ['eptura-engage-access'],
   'FR-3.11': ['upload-pass-photo', 'order-photo-id-pass'],
   'FR-3.12': ['photo-check-passed', 'photo-check-override'],
   'FR-3.13': ['forward-team-calls', 'team-recurring-calls-list'],
