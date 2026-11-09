@@ -29,7 +29,7 @@ Prisma refuses `--force-reset` when invoked by an AI agent, which is why `db:res
 
 `prisma/seed.ts` reads `content/seed/{content,faqs,templates,people}.json`, validated by the zod schemas in `src/domain/seed-schema.ts`. Missing files fall back to `prisma/fixtures/` (templates and people always fall back together). Invalid files fail loudly with the offending paths. People use fictional names and `@example.test` emails.
 
-Journeys in `people.json` are instantiated through the real engine, then tasks in stages before `currentStage` are marked DONE (all tasks for completed journeys), then `taskStates` overrides apply. `hireviewStatus` is stored as `IntegrationState` for `hireview`.
+Journeys in `people.json` are instantiated through the real engine, then tasks in stages before `currentStage` are marked DONE (all tasks for completed journeys), then `taskStates` overrides apply. `firstAdvantageStatus` is stored as `IntegrationState` for `firstadvantage`.
 
 Optional `prisma/seed.local.json` (gitignored) maps seeded users to real identities. Keys are the user `key` from `people.json`:
 
@@ -51,7 +51,7 @@ Roles: STARTER, BUDDY, LM, PNP, ADMIN (a user can hold several, stored in `User.
 - Journey changes: call `src/server/journey-service.ts`. Never write `Task`, `Journey` or `Event` rows elsewhere.
 - API routes: `export const GET = withRole(["LM", "PNP"], async (req, ctx, user) => ...)`, then scope data with `journeyScopeWhere(user)` / `canViewJourney` / `canActOnTask`.
 - Pages: client components inside `<RoleGate roles={[...]}>`, data from `useApi("/api/...")` or `useSession().apiFetch`. In Entra mode the identity is a bearer token, so server components cannot see the user.
-- Adapters: `const hv = await getAdapter("hireview")`. Admin simulation: `isSimulatable(a)` then `a.simulate(journeyId, status)`, followed by `applyIntegrationStatus(journeyId, "hireview", status)` in the journey service.
+- Adapters: `const hv = await getAdapter("firstadvantage")`. Admin simulation: `isSimulatable(a)` then `a.simulate(journeyId, status)`, followed by `applyIntegrationStatus(journeyId, "firstadvantage", status)` in the journey service.
 - Teams links: `src/lib/teams.ts` (`chatLink`, `callLink`, `meetingLink`).
 
 ## PWA

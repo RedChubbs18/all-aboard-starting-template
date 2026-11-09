@@ -7,13 +7,13 @@ import type { StarterListResponse, StarterSummary } from "./types";
 import { Alert, Button, Icon, OverdueBadge, ProgressBar, RedFlagBadge, Skeleton, EmptyState, STAGE_LABEL, formatDate } from "./ui";
 import { StatusBadge } from "./ui";
 
-const hireviewLabel = (s: StarterSummary) => (s.hireview === "FAILED" ? "First Advantage: failed" : "First Advantage: action needed");
+const firstAdvantageLabel = (s: StarterSummary) => (s.firstadvantage === "FAILED" ? "First Advantage: failed" : "First Advantage: action needed");
 
 function Issues({ s }: { s: StarterSummary }) {
   const none = !s.redFlag && !s.overdue && !s.blocked;
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {s.redFlag && <RedFlagBadge label={hireviewLabel(s)} />}
+      {s.redFlag && <RedFlagBadge label={firstAdvantageLabel(s)} />}
       {s.overdue > 0 && <OverdueBadge label={`${s.overdue} overdue${s.overdueLm ? ` (${s.overdueLm} yours)` : ""}`} />}
       {s.blocked > 0 && <StatusBadge status="BLOCKED" />}
       {s.blocked > 1 && <span className="text-sm text-text-muted">{s.blocked} blocked</span>}

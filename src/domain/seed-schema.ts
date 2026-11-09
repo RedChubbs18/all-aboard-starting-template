@@ -90,7 +90,7 @@ export const taskStateSchema = z.object({
   blockedReason: z.string().nullish(),
 });
 
-export const HIREVIEW_SEED_STATUSES = ["NOT_STARTED", "IN_PROGRESS", "ACTION_NEEDED", "CLEARED", "FAILED"] as const;
+export const FIRSTADVANTAGE_SEED_STATUSES = ["NOT_STARTED", "IN_PROGRESS", "ACTION_NEEDED", "CLEARED", "FAILED"] as const;
 
 const dateString = z.string().min(1).refine((v) => !Number.isNaN(Date.parse(v)), "invalid date");
 
@@ -106,7 +106,7 @@ export const journeySeedSchema = z.object({
   exitReason: z.string().nullish(),
   exitedAt: dateString.nullish(),
   completedAt: dateString.nullish(),
-  hireviewStatus: z.enum(HIREVIEW_SEED_STATUSES).nullish(),
+  firstAdvantageStatus: z.enum(FIRSTADVANTAGE_SEED_STATUSES).nullish(),
   /** Partial overrides applied after engine instantiation. Tasks in stages before currentStage are DONE; completed journeys are all DONE. */
   taskStates: z.array(taskStateSchema).default([]),
 });

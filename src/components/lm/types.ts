@@ -1,7 +1,7 @@
 /** Wire types for the LM API (src/app/api/lm). Dates are ISO strings. */
 import type { GoalHorizon, Owner, Stage, TaskStatus, TaskType } from "@/domain/types";
 
-export type HireViewState = "NOT_STARTED" | "IN_PROGRESS" | "ACTION_NEEDED" | "COMPLETE" | "FAILED";
+export type FirstAdvantageState = "NOT_STARTED" | "IN_PROGRESS" | "ACTION_NEEDED" | "COMPLETE" | "FAILED";
 
 export interface StarterSummary {
   id: string;
@@ -13,8 +13,8 @@ export interface StarterSummary {
   overdue: number;
   overdueLm: number;
   blocked: number;
-  hireview: HireViewState | null;
-  /** HireView action_needed / failed: shown as a red flag. */
+  firstadvantage: FirstAdvantageState | null;
+  /** First Advantage action_needed / failed: shown as a red flag. */
   redFlag: boolean;
   needsAttention: boolean;
   nextDue: { title: string; dueDate: string } | null;
@@ -81,7 +81,7 @@ export interface StarterDetail {
     startDate: string;
     flagged: boolean;
     flagReason: string | null;
-    hireview: HireViewState | null;
+    firstadvantage: FirstAdvantageState | null;
     redFlag: boolean;
   };
   starter: Person;

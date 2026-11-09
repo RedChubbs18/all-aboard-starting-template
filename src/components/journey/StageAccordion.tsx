@@ -11,7 +11,7 @@ import type { JourneyDto, TaskDto } from "./types";
 
 interface Props {
   stages: TrackStage[];
-  journey: Pick<JourneyDto, "tasks" | "hireview" | "pnp" | "viewerIsStarter">;
+  journey: Pick<JourneyDto, "tasks" | "firstadvantage" | "pnp" | "viewerIsStarter">;
   readOnly?: boolean;
   highlightOwner?: Owner;
   /** Stage to expand and scroll to (milestone tap). Changing `openRequest.n` re-triggers. */
@@ -67,8 +67,8 @@ export function StageAccordion({ stages, journey, readOnly, highlightOwner, open
                   <p>{s.unlockHint ?? "This stage unlocks when the previous stage is complete."}</p>
                 </Alert>
               ) : null}
-              {vetting && journey.hireview && (journey.hireview.status === "action_needed" || journey.hireview.status === "failed") && (
-                <Alert tone={journey.hireview.status === "failed" ? "danger" : "warning"} title="Action needed on your vetting">
+              {vetting && journey.firstadvantage && (journey.firstadvantage.status === "action_needed" || journey.firstadvantage.status === "failed") && (
+                <Alert tone={journey.firstadvantage.status === "failed" ? "danger" : "warning"} title="Action needed on your vetting">
                   <p>Your First Advantage check needs attention. Open the vetting task for what to do next.</p>
                 </Alert>
               )}

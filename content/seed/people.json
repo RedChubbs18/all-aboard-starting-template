@@ -448,7 +448,7 @@
       "exitReason": null,
       "exitedAt": null,
       "completedAt": null,
-      "hireviewStatus": "NOT_STARTED",
+      "firstAdvantageStatus": "NOT_STARTED",
       "taskStates": [
         {
           "templateKey": "guest-invite-sent",
@@ -472,7 +472,7 @@
       "exitReason": null,
       "exitedAt": null,
       "completedAt": null,
-      "hireviewStatus": "ACTION_NEEDED",
+      "firstAdvantageStatus": "ACTION_NEEDED",
       "taskStates": [
         {
           "templateKey": "guest-invite-sent",
@@ -505,7 +505,7 @@
       "exitReason": "ACCEPTED_ANOTHER_OFFER",
       "exitedAt": "2026-11-06",
       "completedAt": null,
-      "hireviewStatus": "IN_PROGRESS",
+      "firstAdvantageStatus": "IN_PROGRESS",
       "taskStates": []
     },
     {
@@ -520,7 +520,7 @@
       "exitReason": null,
       "exitedAt": null,
       "completedAt": null,
-      "hireviewStatus": "CLEARED",
+      "firstAdvantageStatus": "CLEARED",
       "taskStates": [
         {
           "templateKey": "guest-invite-sent",
@@ -535,7 +535,7 @@
           "status": "DONE"
         },
         {
-          "templateKey": "hireview-vetting-status",
+          "templateKey": "firstadvantage-vetting-status",
           "status": "DONE"
         },
         {
@@ -572,7 +572,7 @@
       "exitReason": null,
       "exitedAt": null,
       "completedAt": null,
-      "hireviewStatus": "CLEARED",
+      "firstAdvantageStatus": "CLEARED",
       "taskStates": []
     },
     {
@@ -587,7 +587,7 @@
       "exitReason": null,
       "exitedAt": null,
       "completedAt": null,
-      "hireviewStatus": "CLEARED",
+      "firstAdvantageStatus": "CLEARED",
       "taskStates": []
     },
     {
@@ -602,7 +602,7 @@
       "exitReason": null,
       "exitedAt": null,
       "completedAt": null,
-      "hireviewStatus": "CLEARED",
+      "firstAdvantageStatus": "CLEARED",
       "taskStates": []
     },
     {
@@ -617,7 +617,7 @@
       "exitReason": null,
       "exitedAt": null,
       "completedAt": null,
-      "hireviewStatus": "CLEARED",
+      "firstAdvantageStatus": "CLEARED",
       "taskStates": []
     },
     {
@@ -632,7 +632,7 @@
       "exitReason": null,
       "exitedAt": null,
       "completedAt": null,
-      "hireviewStatus": "CLEARED",
+      "firstAdvantageStatus": "CLEARED",
       "taskStates": []
     },
     {
@@ -647,7 +647,7 @@
       "exitReason": null,
       "exitedAt": null,
       "completedAt": null,
-      "hireviewStatus": "CLEARED",
+      "firstAdvantageStatus": "CLEARED",
       "taskStates": []
     },
     {
@@ -662,7 +662,7 @@
       "exitReason": null,
       "exitedAt": null,
       "completedAt": null,
-      "hireviewStatus": "CLEARED",
+      "firstAdvantageStatus": "CLEARED",
       "taskStates": []
     },
     {
@@ -677,7 +677,7 @@
       "exitReason": null,
       "exitedAt": null,
       "completedAt": "2026-11-04",
-      "hireviewStatus": "CLEARED",
+      "firstAdvantageStatus": "CLEARED",
       "taskStates": []
     }
   ]

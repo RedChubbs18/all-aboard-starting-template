@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useApi } from "@/lib/auth/use-api";
 import { Alert, Confirm, btnCls, useNotice, useSend } from "./common";
 
-/** User-facing names (D9: the vetting provider is First Advantage; the adapter key stays `hireview`). */
-const LABELS: Record<string, string> = { hireview: "First Advantage (vetting)" };
+/** User-facing names (D9: the vetting provider is First Advantage; the adapter key stays `firstadvantage`). */
+const LABELS: Record<string, string> = { firstadvantage: "First Advantage (vetting)" };
 
 interface AdapterRow{ key: string; mode: "MOCK" | "REAL"; envOverride: boolean }
 

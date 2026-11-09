@@ -3,7 +3,7 @@ import { ADAPTER_KEYS, type AdapterKey, type JourneyState, type TaskState } from
 import { applyVars, extractSteps, findLabelledUrl, formatDays } from "@/lib/markdown";
 import { prisma } from "@/server/db";
 import type { Day0Dto, Detail, TaskDetailResponse } from "@/components/journey/detail-types";
-import { hireviewSummary } from "./dto";
+import { firstAdvantageSummary } from "./dto";
 
 const isAdapterKey = (k: string | null): k is AdapterKey => !!k && (ADAPTER_KEYS as readonly string[]).includes(k);
 
@@ -23,8 +23,8 @@ export async function loadDay0(journeyId: string): Promise<Day0Dto | null> {
 
 /** Link-outs (FR-1.9, FR-4.2). All example.test placeholders: no real systems. */
 const LINKS: Record<string, { label: string; href: string }[]> = {
-  "complete-vetting-steps": [{ label: "Open First Advantage", href: "https://hireview.example.test/candidate" }],
-  "hireview-vetting-status": [{ label: "Open First Advantage", href: "https://hireview.example.test/candidate" }],
+  "complete-vetting-steps": [{ label: "Open First Advantage", href: "https://firstadvantage.example.test/candidate" }],
+  "firstadvantage-vetting-status": [{ label: "Open First Advantage", href: "https://firstadvantage.example.test/candidate" }],
   "review-flex-benefits": [{ label: "Open flex benefits", href: "https://benefits.example.test/flex" }],
   "view-mandatory-training": [{ label: "Open Workday learning", href: "https://workday.example.test/learning" }],
   "mandatory-training-checklist": [{ label: "Open Workday learning", href: "https://workday.example.test/learning" }],
@@ -91,9 +91,9 @@ async function detailFor(journey: JourneyState, t: TaskState, bodyMd: string): P
       break;
     }
     case "INTEGRATION_STATUS": {
-      if (t.adapterKey === "hireview") {
-        const status = await hireviewSummary(jid);
-        if (status) return { kind: "hireview", status };
+      if (t.adapterKey === "firstadvantage") {
+        const status = await firstAdvantageSummary(jid);
+        if (status) return { kind: "firstadvantage", status };
       }
       let statusText = t.status === "DONE" ? "Complete" : t.status === "BLOCKED" ? "Needs attention" : t.status === "IN_PROGRESS" ? "In progress" : t.status === "LOCKED" ? "Not started yet" : "Waiting";
       let updatedAt: string | null = t.completedAt?.toISOString() ?? null;

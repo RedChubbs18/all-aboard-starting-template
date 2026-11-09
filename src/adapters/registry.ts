@@ -4,7 +4,7 @@ import { createBookingMock } from "./booking/mock";
 import { createChatbotMock } from "./chatbot/mock";
 import { createChatbotReal } from "./chatbot/real";
 import { createEquipmentMock } from "./equipment/mock";
-import { createHireViewMock } from "./hireview/mock";
+import { createFirstAdvantageMock } from "./firstadvantage/mock";
 import { createIdentityMock } from "./identity/mock";
 import { createITRequestMock } from "./itrequest/mock";
 import { createNotificationMock } from "./notification/mock";
@@ -19,7 +19,7 @@ import type { AdapterKey, Simulatable, StateStore } from "./types";
 import type { BookingAdapter } from "./booking/types";
 import type { ChatbotAdapter } from "./chatbot/types";
 import type { EquipmentAdapter } from "./equipment/types";
-import type { HireViewAdapter } from "./hireview/types";
+import type { FirstAdvantageAdapter } from "./firstadvantage/types";
 import type { IdentityAdapter } from "./identity/types";
 import type { ITRequestAdapter } from "./itrequest/types";
 import type { NotificationAdapter } from "./notification/types";
@@ -33,7 +33,7 @@ export type AdapterMode = "MOCK" | "REAL";
 export interface AdapterMap {
   identity: IdentityAdapter;
   sailpoint: SailPointAdapter;
-  hireview: HireViewAdapter;
+  firstadvantage: FirstAdvantageAdapter;
   workday: WorkdayAdapter;
   itrequest: ITRequestAdapter;
   equipment: EquipmentAdapter;
@@ -47,7 +47,7 @@ export interface AdapterMap {
 export const mockFactories: { [K in AdapterKey]: (store: StateStore) => AdapterMap[K] } = {
   identity: createIdentityMock,
   sailpoint: createSailPointMock,
-  hireview: createHireViewMock,
+  firstadvantage: createFirstAdvantageMock,
   workday: createWorkdayMock,
   itrequest: createITRequestMock,
   equipment: createEquipmentMock,

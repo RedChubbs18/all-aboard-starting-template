@@ -154,13 +154,13 @@
   {
     "id": "faq-11",
     "question": "What if my vetting is delayed?",
-    "answer": "Vetting timescales vary. Check your status on the vetting task. If it says Action needed, complete the steps in First Advantage (https://example.test/hireview, placeholder). You get reminders until it is done. If the status hasn't changed and you are worried, contact P&P through the Teams chat link on the PEV page. If vetting is not cleared in time, your start date may move (example).",
+    "answer": "Vetting timescales vary. Check your status on the vetting task. If it says Action needed, complete the steps in First Advantage (https://example.test/firstadvantage, placeholder). You get reminders until it is done. If the status hasn't changed and you are worried, contact P&P through the Teams chat link on the PEV page. If vetting is not cleared in time, your start date may move (example).",
     "tags": [
       "vetting",
       "delay",
       "delayed",
       "pev",
-      "hireview",
+      "firstadvantage",
       "status",
       "start date",
       "reminder",
@@ -176,7 +176,7 @@
       "vetting",
       "documents",
       "upload",
-      "hireview",
+      "firstadvantage",
       "email",
       "send",
       "pev"

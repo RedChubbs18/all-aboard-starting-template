@@ -42,13 +42,13 @@ describe("journey-service", () => {
     const events = await svc.listEvents(j.id);
     expect(events.map((e) => e.type)).toEqual(expect.arrayContaining(["TASK_STATUS_CHANGED", "STAGE_CHANGED"]));
 
-    const flagged = await svc.applyIntegrationStatus(j.id, "hireview", "action_needed");
+    const flagged = await svc.applyIntegrationStatus(j.id, "firstadvantage", "action_needed");
     expect(flagged.flagged).toBe(true);
     expect((await prisma.journey.findUnique({ where: { id: j.id } }))!.flagged).toBe(true);
-    const state = await prisma.integrationState.findUnique({ where: { journeyId_adapterKey: { journeyId: j.id, adapterKey: "hireview" } } });
+    const state = await prisma.integrationState.findUnique({ where: { journeyId_adapterKey: { journeyId: j.id, adapterKey: "firstadvantage" } } });
     expect(state!.status).toBe("action_needed");
 
-    const cleared = await svc.applyIntegrationStatus(j.id, "hireview", "cleared");
+    const cleared = await svc.applyIntegrationStatus(j.id, "firstadvantage", "cleared");
     expect(cleared.currentStage).toBe("PEV"); // D10: cleared alone does not advance the stage
     const advanced = await svc.completeTask(j.id, `${P}offer-conditions`, { actorId: `${P}lm` });
     expect(advanced.currentStage).toBe("UNCONDITIONAL_OFFER");

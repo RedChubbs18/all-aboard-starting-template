@@ -1,7 +1,7 @@
 import { stageIndex, type JourneyState, type TaskState } from "@/domain/types";
 import { getAdapter } from "@/adapters/registry";
 import { STAGE_META } from "@/components/journey/derive";
-import type { HireViewSummary, JourneyDto, PersonDto, TaskDto, ViewerRelation } from "@/components/journey/types";
+import type { FirstAdvantageSummary, JourneyDto, PersonDto, TaskDto, ViewerRelation } from "@/components/journey/types";
 import { canActOnTask } from "@/lib/auth/access";
 import { hasAnyRole, parseRoles, type SessionUser } from "@/lib/auth/roles";
 import { prisma } from "@/server/db";
@@ -74,9 +74,9 @@ export async function pnpContact(): Promise<PersonDto | null> {
   return lead ? toPerson(lead) : null;
 }
 
-export async function hireviewSummary(journeyId: string): Promise<HireViewSummary | null> {
+export async function firstAdvantageSummary(journeyId: string): Promise<FirstAdvantageSummary | null> {
   try {
-    const hv = await getAdapter("hireview");
+    const hv = await getAdapter("firstadvantage");
     return await hv.getVettingStatus(journeyId);
   } catch {
     return null;
@@ -91,7 +91,7 @@ export async function buildJourneyDto(j: JourneyState, user: SessionUser): Promi
     if (!u) throw new Error(`User ${id} missing`);
     return toPerson(u);
   };
-  const [pnp, hireview] = await Promise.all([pnpContact(), hireviewSummary(j.id)]);
+  const [pnp, firstadvantage] = await Promise.all([pnpContact(), firstAdvantageSummary(j.id)]);
   return {
     id: j.id,
     status: j.status,
@@ -106,6 +106,6 @@ export async function buildJourneyDto(j: JourneyState, user: SessionUser): Promi
     viewerRelation: relationOf(user, j),
     viewerIsStarter: j.starterId === user.id,
     tasks: j.tasks.filter((t) => t.applicable).map((t) => toTaskDto(j, t, user)),
-    hireview,
+    firstadvantage,
   };
 }

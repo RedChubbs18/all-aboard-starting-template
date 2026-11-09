@@ -17,7 +17,7 @@ export interface BaseAdapter {
 
 /** Implemented by mocks only: lets the admin UI simulate external events (FR-AD.4). */
 export interface Simulatable {
-  /** Allowed raw statuses for simulation, e.g. HireView: not_started ... failed. */
+  /** Allowed raw statuses for simulation, e.g. First Advantage: not_started ... failed. */
   readonly simulatableStatuses: readonly string[];
   simulate(journeyId: string, status: string, detail?: string): Promise<AdapterStatus>;
 }

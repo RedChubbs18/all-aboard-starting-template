@@ -41,7 +41,7 @@
     "dueOffsetDays": -21,
     "dependsOn": [],
     "source": "CORE",
-    "adapterKey": "hireview",
+    "adapterKey": "firstadvantage",
     "gating": true,
     "contentSlug": null,
     "condition": null

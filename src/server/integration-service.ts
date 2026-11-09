@@ -159,7 +159,7 @@ const STATE_ONLY: ReadonlySet<AdapterKey> = new Set(["identity", "sailpoint", "w
 const STARTER_COPY: Partial<Record<string, { subject: string; body: string; kind: NotificationInput["kind"] }>> = {
   "identity:internal_created": { kind: "UPDATE", subject: "Your internal account is ready", body: "Your LBG account has been created with the pre-start access policy." },
   "sailpoint:file_id_created": { kind: "UPDATE", subject: "Your Colleague File ID is ready", body: "You can now raise your IT requests." },
-  "hireview:cleared": { kind: "UPDATE", subject: "Your vetting is cleared", body: "First Advantage has cleared your vetting. People & Places will confirm your offer conditions." },
+  "firstadvantage:cleared": { kind: "UPDATE", subject: "Your vetting is cleared", body: "First Advantage has cleared your vetting. People & Places will confirm your offer conditions." },
 };
 
 /**
@@ -191,13 +191,13 @@ export async function simulate(
       to: status, data: { simulated: true }, createdAt: ctx.now ?? new Date(),
     });
   } else {
-    const message = adapterKey === "hireview" ? (await (await getAdapter("hireview")).getVettingStatus(journeyId)).message : undefined;
+    const message = adapterKey === "firstadvantage" ? (await (await getAdapter("firstadvantage")).getVettingStatus(journeyId)).message : undefined;
     await js.applyIntegrationStatus(journeyId, adapterKey, status, { actorId: ctx.actorId ?? null, now: ctx.now, detail: detail ?? message });
   }
 
   const starterId = before.starterId;
-  if (adapterKey === "hireview" && status === "action_needed") {
-    const hv = await (await getAdapter("hireview")).getVettingStatus(journeyId);
+  if (adapterKey === "firstadvantage" && status === "action_needed") {
+    const hv = await (await getAdapter("firstadvantage")).getVettingStatus(journeyId);
     const sent = await sendReminder(before, "action_needed", hv.message, ctx);
     if (sent) changes.push("Reminder sent to the starter");
   } else {
@@ -261,7 +261,7 @@ export async function runReminders(now: Date = new Date(), opts: ReminderOptions
   const since = new Date(now.getTime() - hours * 3600_000);
   const journeys = await js.listJourneys({ status: "active" });
   const result: ReminderResult = { sent: [], suppressed: 0, considered: 0 };
-  const hv = await getAdapter("hireview");
+  const hv = await getAdapter("firstadvantage");
   for (const j of journeys) {
     const vetting = await hv.getVettingStatus(j.id);
     if (vetting.status === "cleared") continue;
@@ -308,8 +308,8 @@ async function facts(key: AdapterKey, journeyId: string): Promise<string[]> {
       const [persona, fileId] = await Promise.all([a.getPersona(journeyId), a.getColleagueFileId(journeyId)]);
       return [persona ? `Persona: ${persona}` : "No persona applied", fileId ? `Colleague File ID: ${fileId.id}` : "No Colleague File ID yet"];
     }
-    case "hireview": {
-      const v = await (await getAdapter("hireview")).getVettingStatus(journeyId);
+    case "firstadvantage": {
+      const v = await (await getAdapter("firstadvantage")).getVettingStatus(journeyId);
       return [`Provider: First Advantage`, `What is needed: ${v.message ?? "n/a"}`];
     }
     case "workday": {
@@ -421,12 +421,12 @@ export async function runDemoStep(step: DemoStep, ctx: ActorCtx = {}, journeyId?
   switch (step) {
     case "firstadvantage_action_needed": {
       const pre = await ensureGuestSignedIn(id, ctx);
-      const r = await simulate("hireview", id, "action_needed", undefined, ctx);
+      const r = await simulate("firstadvantage", id, "action_needed", undefined, ctx);
       return done("First Advantage: action needed. Reminder sent, journey flagged.", [...pre, ...r.changes]);
     }
     case "firstadvantage_cleared": {
       const pre = await ensureGuestSignedIn(id, ctx);
-      const r = await simulate("hireview", id, "cleared", undefined, ctx);
+      const r = await simulate("firstadvantage", id, "cleared", undefined, ctx);
       return done("First Advantage cleared. The vetting task is complete; the stage moves on once P&P confirm the other offer conditions.", [...pre, ...r.changes]);
     }
     case "offer_conditions_met": {
@@ -461,7 +461,7 @@ export async function runDemoStep(step: DemoStep, ctx: ActorCtx = {}, journeyId?
 export async function jumpToDay0(journeyId: string, ctx: ActorCtx = {}): Promise<string[]> {
   const before = await loadOrThrow(journeyId);
   if (before.status !== "active") throw new SimulationError(`Journey is ${before.status}`, 409);
-  const hv = await getAdapter("hireview");
+  const hv = await getAdapter("firstadvantage");
   if (isSimulatable(hv)) await hv.simulate(journeyId, "cleared");
   const identity = await getAdapter("identity");
   if (isSimulatable(identity)) await identity.simulate(journeyId, "internal_created");

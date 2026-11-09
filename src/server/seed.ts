@@ -203,8 +203,8 @@ export async function seedDatabase(prisma: PrismaClient, log: (m: string) => voi
     await prisma.$transaction(async (tx) => {
       await persistEngineResult(tx, null, { journey: jr, events: [] });
       await tx.event.createMany({ data: events.map((e) => eventData(e)) as Prisma.EventCreateManyInput[] });
-      if (j.hireviewStatus) {
-        await tx.integrationState.create({ data: { journeyId: jr.id, adapterKey: "hireview", status: j.hireviewStatus.toLowerCase(), payload: {} } });
+      if (j.firstAdvantageStatus) {
+        await tx.integrationState.create({ data: { journeyId: jr.id, adapterKey: "firstadvantage", status: j.firstAdvantageStatus.toLowerCase(), payload: {} } });
       }
     });
   }

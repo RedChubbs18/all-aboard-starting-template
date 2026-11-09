@@ -53,7 +53,7 @@ describe("createJourney", () => {
     const floor = addDays(now, MIN_DUE_GRACE_DAYS).toISOString();
     expect(journey.tasks.find((t) => t.key === "intro")!.dueDate.toISOString()).toBe(floor);
     expect(journey.tasks.find((t) => t.key === "contract")!.dueDate.toISOString()).toBe(floor); // -28
-    expect(journey.tasks.find((t) => t.key === "pev-hireview")!.dueDate.toISOString()).toBe(floor); // -21 -> Nov 10, still before the floor
+    expect(journey.tasks.find((t) => t.key === "pev-firstadvantage")!.dueDate.toISOString()).toBe(floor); // -21 -> Nov 10, still before the floor
     expect(journey.tasks.find((t) => t.key === "internal-account")!.dueDate.toISOString()).toBe("2026-11-21T00:00:00.000Z"); // -10, unaffected
     expect(journey.tasks.find((t) => t.key === "goals")!.dueDate.toISOString()).toBe("2026-12-31T00:00:00.000Z");
   });
@@ -84,7 +84,7 @@ describe("createJourney", () => {
     expect(journey.currentStage).toBe("CONDITIONAL_OFFER");
     expect(status(journey, "intro")).toBe("TODO");
     expect(status(journey, "contract")).toBe("LOCKED"); // depends on intro
-    expect(status(journey, "pev-hireview")).toBe("LOCKED"); // stage not reached
+    expect(status(journey, "pev-firstadvantage")).toBe("LOCKED"); // stage not reached
     expect(events[0].type).toBe("JOURNEY_CREATED");
   });
 
@@ -143,7 +143,7 @@ describe("stage progression", () => {
     const r = completeTask(journey, "intro", { now });
     expect(r.journey.currentStage).toBe("PEV");
     expect(r.events.some((e) => e.type === "STAGE_CHANGED" && e.from === "CONDITIONAL_OFFER" && e.to === "PEV")).toBe(true);
-    expect(status(r.journey, "pev-hireview")).toBe("TODO");
+    expect(status(r.journey, "pev-firstadvantage")).toBe("TODO");
   });
 
   it("does not advance while a gating task is open", () => {
@@ -170,8 +170,8 @@ describe("applyIntegrationStatus", () => {
   }
 
   it("cleared completes the vetting task but does NOT force the stage (D10)", () => {
-    const r = applyIntegrationStatus(atPev(), "hireview", "cleared", { now });
-    expect(status(r.journey, "pev-hireview")).toBe("DONE");
+    const r = applyIntegrationStatus(atPev(), "firstadvantage", "cleared", { now });
+    expect(status(r.journey, "pev-firstadvantage")).toBe("DONE");
     expect(r.journey.currentStage).toBe("PEV");
     expect(status(r.journey, "offer-conditions")).toBe("TODO");
     expect(status(r.journey, "internal-account")).toBe("LOCKED");
@@ -179,7 +179,7 @@ describe("applyIntegrationStatus", () => {
   });
 
   it("the stage advances once the other PEV gating task is done too, in either order", () => {
-    const cleared = applyIntegrationStatus(atPev(), "hireview", "cleared", { now }).journey;
+    const cleared = applyIntegrationStatus(atPev(), "firstadvantage", "cleared", { now }).journey;
     const a = completeTask(cleared, "offer-conditions", { now });
     expect(a.journey.currentStage).toBe("UNCONDITIONAL_OFFER");
     expect(status(a.journey, "internal-account")).toBe("TODO");
@@ -187,24 +187,24 @@ describe("applyIntegrationStatus", () => {
     // P&P first, then cleared
     const first = completeTask(atPev(), "offer-conditions", { now }).journey;
     expect(first.currentStage).toBe("PEV");
-    expect(applyIntegrationStatus(first, "hireview", "cleared", { now }).journey.currentStage).toBe("UNCONDITIONAL_OFFER");
+    expect(applyIntegrationStatus(first, "firstadvantage", "cleared", { now }).journey.currentStage).toBe("UNCONDITIONAL_OFFER");
   });
 
   it("action_needed blocks the task and flags the journey; cleared unflags", () => {
-    let r = applyIntegrationStatus(atPev(), "hireview", "action_needed", { now });
-    expect(status(r.journey, "pev-hireview")).toBe("BLOCKED");
+    let r = applyIntegrationStatus(atPev(), "firstadvantage", "action_needed", { now });
+    expect(status(r.journey, "pev-firstadvantage")).toBe("BLOCKED");
     expect(r.journey.flagged).toBe(true);
     expect(r.journey.currentStage).toBe("PEV");
     expect(r.events.some((e) => e.type === "JOURNEY_FLAGGED")).toBe(true);
-    expect(progress(r.journey, now).blocked.map((t) => t.key)).toEqual(["pev-hireview"]);
-    r = applyIntegrationStatus(r.journey, "hireview", "cleared", { now });
+    expect(progress(r.journey, now).blocked.map((t) => t.key)).toEqual(["pev-firstadvantage"]);
+    r = applyIntegrationStatus(r.journey, "firstadvantage", "cleared", { now });
     expect(r.journey.flagged).toBe(false);
     expect(r.events.some((e) => e.type === "JOURNEY_UNFLAGGED")).toBe(true);
   });
 
   it("failed flags for P&P, reassigns the task, and does not exit", () => {
-    const r = applyIntegrationStatus(atPev(), "hireview", "failed", { now });
-    const t = r.journey.tasks.find((x) => x.key === "pev-hireview")!;
+    const r = applyIntegrationStatus(atPev(), "firstadvantage", "failed", { now });
+    const t = r.journey.tasks.find((x) => x.key === "pev-firstadvantage")!;
     expect(t.status).toBe("BLOCKED");
     expect(t.owner).toBe("PNP");
     expect(r.journey.status).toBe("active");
@@ -213,12 +213,12 @@ describe("applyIntegrationStatus", () => {
   });
 
   it("in_progress moves a TODO task to IN_PROGRESS", () => {
-    const r = applyIntegrationStatus(atPev(), "hireview", "in_progress", { now });
-    expect(status(r.journey, "pev-hireview")).toBe("IN_PROGRESS");
+    const r = applyIntegrationStatus(atPev(), "firstadvantage", "in_progress", { now });
+    expect(status(r.journey, "pev-firstadvantage")).toBe("IN_PROGRESS");
   });
 
   it("system completion unlocks dependants (Colleague File ID -> IT requests)", () => {
-    let j = applyIntegrationStatus(atPev(), "hireview", "cleared", { now }).journey;
+    let j = applyIntegrationStatus(atPev(), "firstadvantage", "cleared", { now }).journey;
     j = completeTask(j, "offer-conditions", { now }).journey;
     expect(status(j, "it-request")).toBe("LOCKED");
     j = applyIntegrationStatus(j, "identity", "created", { now }).journey;
@@ -264,7 +264,7 @@ describe("setTaskStatus / bespoke / exit", () => {
     expect(r.events[0]).toMatchObject({ type: "JOURNEY_EXITED" });
     expect(() => exitJourney(j, " ")).toThrow(EngineError);
     expect(() => exitJourney(j, "Accepted another offer")).toThrow(/Unknown exit reason/);
-    expect(() => completeTask(r.journey, "pev-hireview")).toThrow(/exited/);
+    expect(() => completeTask(r.journey, "pev-firstadvantage")).toThrow(/exited/);
   });
 
   it("merges optional data into the JOURNEY_EXITED event without overriding reason or stage (D14)", () => {
@@ -284,7 +284,7 @@ describe("progress", () => {
     expect(p.percent).toBe(Math.round((1 / p.total) * 100));
     expect(p.nextDue[0].key).toBe("contract"); // earliest open due date
     expect(p.nextDue.length).toBeLessThanOrEqual(5);
-    expect(p.overdue.map((t) => t.key)).toEqual(expect.arrayContaining(["contract", "pev-hireview"]));
+    expect(p.overdue.map((t) => t.key)).toEqual(expect.arrayContaining(["contract", "pev-firstadvantage"]));
     expect(p.perStage.CONDITIONAL_OFFER).toEqual({ total: 2, done: 1 });
     expect(p.stage).toBe("PEV");
   });

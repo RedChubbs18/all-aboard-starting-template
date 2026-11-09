@@ -12,7 +12,7 @@ import type { TaskDetailResponse } from "../detail-types";
 import { formatLongDate, isOverdue } from "../format";
 import { BookingView, ChecklistView, CollectView, Day0View, OrderView, VideoView } from "./ActionViews";
 import { PhotoFlow } from "./PhotoFlow";
-import { HireViewPanel, SystemStatus, TrainingList } from "./StatusViews";
+import { FirstAdvantagePanel, SystemStatus, TrainingList } from "./StatusViews";
 
 interface Props {
   data: TaskDetailResponse;
@@ -91,7 +91,7 @@ export function TaskDetailView({ data, onChanged, onComplete, completing }: Prop
           {detail.kind === "booking" && <BookingView {...sub} />}
           {detail.kind === "order" && <OrderView {...sub} />}
           {detail.kind === "collect" && <CollectView {...sub} />}
-          {detail.kind === "hireview" && <HireViewPanel data={data} onChanged={onChanged} />}
+          {detail.kind === "firstadvantage" && <FirstAdvantagePanel data={data} onChanged={onChanged} />}
           {detail.kind === "system" && <SystemStatus data={data} />}
           {detail.kind === "training" && <TrainingList data={data} />}
           {detail.kind === "video" && <VideoView {...sub} />}

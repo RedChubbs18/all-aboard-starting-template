@@ -2,7 +2,7 @@ import type { BookingAdapter, InductionSession, Booking } from "@/adapters/booki
 import type { EquipmentChoice } from "@/adapters/equipment/types";
 import type { PassOrder } from "@/adapters/pass/types";
 import type { TrainingItem } from "@/adapters/workday/types";
-import type { HireViewSummary, JourneyDto, PersonDto, TaskDto } from "./types";
+import type { FirstAdvantageSummary, JourneyDto, PersonDto, TaskDto } from "./types";
 
 export type { BookingAdapter, InductionSession, Booking, EquipmentChoice, PassOrder, TrainingItem };
 
@@ -25,7 +25,7 @@ export type Detail =
   | { kind: "booking"; sessions: InductionSession[]; booking: Booking | null }
   | { kind: "order"; mode: "device" | "home"; choice: EquipmentChoice | null }
   | { kind: "collect"; choice: EquipmentChoice | null }
-  | { kind: "hireview"; status: HireViewSummary }
+  | { kind: "firstadvantage"; status: FirstAdvantageSummary }
   | { kind: "system"; provider: string; statusText: string; updatedAt: string | null }
   | { kind: "training"; items: TrainingItem[] }
   | { kind: "video"; url: string | null }

@@ -127,7 +127,7 @@
       "exitReason": null,
       "exitedAt": null,
       "completedAt": null,
-      "hireviewStatus": "NOT_STARTED",
+      "firstAdvantageStatus": "NOT_STARTED",
       "taskStates": []
     },
     {
@@ -142,12 +142,12 @@
       "exitReason": null,
       "exitedAt": null,
       "completedAt": null,
-      "hireviewStatus": "ACTION_NEEDED",
+      "firstAdvantageStatus": "ACTION_NEEDED",
       "taskStates": [
         {
           "templateKey": "fx-vetting",
           "status": "BLOCKED",
-          "blockedReason": "Action needed in HireView"
+          "blockedReason": "Action needed in First Advantage"
         }
       ]
     },
@@ -163,7 +163,7 @@
       "exitReason": null,
       "exitedAt": null,
       "completedAt": null,
-      "hireviewStatus": "CLEARED",
+      "firstAdvantageStatus": "CLEARED",
       "taskStates": []
     }
   ]

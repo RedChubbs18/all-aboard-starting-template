@@ -20,11 +20,11 @@ const CONTENT_TYPES = ['POLICY', 'BENEFIT', 'DEVICE_INFO', 'WORKSPACE_INFO', 'CO
 const OWNERS = ['STARTER', 'LM', 'BUDDY', 'PNP', 'SYSTEM'];
 const TASK_TYPES = ['INFO', 'ACTION', 'BOOKING', 'ORDER', 'INTEGRATION_STATUS', 'TRAINING', 'VIDEO', 'CHECKLIST'];
 const SOURCES = ['CORE', 'TEAM', 'BESPOKE'];
-const ADAPTERS = ['identity', 'sailpoint', 'hireview', 'workday', 'itrequest', 'equipment', 'pass', 'booking', 'photocheck', 'notification'];
+const ADAPTERS = ['identity', 'sailpoint', 'firstadvantage', 'workday', 'itrequest', 'equipment', 'pass', 'booking', 'photocheck', 'notification'];
 const ROLES = ['STARTER', 'BUDDY', 'LM', 'PNP', 'ADMIN'];
 const TASK_STATUS = ['LOCKED', 'TODO', 'IN_PROGRESS', 'BLOCKED', 'DONE'];
 const JOURNEY_STATUS = ['active', 'completed', 'exited'];
-const HIREVIEW = ['NOT_STARTED', 'IN_PROGRESS', 'ACTION_NEEDED', 'CLEARED', 'FAILED'];
+const FIRSTADVANTAGE = ['NOT_STARTED', 'IN_PROGRESS', 'ACTION_NEEDED', 'CLEARED', 'FAILED'];
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const EMAIL = /^[a-z]+\.[a-z]+@example\.test$/;
 
@@ -39,7 +39,7 @@ const FR_TASK_MAP = {
   'FR-1.9': ['complete-vetting-steps'],
   'FR-2.1': ['read-policies-and-benefits'],
   'FR-2.2': ['pev-steps-reminder', 'complete-vetting-steps'],
-  'FR-2.3': ['hireview-vetting-status'],
+  'FR-2.3': ['firstadvantage-vetting-status'],
   'FR-3.1': ['internal-account-created'],
   'FR-3.2': ['sailpoint-persona-applied'],
   'FR-3.3': ['colleague-file-id-created', 'raise-it-requests'],
@@ -307,7 +307,7 @@ if (!people || typeof people !== 'object' || !Array.isArray(people.teams) || !Ar
     if (lm && teamByKey.get(j.teamKey)?.lmKey !== j.lmKey) fail(`${where}: lmKey is not the team LM`);
     if (!STAGES.includes(j.currentStage)) fail(`${where}: bad currentStage`);
     if (!JOURNEY_STATUS.includes(j.status)) fail(`${where}: bad status`);
-    if (!HIREVIEW.includes(j.hireviewStatus)) fail(`${where}: bad hireviewStatus`);
+    if (!FIRSTADVANTAGE.includes(j.firstAdvantageStatus)) fail(`${where}: bad firstAdvantageStatus`);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(j.startDate ?? '')) fail(`${where}: startDate must be YYYY-MM-DD`);
     if (j.status === 'exited') {
       sawExited = true;
@@ -317,7 +317,7 @@ if (!people || typeof people !== 'object' || !Array.isArray(people.teams) || !Ar
       sawCompleted = true;
       if (j.currentStage !== 'DAY_30' || !isStr(j.completedAt)) fail(`${where}: completed journeys must be DAY_30 with completedAt`);
     }
-    if (j.hireviewStatus === 'ACTION_NEEDED') sawActionNeeded = true;
+    if (j.firstAdvantageStatus === 'ACTION_NEEDED') sawActionNeeded = true;
     stageCounts[j.currentStage] = (stageCounts[j.currentStage] ?? 0) + 1;
     for (const ts of j.taskStates ?? []) {
       const t = tplByKey.get(ts.templateKey);
@@ -332,7 +332,7 @@ if (!people || typeof people !== 'object' || !Array.isArray(people.teams) || !Ar
   }
   if (starters.length !== people.journeys.length) fail(`every starter needs one journey (${starters.length} starters, ${people.journeys.length} journeys)`);
   for (const st of STAGES) if (!stageCounts[st]) fail(`no journey currently at ${st}`);
-  if (!sawActionNeeded) fail('demo needs a journey with hireviewStatus ACTION_NEEDED');
+  if (!sawActionNeeded) fail('demo needs a journey with firstAdvantageStatus ACTION_NEEDED');
   if (!sawOverdueLm) fail(`demo needs an LM task overdue as of ${DEMO_TODAY}`);
   if (!sawExited) fail('demo needs an exited journey');
   if (!sawCompleted) fail('demo needs a completed journey');

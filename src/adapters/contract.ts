@@ -5,7 +5,7 @@ import { memoryStore } from "./store";
 /**
  * Shared contract test: every adapter mock must satisfy this, then add its own
  * method checks in `extra`. Usage in <name>/contract.test.ts:
- *   runAdapterContract("hireview", createHireViewMock, (make) => { it(...) });
+ *   runAdapterContract("firstadvantage", createFirstAdvantageMock, (make) => { it(...) });
  */
 export function runAdapterContract<A extends BaseAdapter>(
   key: A["key"],

@@ -11,7 +11,7 @@ import type { StarterDetail } from "./types";
 import { Alert, Button, Card, ExternalLink, Icon, ProgressBar, RedFlagBadge, Skeleton, STAGE_HINT, STAGE_LABEL, ToastRegion, formatDate } from "./ui";
 
 function Header({ d, onAdd }: { d: StarterDetail; onAdd: () => void }) {
-  const hv = d.journey.hireview;
+  const hv = d.journey.firstadvantage;
   return (
     <Card className="space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -145,7 +145,7 @@ export function StarterDetailView({ journeyId }: { journeyId: string }) {
         </div>
         {d.journey.redFlag && (
           <div className="lg:col-span-3">
-            <Alert tone="danger" title={d.journey.hireview === "FAILED" ? "First Advantage vetting has failed" : "First Advantage vetting needs action"} role="alert">
+            <Alert tone="danger" title={d.journey.firstadvantage === "FAILED" ? "First Advantage vetting has failed" : "First Advantage vetting needs action"} role="alert">
               P&amp;P are following this up. Please do not discuss vetting details with the starter; point them to the contact on their journey.
             </Alert>
           </div>

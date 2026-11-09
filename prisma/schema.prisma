@@ -1,6 +1,6 @@
 // SQLite data model. Enums are plain strings validated by the TS unions in
 // src/domain/types.ts (and zod in src/domain/seed-schema.ts).
-// FR-1.9: NO PII beyond name, work email/UPN and IDs. Workday and HireView stay
+// FR-1.9: NO PII beyond name, work email/UPN and IDs. Workday and First Advantage stay
 // the systems of record. Personal email is never stored; a guest is just an Entra oid.
 
 generator client {

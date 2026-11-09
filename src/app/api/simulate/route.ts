@@ -30,7 +30,7 @@ const body = z.object({
   detail: z.string().max(300).optional(),
 });
 
-/** Simulate an external event, e.g. { adapterKey: "hireview", journeyId, status: "cleared" }. */
+/** Simulate an external event, e.g. { adapterKey: "firstadvantage", journeyId, status: "cleared" }. */
 export const POST = withRole(["ADMIN", "PNP"], (req, _ctx, user) =>
   guarded(async () => {
     const b = await readJson(req, body);

@@ -25,15 +25,15 @@ ACTION  (e.g. Set up Authenticator)        BOOKING (Induction)
 [link out: Open Workday (external icon)]     12 Jan 10:00 London - 4 left]
 [Mark complete]                            [Confirm booking]  -> success Toast + confirmed Card
 
-INTEGRATION_STATUS (HireView)              VIDEO
+INTEGRATION_STATUS (First Advantage)              VIDEO
 [Status panel: big Badge + text]           [16:9 player, captions on, transcript <details>]
  Not started|In progress|Action needed|    [Progress "Watched 80%"]
  Cleared|Failed                            [Mark complete auto at end; manual fallback after 3s
 [What this means (plain language)]          if player errors]
-[Action needed: Alert warning + "Open HireView" external link + ContactCard P&P]
+[Action needed: Alert warning + "Open First Advantage" external link + ContactCard P&P]
 [Last checked 10:42  (Refresh)]  no action button: the system completes it
 ```
-States: INTEGRATION_STATUS loading = "Checking status..." skeleton; error = "We couldn't reach HireView. Your status hasn't changed. Try again" + P&P contact. Failed status: danger Alert + P&P contact always visible (FR-2.2). Desktop: body 640px centred, action bar becomes inline button at the bottom of the card; side panel shows stage and dependencies.
+States: INTEGRATION_STATUS loading = "Checking status..." skeleton; error = "We couldn't reach First Advantage. Your status hasn't changed. Try again" + P&P contact. Failed status: danger Alert + P&P contact always visible (FR-2.2). Desktop: body 640px centred, action bar becomes inline button at the bottom of the card; side panel shows stage and dependencies.
 
 ## 3. Team page (FR-1.8, FR-1.2)
 ```
@@ -118,7 +118,7 @@ Chase LM: confirm Dialog "Send a nudge to Sam Patel about 2 overdue tasks?" then
 TEMPLATES                                   SIMULATE INTEGRATION (tab)
 [Tabs: Templates | Content | Teams | Adapters | Simulate]   [Alert info: "Demo tools. Changes mock adapters only."]
 [Stage filter chips]                        [Select starter]
-[TemplateRow] Upload photo                  [Select adapter: HireView v]
+[TemplateRow] Upload photo                  [Select adapter: First Advantage v]
   ACTION | STARTER | due -5d | CORE         [Select event: Action needed | Cleared | Failed]
   depends on: Colleague File ID             [Run simulation] -> Toast + event log below
 [+ New template] (Sheet form)               [Event log: time, adapter, event, result]

@@ -81,8 +81,8 @@ describe("issue classification and routing", () => {
   it("classifies blocked, overdue, and failed integration steps; skips done, locked and not applicable", () => {
     expect(classifyTask(task({ key: "x", status: "BLOCKED" }), undefined, NOW)).toBe("BLOCKED");
     expect(classifyTask(task({ key: "x", dueDate: ago(2) }), undefined, NOW)).toBe("OVERDUE");
-    expect(classifyTask(task({ key: "x", adapterKey: "hireview", status: "BLOCKED" }), "action_needed", NOW)).toBe("ACTION_NEEDED");
-    expect(classifyTask(task({ key: "x", adapterKey: "hireview", status: "BLOCKED" }), "failed", NOW)).toBe("FAILED");
+    expect(classifyTask(task({ key: "x", adapterKey: "firstadvantage", status: "BLOCKED" }), "action_needed", NOW)).toBe("ACTION_NEEDED");
+    expect(classifyTask(task({ key: "x", adapterKey: "firstadvantage", status: "BLOCKED" }), "failed", NOW)).toBe("FAILED");
     expect(classifyTask(task({ key: "x", status: "DONE", dueDate: ago(2) }), undefined, NOW)).toBeNull();
     expect(classifyTask(task({ key: "x", status: "LOCKED", dueDate: ago(2) }), undefined, NOW)).toBeNull();
     expect(classifyTask(task({ key: "x", applicable: false, dueDate: ago(2) }), undefined, NOW)).toBeNull();
@@ -93,7 +93,7 @@ describe("issue classification and routing", () => {
     const lm = { id: "lm1", name: "Sam Patel" };
     expect(routeSupport({ owner: "LM", adapterKey: null }, lm)).toMatchObject({ toUserId: "lm1", kind: "USER" });
     expect(routeSupport({ owner: "PNP", adapterKey: null }, lm)).toMatchObject({ toUserId: "queue:pnp", label: "P&P queue" });
-    expect(routeSupport({ owner: "SYSTEM", adapterKey: "hireview" }, lm)).toMatchObject({ label: "First Advantage", kind: "QUEUE" });
+    expect(routeSupport({ owner: "SYSTEM", adapterKey: "firstadvantage" }, lm)).toMatchObject({ label: "First Advantage", kind: "QUEUE" });
     expect(routeSupport({ owner: "SYSTEM", adapterKey: "itrequest" }, lm).label).toBe("IT Service Desk");
     expect(routeSupport({ owner: "SYSTEM", adapterKey: null }, lm).label).toBe("Integrations support");
     expect(routeSupport({ owner: "STARTER", adapterKey: null }, lm).toUserId).toBe("lm1");
@@ -102,11 +102,11 @@ describe("issue classification and routing", () => {
   it("builds sorted issues with days overdue, active journeys only", () => {
     const j = journey("a", [
       task({ key: "late", dueDate: ago(7), owner: "LM" }),
-      task({ key: "hv", adapterKey: "hireview", status: "BLOCKED", owner: "SYSTEM", dueDate: ago(-2) }),
+      task({ key: "hv", adapterKey: "firstadvantage", status: "BLOCKED", owner: "SYSTEM", dueDate: ago(-2) }),
       task({ key: "fine" }),
     ]);
     const gone = journey("b", [task({ key: "old", dueDate: ago(9) })], { status: "exited" });
-    const issues = buildIssues([j, gone], names, new Map([["a|hireview", "failed"]]), NOW);
+    const issues = buildIssues([j, gone], names, new Map([["a|firstadvantage", "failed"]]), NOW);
     expect(issues.map((i) => [i.taskKey, i.kind, i.daysOverdue])).toEqual([["hv", "FAILED", 0], ["late", "OVERDUE", 7]]);
     expect(issues[0].routeLabel).toBe("First Advantage");
     expect(issues[1].routeLabel).toBe("Line manager: Sam Patel");
@@ -195,7 +195,7 @@ describe("chaseLm and raiseSupport (database)", () => {
         tasks: {
           create: [
             { id: `${P}t1`, key: "lm-task", title: "Book induction", stage: "PEV", owner: "LM", type: "ACTION", status: "TODO", dueDate: new Date(Date.now() - 3 * D), dependsOn: [] },
-            { id: `${P}t2`, key: "sys-task", title: "Vetting check", stage: "PEV", owner: "SYSTEM", type: "INTEGRATION_STATUS", status: "BLOCKED", dueDate: new Date(Date.now() + D), dependsOn: [], adapterKey: "hireview" },
+            { id: `${P}t2`, key: "sys-task", title: "Vetting check", stage: "PEV", owner: "SYSTEM", type: "INTEGRATION_STATUS", status: "BLOCKED", dueDate: new Date(Date.now() + D), dependsOn: [], adapterKey: "firstadvantage" },
           ],
         },
       },

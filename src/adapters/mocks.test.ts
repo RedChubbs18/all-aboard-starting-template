@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { memoryStore } from "./store";
 import { createBookingMock, sessionsFrom } from "./booking/mock";
 import { createEquipmentMock } from "./equipment/mock";
-import { createHireViewMock } from "./hireview/mock";
+import { createFirstAdvantageMock } from "./firstadvantage/mock";
 import { createIdentityMock } from "./identity/mock";
 import { createITRequestMock } from "./itrequest/mock";
 import { ColleagueFileIdMissingError } from "./itrequest/types";
@@ -38,9 +38,9 @@ describe("sailpoint mock", () => {
   });
 });
 
-describe("hireview mock", () => {
+describe("firstadvantage mock", () => {
   it("supplies a what's-needed message and a test link for every status", async () => {
-    const a = createHireViewMock(memoryStore());
+    const a = createFirstAdvantageMock(memoryStore());
     for (const s of a.simulatableStatuses) {
       await a.simulate("j1", s);
       const v = await a.getVettingStatus("j1");
@@ -51,8 +51,8 @@ describe("hireview mock", () => {
   });
   it("reads upper-case seeded statuses", async () => {
     const store = memoryStore();
-    await store.set("j1", "hireview", "ACTION_NEEDED", {});
-    expect((await createHireViewMock(store).getVettingStatus("j1")).status).toBe("action_needed");
+    await store.set("j1", "firstadvantage", "ACTION_NEEDED", {});
+    expect((await createFirstAdvantageMock(store).getVettingStatus("j1")).status).toBe("action_needed");
   });
 });
 

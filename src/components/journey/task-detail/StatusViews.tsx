@@ -11,7 +11,7 @@ import { cn } from "@/components/ui/cn";
 import type { Detail, TaskDetailResponse } from "../detail-types";
 import { formatDateTime } from "../format";
 
-type Hv = Extract<Detail, { kind: "hireview" }>["status"];
+type Hv = Extract<Detail, { kind: "firstadvantage" }>["status"];
 
 const HV: Record<Hv["status"], { label: string; Icon: LucideIcon; cls: string; what: string }> = {
   not_started: {
@@ -47,8 +47,8 @@ const HV: Record<Hv["status"], { label: string; Icon: LucideIcon; cls: string; w
 };
 
 /** FR-2.3: vetting status chip with the five states. The system completes this task; there is no action button. */
-export function HireViewPanel({ data, onChanged }: { data: TaskDetailResponse; onChanged: () => void | Promise<void> }) {
-  const detail = data.detail as Extract<Detail, { kind: "hireview" }>;
+export function FirstAdvantagePanel({ data, onChanged }: { data: TaskDetailResponse; onChanged: () => void | Promise<void> }) {
+  const detail = data.detail as Extract<Detail, { kind: "firstadvantage" }>;
   const s = detail.status;
   const meta = HV[s.status];
   const [busy, setBusy] = useState(false);

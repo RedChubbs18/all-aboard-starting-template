@@ -42,7 +42,7 @@ export interface TaskDto {
 
 export type ViewerRelation = "STARTER" | "BUDDY" | "LM" | "PNP" | "ADMIN" | "OTHER";
 
-export interface HireViewSummary {
+export interface FirstAdvantageSummary {
   status: "not_started" | "in_progress" | "action_needed" | "cleared" | "failed";
   updatedAt: string;
   actionUrl: string;
@@ -64,7 +64,7 @@ export interface JourneyDto {
   /** True when the viewer is the starter of this journey. */
   viewerIsStarter: boolean;
   tasks: TaskDto[];
-  hireview: HireViewSummary | null;
+  firstadvantage: FirstAdvantageSummary | null;
 }
 
 export interface JourneyResponse {

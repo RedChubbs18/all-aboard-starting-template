@@ -47,7 +47,7 @@ export function journeyWhere(f: MiFilters, opts: { ignoreStatus?: boolean } = {}
 export const INTEGRATION_OWNER_LABEL: Record<string, string> = {
   identity: "Identity and Access team",
   sailpoint: "Identity and Access team",
-  hireview: "First Advantage",
+  firstadvantage: "First Advantage",
   workday: "HR Systems team",
   itrequest: "IT Service Desk",
   equipment: "IT Equipment team",

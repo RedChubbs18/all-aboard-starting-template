@@ -54,7 +54,7 @@ export type ContentType = (typeof CONTENT_TYPES)[number];
 export const ADAPTER_KEYS = [
   "identity",
   "sailpoint",
-  "hireview",
+  "firstadvantage",
   "workday",
   "itrequest",
   "equipment",

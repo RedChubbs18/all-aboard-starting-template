@@ -6,7 +6,7 @@ import type { SessionUser } from "@/lib/auth/roles";
 import { chatLink } from "@/lib/teams";
 import { prisma } from "@/server/db";
 import { computeProgress, loadJourney } from "@/server/journey-service";
-import type { HireViewState, Person, StarterDetail, StarterSummary, TaskDto } from "@/components/lm/types";
+import type { FirstAdvantageState, Person, StarterDetail, StarterSummary, TaskDto } from "@/components/lm/types";
 import { HttpError } from "./guard";
 
 const iso = (d: Date) => d.toISOString();
@@ -32,16 +32,16 @@ async function latestPhotoIssues(journeyId: string): Promise<string[]> {
   return [];
 }
 
-export async function hireViewStates(journeyIds: string[]): Promise<Map<string, HireViewState>> {
-  const rows = await prisma.integrationState.findMany({ where: { adapterKey: "hireview", journeyId: { in: journeyIds } } });
+export async function firstAdvantageStates(journeyIds: string[]): Promise<Map<string, FirstAdvantageState>> {
+  const rows = await prisma.integrationState.findMany({ where: { adapterKey: "firstadvantage", journeyId: { in: journeyIds } } });
   return new Map(rows.map((r) => [r.journeyId, normalizeIntegrationStatus(r.status)]));
 }
 
-const isRed = (h: HireViewState | null | undefined) => h === "ACTION_NEEDED" || h === "FAILED";
+const isRed = (h: FirstAdvantageState | null | undefined) => h === "ACTION_NEEDED" || h === "FAILED";
 
 export async function buildSummaries(journeys: JourneyState[], now = new Date()): Promise<StarterSummary[]> {
   const people = await prisma.user.findMany({ where: { id: { in: journeys.map((j) => j.starterId) } }, select: { id: true, displayName: true } });
-  const hv = await hireViewStates(journeys.map((j) => j.id));
+  const hv = await firstAdvantageStates(journeys.map((j) => j.id));
   const out = journeys.map((j): StarterSummary => {
     const p = computeProgress(j, now);
     const h = hv.get(j.id) ?? null;
@@ -57,7 +57,7 @@ export async function buildSummaries(journeys: JourneyState[], now = new Date())
       overdue: p.overdue.length,
       overdueLm: p.overdue.filter((t) => t.owner === "LM").length,
       blocked: p.blocked.length,
-      hireview: h,
+      firstadvantage: h,
       redFlag,
       needsAttention: redFlag || j.flagged || p.overdue.length > 0 || p.blocked.length > 0,
       nextDue: next ? { title: next.title, dueDate: iso(next.dueDate) } : null,
@@ -97,7 +97,7 @@ export async function buildDetail(journeyId: string, user: SessionUser, now = ne
     prisma.checkIn.findMany({ where: { journeyId }, orderBy: { scheduledAt: "desc" } }),
     prisma.goal.findMany({ where: { journeyId }, orderBy: { id: "asc" } }),
     prisma.day0Arrangement.findUnique({ where: { journeyId } }),
-    hireViewStates([journeyId]),
+    firstAdvantageStates([journeyId]),
   ]);
   if (!starter || !lm) throw new HttpError(404, "not_found", "Starter not found");
 
@@ -140,7 +140,7 @@ export async function buildDetail(journeyId: string, user: SessionUser, now = ne
       startDate: iso(j.startDate),
       flagged: j.flagged,
       flagReason: j.flagReason,
-      hireview: h,
+      firstadvantage: h,
       redFlag: isRed(h),
     },
     starter: person(starter),

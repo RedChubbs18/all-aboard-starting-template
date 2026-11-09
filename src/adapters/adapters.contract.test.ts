@@ -4,7 +4,7 @@ import { memoryStore } from "./store";
 import { createBookingMock } from "./booking/mock";
 import { createChatbotMock } from "./chatbot/mock";
 import { createEquipmentMock } from "./equipment/mock";
-import { createHireViewMock } from "./hireview/mock";
+import { createFirstAdvantageMock } from "./firstadvantage/mock";
 import { createIdentityMock } from "./identity/mock";
 import { createITRequestMock } from "./itrequest/mock";
 import { createNotificationMock } from "./notification/mock";
@@ -36,15 +36,15 @@ runAdapterContract("sailpoint", createSailPointMock, (make) => {
     expect((await a.getStatus("j1")).status).toBe("applied");
   });
 });
-runAdapterContract("hireview", createHireViewMock, (make) => {
+runAdapterContract("firstadvantage", createFirstAdvantageMock, (make) => {
   it("reports vetting status with an action link", async () => {
     const a = make();
     expect((await a.getVettingStatus("j1")).status).toBe("not_started");
-    await a.simulate("j1", "action_needed", "Upload ID in HireView");
+    await a.simulate("j1", "action_needed", "Upload ID in First Advantage");
     const s = await a.getVettingStatus("j1");
     expect(s.status).toBe("action_needed");
     expect(s.actionUrl).toMatch(/^https:\/\//);
-    expect((await a.getStatus("j1")).detail).toBe("Upload ID in HireView");
+    expect((await a.getStatus("j1")).detail).toBe("Upload ID in First Advantage");
   });
 }, { simulateStatus: "cleared" });
 runAdapterContract("workday", createWorkdayMock, (make) => {

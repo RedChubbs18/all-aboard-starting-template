@@ -15,7 +15,7 @@ export interface AdapterViewData {
 export const ADAPTER_LABELS: Record<string, string> = {
   identity: "Identity (Entra)",
   sailpoint: "SailPoint",
-  hireview: "First Advantage (hireview adapter)",
+  firstadvantage: "First Advantage (firstadvantage adapter)",
   workday: "Workday",
   itrequest: "IT@LBG requests",
   equipment: "Equipment",

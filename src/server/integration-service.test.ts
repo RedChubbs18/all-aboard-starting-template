@@ -28,11 +28,11 @@ beforeEach(async () => {
   await prisma.integrationState.deleteMany({ where: { journeyId: "GLOBAL" } });
 });
 
-describe("simulate: First Advantage (hireview adapter)", () => {
+describe("simulate: First Advantage (firstadvantage adapter)", () => {
   it("action_needed blocks the task, flags the journey and sends a reminder to the starter", async () => {
-    const r = await simulate("hireview", ALEX, "action_needed", undefined, { actorId: "admin-x" });
+    const r = await simulate("firstadvantage", ALEX, "action_needed", undefined, { actorId: "admin-x" });
     expect(r.flagged).toBe(true);
-    const t = await task(ALEX, "hireview-vetting-status");
+    const t = await task(ALEX, "firstadvantage-vetting-status");
     expect(t!.status).toBe("BLOCKED");
     expect(r.changes.join(" ")).toMatch(/Reminder sent/);
     const mine = await (await getAdapter("notification")).list({ toUserId: "alex-morgan" });
@@ -45,9 +45,9 @@ describe("simulate: First Advantage (hireview adapter)", () => {
   });
 
   it("cleared completes the vetting task and unflags, but does not force the stage (D10)", async () => {
-    await simulate("hireview", ALEX, "action_needed");
-    await simulate("hireview", ALEX, "cleared");
-    expect((await task(ALEX, "hireview-vetting-status"))!.status).toBe("DONE");
+    await simulate("firstadvantage", ALEX, "action_needed");
+    await simulate("firstadvantage", ALEX, "cleared");
+    expect((await task(ALEX, "firstadvantage-vetting-status"))!.status).toBe("DONE");
     const j = (await js.loadJourney(ALEX))!;
     expect(j.flagged).toBe(false);
     expect(j.currentStage).not.toBe("UNCONDITIONAL_OFFER");
@@ -55,7 +55,7 @@ describe("simulate: First Advantage (hireview adapter)", () => {
   });
 
   it("offer_conditions_met completes the guest sign-in prerequisite (with an event) and then advances the stage", async () => {
-    await simulate("hireview", ALEX, "cleared");
+    await simulate("firstadvantage", ALEX, "cleared");
     expect((await task(ALEX, "guest-sign-in"))!.status).not.toBe("DONE");
     const r = await runDemoStep("offer_conditions_met", {}, ALEX);
     expect(r.changes.length).toBeGreaterThan(0);
@@ -80,8 +80,8 @@ describe("simulate: First Advantage (hireview adapter)", () => {
   });
 
   it("rejects unknown statuses and non-simulatable journeys", async () => {
-    await expect(simulate("hireview", ALEX, "bogus")).rejects.toBeInstanceOf(SimulationError);
-    await expect(simulate("hireview", "nope", "cleared")).rejects.toMatchObject({ status: 404 });
+    await expect(simulate("firstadvantage", ALEX, "bogus")).rejects.toBeInstanceOf(SimulationError);
+    await expect(simulate("firstadvantage", "nope", "cleared")).rejects.toMatchObject({ status: 404 });
   });
 });
 
@@ -89,7 +89,7 @@ describe("system tasks unlock IT requests (FR-3.1 to FR-3.3)", () => {
   it("completes account, persona and Colleague File ID, then IT requests can be raised", async () => {
     const itr = await getAdapter("itrequest");
     await expect(itr.raise(ALEX, "GitHub access")).rejects.toBeInstanceOf(ColleagueFileIdMissingError);
-    await simulate("hireview", ALEX, "cleared");
+    await simulate("firstadvantage", ALEX, "cleared");
     await runDemoStep("offer_conditions_met", {}, ALEX);
     expect((await task(ALEX, "raise-it-requests"))!.status).toBe("LOCKED");
 
@@ -105,7 +105,7 @@ describe("system tasks unlock IT requests (FR-3.1 to FR-3.3)", () => {
   it("completes pending system tasks as soon as they unlock, even if the external state came first", async () => {
     await simulate("identity", ALEX, "internal_created"); // vetting not cleared: the task is still locked
     expect((await task(ALEX, "internal-account-created"))!.status).toBe("LOCKED");
-    await simulate("hireview", ALEX, "cleared");
+    await simulate("firstadvantage", ALEX, "cleared");
     await runDemoStep("offer_conditions_met", {}, ALEX);
     expect((await task(ALEX, "internal-account-created"))!.status).toBe("DONE");
   });
@@ -118,13 +118,13 @@ describe("demo helpers", () => {
     const choice = await (await getAdapter("equipment")).getChoice(ALEX);
     expect(choice?.collectionPoint).toBeTruthy();
 
-    await simulate("hireview", ALEX, "failed").catch(() => undefined);
+    await simulate("firstadvantage", ALEX, "failed").catch(() => undefined);
     await runDemoStep("reset", { actorId: "admin-x" }, ALEX);
     const j = (await js.loadJourney(ALEX))!;
     expect(j.currentStage).toBe("CONDITIONAL_OFFER");
     expect(j.flagged).toBe(false);
     expect((await task(ALEX, "guest-invite-sent"))!.status).toBe("DONE");
-    expect((await (await getAdapter("hireview")).getStatus(ALEX)).status).toBe("not_started");
+    expect((await (await getAdapter("firstadvantage")).getStatus(ALEX)).status).toBe("not_started");
     expect(await (await getAdapter("equipment")).getChoice(ALEX)).toBeNull();
     expect((await js.listEvents(ALEX)).map((e) => e.type)).toContain("DEMO_RESET");
   });
@@ -148,7 +148,7 @@ describe("runReminders (FR-2.2)", () => {
   });
 
   it("stops once First Advantage is cleared and skips journeys outside PEV", async () => {
-    await simulate("hireview", SAM, "cleared");
+    await simulate("firstadvantage", SAM, "cleared");
     const r = await runReminders(new Date("2026-11-09T09:00:00Z"));
     expect(forSam(r)).toHaveLength(0);
     expect(r.sent.some((s) => s.journeyId === ALEX)).toBe(false); // conditional offer, not started
@@ -167,7 +167,7 @@ describe("route guards", () => {
   it("returns 401 for anonymous callers and 403 for starters, LMs and buddies", async () => {
     const calls: [string, (r: Request) => Promise<Response>, string, string, unknown?][] = [
       ["list", (r) => simulateList(r, undefined), "GET", "/api/simulate"],
-      ["simulate", (r) => simulatePost(r, undefined), "POST", "/api/simulate", { adapterKey: "hireview", journeyId: ALEX, status: "cleared" }],
+      ["simulate", (r) => simulatePost(r, undefined), "POST", "/api/simulate", { adapterKey: "firstadvantage", journeyId: ALEX, status: "cleared" }],
       ["state", (r) => stateGet(r, undefined), "GET", `/api/simulate/state?journeyId=${ALEX}`],
       ["tick", (r) => tickPost(r, undefined), "POST", "/api/simulate/tick", {}],
       ["demo", (r) => demoPost(r, undefined), "POST", "/api/simulate/demo", { step: "reset" }],
@@ -185,12 +185,12 @@ describe("route guards", () => {
   it("lets ADMIN and PNP simulate, tick and read state, and validates input", async () => {
     const admin = (await prisma.user.findMany()).find((u) => (u.roles as string[]).includes("ADMIN"))!.id;
     const pnp = (await prisma.user.findMany()).find((u) => (u.roles as string[]).includes("PNP"))!.id;
-    const ok = await simulatePost(await as(admin, "POST", "/api/simulate", { adapterKey: "hireview", journeyId: ALEX, status: "action_needed" }), undefined);
+    const ok = await simulatePost(await as(admin, "POST", "/api/simulate", { adapterKey: "firstadvantage", journeyId: ALEX, status: "action_needed" }), undefined);
     expect(ok.status).toBe(200);
     expect((await ok.json()).flagged).toBe(true);
-    expect((await simulatePost(await as(pnp, "POST", "/api/simulate", { adapterKey: "hireview", journeyId: ALEX, status: "bogus" }), undefined)).status).toBe(400);
+    expect((await simulatePost(await as(pnp, "POST", "/api/simulate", { adapterKey: "firstadvantage", journeyId: ALEX, status: "bogus" }), undefined)).status).toBe(400);
     expect((await simulatePost(await as(pnp, "POST", "/api/simulate", { adapterKey: "nope", journeyId: ALEX, status: "x" }), undefined)).status).toBe(400);
-    expect((await simulatePost(await as(pnp, "POST", "/api/simulate", { adapterKey: "hireview", journeyId: "missing", status: "cleared" }), undefined)).status).toBe(404);
+    expect((await simulatePost(await as(pnp, "POST", "/api/simulate", { adapterKey: "firstadvantage", journeyId: "missing", status: "cleared" }), undefined)).status).toBe(404);
     const state = await (await stateGet(await as(pnp, "GET", `/api/simulate/state?journeyId=${ALEX}`), undefined)).json();
     expect(state.adapters.map((a: { key: string }) => a.key)).toContain("sailpoint");
     expect(state.journey.flagged).toBe(true);
@@ -208,7 +208,7 @@ describe("route guards", () => {
   });
 
   it("notifications are per user: list own, mark own read, 404 for others", async () => {
-    await simulate("hireview", ALEX, "action_needed");
+    await simulate("firstadvantage", ALEX, "action_needed");
     const res = await (await notificationsGet(await as("alex-morgan", "GET", "/api/notifications"), undefined)).json();
     expect(res.unread).toBe(1);
     expect(res.notifications[0]).toMatchObject({ type: "PEV_REMINDER", read: false, link: "/journey" });

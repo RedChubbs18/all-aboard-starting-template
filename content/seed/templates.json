@@ -162,13 +162,13 @@
       "guest-sign-in"
     ],
     "source": "CORE",
-    "adapterKey": "hireview",
+    "adapterKey": "firstadvantage",
     "gating": false,
     "contentSlug": "pev-vetting-explainer",
     "condition": null
   },
   {
-    "key": "hireview-vetting-status",
+    "key": "firstadvantage-vetting-status",
     "title": "Vetting status (First Advantage)",
     "description": "Your vetting status from First Advantage. A cleared result completes this step; your offer becomes unconditional once every vetting step is done.",
     "stage": "PEV",
@@ -179,7 +179,7 @@
       "guest-sign-in"
     ],
     "source": "CORE",
-    "adapterKey": "hireview",
+    "adapterKey": "firstadvantage",
     "gating": true,
     "contentSlug": "pev-vetting-explainer",
     "condition": null
@@ -225,7 +225,7 @@
     "type": "INTEGRATION_STATUS",
     "dueOffsetDays": -21,
     "dependsOn": [
-      "hireview-vetting-status"
+      "firstadvantage-vetting-status"
     ],
     "source": "CORE",
     "adapterKey": "identity",
@@ -259,7 +259,7 @@
     "type": "INTEGRATION_STATUS",
     "dueOffsetDays": -20,
     "dependsOn": [
-      "hireview-vetting-status"
+      "firstadvantage-vetting-status"
     ],
     "source": "CORE",
     "adapterKey": "sailpoint",

@@ -35,7 +35,7 @@ export function JourneyView({ data, onComplete, pendingId, lastCompletedTitle, r
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const viewerIsStarter = journey.viewerIsStarter;
   const first = journey.starter.name.split(" ")[0];
-  const hv = journey.hireview;
+  const hv = journey.firstadvantage;
   const alertText =
     hv && (hv.status === "action_needed" || hv.status === "failed")
       ? "Action needed: your vetting check needs attention. Open Vetting for details."
