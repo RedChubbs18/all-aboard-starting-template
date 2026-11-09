@@ -13,6 +13,7 @@ import { useApi } from "@/lib/auth/use-api";
 interface GoalsResponse {
   journeyId: string;
   canEdit: boolean;
+  lockedUntil?: string | null;
   goals: GoalItem[];
 }
 
@@ -40,7 +41,7 @@ function GoalsPage() {
           </Button>
         </Alert>
       )}
-      {data && <GoalsPanel journeyId={data.journeyId} goals={data.goals} canEdit={data.canEdit} onChanged={reload} />}
+      {data && <GoalsPanel journeyId={data.journeyId} goals={data.goals} canEdit={data.canEdit} lockedUntil={data.lockedUntil} onChanged={reload} />}
     </div>
   );
 }

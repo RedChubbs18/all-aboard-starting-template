@@ -1,7 +1,9 @@
 "use client";
 
 import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "@/lib/auth/client";
+import { BuddyView } from "@/components/journey/BuddyView";
 import { RoleGate } from "@/components/shell/RoleGate";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
@@ -26,9 +28,27 @@ function JourneySkeleton() {
   );
 }
 
+/** F15: buddies get their own view; the chosen starter is remembered in the URL (`?journeyId=`). */
+function BuddyPage() {
+  const params = useSearchParams();
+  const router = useRouter();
+  return (
+    <div className="space-y-4">
+      <OfflineBanner />
+      <BuddyView journeyId={params.get("journeyId")} onSelect={(id) => router.replace(`/journey?journeyId=${encodeURIComponent(id)}`)} />
+    </div>
+  );
+}
+
 function JourneyPage() {
   const params = useSearchParams();
-  const journeyId = params.get("journeyId");
+  const { user } = useSession();
+  const buddyOnly = !!user && user.roles.includes("BUDDY") && !user.roles.some((r) => ["STARTER", "LM", "PNP", "ADMIN"].includes(r));
+  if (buddyOnly) return <BuddyPage />;
+  return <StarterJourney journeyId={params.get("journeyId")} />;
+}
+
+function StarterJourney({ journeyId }: { journeyId: string | null }) {
   const { data, error, loading, reload, complete, pendingId, lastCompletedTitle } = useJourney(journeyId);
   const toast = useToast();
 

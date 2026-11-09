@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Owner, Stage } from "@/domain/types";
 import { cn } from "@/components/ui/cn";
@@ -9,6 +11,14 @@ import { ContactCard } from "@/components/ui/ContactCard";
 import { TaskList } from "./TaskList";
 import type { TrackStage } from "./derive";
 import type { JourneyDto, TaskDto } from "./types";
+
+const FA_LABEL: Record<NonNullable<JourneyDto["firstadvantage"]>["status"], string> = {
+  not_started: "Not started",
+  in_progress: "In progress",
+  action_needed: "Action needed",
+  cleared: "Cleared",
+  failed: "There is an issue",
+};
 
 interface Props {
   stages: TrackStage[];
@@ -47,8 +57,11 @@ export function StageAccordion({ stages, journey, readOnly, highlightOwner, open
       {stages.map((s, i) => {
         const id = `stage-${s.key}`;
         const expanded = isOpen(s.key);
-        const tasks = journey.tasks.filter((t) => t.stage === s.key);
         const vetting = s.key === "PEV";
+        // F7: the First Advantage status leads the vetting stage.
+        const faFirst = (t: TaskDto) => (t.adapterKey === "firstadvantage" && t.type === "INTEGRATION_STATUS" ? 0 : 1);
+        const tasks = journey.tasks.filter((t) => t.stage === s.key).sort((a, b) => (vetting ? faFirst(a) - faFirst(b) : 0));
+        const faTask = vetting ? tasks.find((t) => faFirst(t) === 0) : undefined;
         return (
           <section key={s.key} className={cn("overflow-hidden rounded-md border border-line bg-card", s.state === "locked" && "opacity-55")}>
             <StageHeader
@@ -64,6 +77,15 @@ export function StageAccordion({ stages, journey, readOnly, highlightOwner, open
             />
             <div id={id} role="region" aria-labelledby={`${id}-btn`} hidden={!expanded} className="space-y-3 border-t border-line pt-3">
               <p className="px-4 text-sm text-muted">{s.description}</p>
+              {faTask && journey.firstadvantage && s.state !== "locked" && (
+                <Link href={`/journey/task/${faTask.id}`} className="mx-4 flex min-h-14 items-center gap-3 rounded-md border border-line bg-page p-3">
+                  <ShieldCheck aria-hidden className="size-6 shrink-0 text-brand-strong" strokeWidth={1.8} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-xs font-bold text-muted">First Advantage status</span>
+                    <span className="block font-semibold">{FA_LABEL[journey.firstadvantage.status]}</span>
+                  </span>
+                </Link>
+              )}
               {vetting && journey.firstadvantage && (journey.firstadvantage.status === "action_needed" || journey.firstadvantage.status === "failed") && (
                 <Alert className="mx-4" tone={journey.firstadvantage.status === "failed" ? "danger" : "warning"} title="Action needed on your vetting">
                   <p>Your First Advantage check needs attention. Open the vetting task for what to do next.</p>

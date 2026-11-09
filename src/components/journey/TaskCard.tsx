@@ -39,7 +39,25 @@ export function TaskCard({ task, readOnly, highlightOwner, viewerIsStarter = tru
   const highlight = !!highlightOwner && task.owner === highlightOwner;
   const waiting = task.status === "LOCKED" && task.lockedReason;
   const quick = !readOnly && !!onComplete && canQuickComplete(task);
+  // D20: SYSTEM steps are a compact read-only status row for the starter.
+  const compact = viewerIsStarter && task.owner === "SYSTEM";
   const timing = task.status === "DONE" ? "Done" : overdue ? `Overdue, due ${formatShortDate(task.dueDate)}` : `Due ${formatShortDate(task.dueDate)}`;
+  if (compact) {
+    return (
+      <li className="border-t border-line bg-page/60 first:border-t-0">
+        <Link href={`/journey/task/${task.id}`} className="flex min-h-11 items-center gap-3 px-4 py-2 text-sm hover:bg-page">
+          <Tick status={task.status} className="size-5 shrink-0" />
+          <span className="min-w-0 flex-1">
+            <span className={cn("block font-semibold", task.status === "DONE" && "text-muted")}>{task.title}</span>
+            <span className="block text-xs text-muted">
+              <span className="sr-only">Status: </span>
+              {STATUS_META[task.status].label} · Automatic step
+            </span>
+          </span>
+        </Link>
+      </li>
+    );
+  }
   return (
     <li className={cn("border-t border-line first:border-t-0", highlight && "border-l-4 border-l-brand bg-brand-tint")}>
       <Link href={`/journey/task/${task.id}`} className="flex min-h-14 items-start gap-3 px-4 py-3 hover:bg-page">
@@ -48,6 +66,7 @@ export function TaskCard({ task, readOnly, highlightOwner, viewerIsStarter = tru
           <span className={cn("block text-xs font-bold", overdue ? "text-blocked" : "text-muted")}>
             <span className="sr-only">Status: {STATUS_META[task.status].label}. </span>
             {timing} · {TYPE_LABEL[task.type]}
+            {task.optional && <span className="ml-1.5 rounded-full border border-line bg-page px-2 py-px font-bold text-ink">Optional</span>}
           </span>
           <span className={cn("block font-semibold", task.status === "DONE" && "text-muted")}>{task.title}</span>
           {waiting && (
