@@ -18,7 +18,7 @@ import type { NotificationInput } from "@/adapters/notification/types";
 import * as js from "./journey-service";
 
 export class SimulationError extends Error {
-  constructor(message: string, public status: 400 | 404 | 409 = 400) {
+  constructor(message: string, public status: 400 | 403 | 404 | 409 = 400) {
     super(message);
     this.name = "SimulationError";
   }
@@ -415,6 +415,16 @@ async function ensureGuestSignedIn(journeyId: string, ctx: ActorCtx): Promise<st
   return [`Demo: "${t.title}" completed for the starter`];
 }
 
+/**
+ * The destructive demo steps (jump to Day 0, reset) rebuild or bulk-complete a journey, so they only ever run on
+ * the demo starter's journey, never on a real or exited/completed starter picked by id (L1).
+ */
+async function assertDemoStarterJourney(journeyId: string): Promise<void> {
+  const j = await prisma.journey.findUnique({ where: { id: journeyId }, select: { starterId: true } });
+  if (!j) throw new SimulationError("Journey not found", 404);
+  if (j.starterId !== DEMO_STARTER_ID) throw new SimulationError("This demo step only works on the demo starter's journey", 403);
+}
+
 export async function runDemoStep(step: DemoStep, ctx: ActorCtx = {}, journeyId?: string): Promise<DemoResult> {
   const id = journeyId ?? (await demoJourneyId());
   const done = (message: string, changes: string[]): DemoResult => ({ step, journeyId: id, message, changes });
@@ -451,8 +461,10 @@ export async function runDemoStep(step: DemoStep, ctx: ActorCtx = {}, journeyId?
       return done(`System tasks run: account, SailPoint persona, Colleague File ID. ${itUnlocked} IT request task(s) unlocked.`, [...new Set(changes)].concat(diff(before, after).filter((c) => !changes.includes(c))));
     }
     case "jump_day0":
+      await assertDemoStarterJourney(id);
       return done("Jumped to Day 0.", await jumpToDay0(id, ctx));
     case "reset":
+      await assertDemoStarterJourney(id);
       return done("Demo starter reset to the start of the journey.", await resetDemoStarter(id, ctx));
   }
 }
@@ -503,6 +515,9 @@ const templateInputs = async (): Promise<TemplateInput[]> =>
  */
 export async function resetDemoStarter(journeyId: string, ctx: ActorCtx = {}): Promise<string[]> {
   const current = await loadOrThrow(journeyId);
+  if (current.starterId !== DEMO_STARTER_ID && current.status !== "active") {
+    throw new SimulationError(`Journey is ${current.status}; only the demo starter can be reset`, 409);
+  }
   const templates = await templateInputs();
   const now = ctx.now ?? new Date();
   const created = engCreate(templates, {

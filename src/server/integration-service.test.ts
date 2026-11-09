@@ -5,7 +5,7 @@ import * as js from "./journey-service";
 import { getAdapter } from "@/adapters/registry";
 import { ColleagueFileIdMissingError } from "@/adapters/itrequest/types";
 import { signDemoSession, DEMO_COOKIE } from "@/lib/auth/server";
-import { runDemoStep, runReminders, simulate, SimulationError } from "./integration-service";
+import { resetDemoStarter, runDemoStep, runReminders, simulate, SimulationError } from "./integration-service";
 import { GET as simulateList, POST as simulatePost } from "@/app/api/simulate/route";
 import { GET as stateGet } from "@/app/api/simulate/state/route";
 import { POST as tickPost } from "@/app/api/simulate/tick/route";
@@ -112,6 +112,34 @@ describe("system tasks unlock IT requests (FR-3.1 to FR-3.3)", () => {
 });
 
 describe("demo helpers", () => {
+  it("only runs jump_day0 and reset on the demo starter's journey (L1)", async () => {
+    const before = (await js.loadJourney(SAM))!;
+    for (const step of ["jump_day0", "reset"] as const) {
+      await expect(runDemoStep(step, {}, SAM)).rejects.toMatchObject({ name: "SimulationError", status: 403 });
+    }
+    const after = (await js.loadJourney(SAM))!;
+    expect(after.currentStage).toBe(before.currentStage);
+    expect((await js.listEvents(SAM)).map((e) => e.type)).not.toContain("DEMO_RESET");
+  });
+
+  it("refuses to reset an exited journey that is not the demo starter's (L1)", async () => {
+    await prisma.journey.update({ where: { id: SAM }, data: { status: "exited" } }); // test setup only
+    await expect(resetDemoStarter(SAM)).rejects.toMatchObject({ status: 409 });
+  });
+
+  it("returns 403 from the route for another starter's journey (L1)", async () => {
+    const admin = (await prisma.user.findMany()).find((u) => (u.roles as string[]).includes("ADMIN"))!.id;
+    const r = await demoPost(
+      new Request("http://localhost/api/simulate/demo", {
+        method: "POST",
+        headers: { cookie: `${DEMO_COOKIE}=${await signDemoSession(admin)}`, "content-type": "application/json" },
+        body: JSON.stringify({ step: "reset", journeyId: SAM }),
+      }),
+      undefined,
+    );
+    expect(r.status).toBe(403);
+  });
+
   it("jumps to Day 0 and resets to the start", async () => {
     await runDemoStep("jump_day0", {}, ALEX);
     expect((await js.loadJourney(ALEX))!.currentStage).toBe("DAY_0");
