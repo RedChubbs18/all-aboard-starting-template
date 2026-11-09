@@ -24,7 +24,9 @@
       "key": "dana-sample",
       "name": "Dana Sample",
       "email": "dana.sample@example.test",
-      "roles": ["LM"],
+      "roles": [
+        "LM"
+      ],
       "teamKey": "dwe",
       "teamRole": "Line Manager",
       "jobTitle": "Engineering Manager",
@@ -37,7 +39,9 @@
       "key": "kai-demo",
       "name": "Kai Demo",
       "email": "kai.demo@example.test",
-      "roles": ["BUDDY"],
+      "roles": [
+        "BUDDY"
+      ],
       "teamKey": "dwe",
       "teamRole": "Team member",
       "jobTitle": "Senior Engineer",
@@ -50,7 +54,9 @@
       "key": "mira-placeholder",
       "name": "Mira Placeholder",
       "email": "mira.placeholder@example.test",
-      "roles": ["BUDDY"],
+      "roles": [
+        "BUDDY"
+      ],
       "teamKey": "dwe",
       "teamRole": "Team member",
       "jobTitle": "Engineer",
@@ -76,7 +82,9 @@
       "key": "lena-example",
       "name": "Lena Example",
       "email": "lena.example@example.test",
-      "roles": ["BUDDY"],
+      "roles": [
+        "BUDDY"
+      ],
       "teamKey": "dwe",
       "teamRole": "Team member",
       "jobTitle": "Engineer",
@@ -89,7 +97,9 @@
       "key": "owen-placeholder",
       "name": "Owen Placeholder",
       "email": "owen.placeholder@example.test",
-      "roles": ["LM"],
+      "roles": [
+        "LM"
+      ],
       "teamKey": "cia",
       "teamRole": "Line Manager",
       "jobTitle": "Analytics Lead",
@@ -102,7 +112,9 @@
       "key": "rosa-fields",
       "name": "Rosa Fields",
       "email": "rosa.fields@example.test",
-      "roles": ["BUDDY"],
+      "roles": [
+        "BUDDY"
+      ],
       "teamKey": "cia",
       "teamRole": "Team member",
       "jobTitle": "Data Analyst",
@@ -115,7 +127,9 @@
       "key": "jin-park",
       "name": "Jin Park",
       "email": "jin.park@example.test",
-      "roles": ["BUDDY"],
+      "roles": [
+        "BUDDY"
+      ],
       "teamKey": "cia",
       "teamRole": "Team member",
       "jobTitle": "Insight Analyst",
@@ -141,7 +155,9 @@
       "key": "harriet-demo",
       "name": "Harriet Demo",
       "email": "harriet.demo@example.test",
-      "roles": ["LM"],
+      "roles": [
+        "LM"
+      ],
       "teamKey": "ops",
       "teamRole": "Line Manager",
       "jobTitle": "Operations Manager",
@@ -154,7 +170,9 @@
       "key": "felix-ramos",
       "name": "Felix Ramos",
       "email": "felix.ramos@example.test",
-      "roles": ["BUDDY"],
+      "roles": [
+        "BUDDY"
+      ],
       "teamKey": "ops",
       "teamRole": "Team member",
       "jobTitle": "Operations Analyst",
@@ -167,7 +185,9 @@
       "key": "grace-ilori",
       "name": "Grace Ilori",
       "email": "grace.ilori@example.test",
-      "roles": ["BUDDY"],
+      "roles": [
+        "BUDDY"
+      ],
       "teamKey": "ops",
       "teamRole": "Team member",
       "jobTitle": "Team Lead",
@@ -193,7 +213,9 @@
       "key": "imogen-sample",
       "name": "Imogen Sample",
       "email": "imogen.sample@example.test",
-      "roles": ["PNP"],
+      "roles": [
+        "PNP"
+      ],
       "teamKey": null,
       "teamRole": null,
       "jobTitle": "P&P Onboarding Lead",
@@ -206,7 +228,9 @@
       "key": "rhys-example",
       "name": "Rhys Example",
       "email": "rhys.example@example.test",
-      "roles": ["PNP"],
+      "roles": [
+        "PNP"
+      ],
       "teamKey": null,
       "teamRole": null,
       "jobTitle": "P&P Analyst",
@@ -219,7 +243,9 @@
       "key": "ada-sample",
       "name": "Ada Sample",
       "email": "ada.sample@example.test",
-      "roles": ["ADMIN"],
+      "roles": [
+        "ADMIN"
+      ],
       "teamKey": null,
       "teamRole": null,
       "jobTitle": "Platform Administrator (demo)",
@@ -232,7 +258,9 @@
       "key": "alex-morgan",
       "name": "Alex Morgan",
       "email": "alex.morgan@example.test",
-      "roles": ["STARTER"],
+      "roles": [
+        "STARTER"
+      ],
       "teamKey": "dwe",
       "teamRole": null,
       "jobTitle": "Software Engineer",
@@ -245,7 +273,9 @@
       "key": "sam-ellery",
       "name": "Sam Ellery",
       "email": "sam.ellery@example.test",
-      "roles": ["STARTER"],
+      "roles": [
+        "STARTER"
+      ],
       "teamKey": "cia",
       "teamRole": null,
       "jobTitle": "Data Analyst",
@@ -258,7 +288,9 @@
       "key": "theo-fraser",
       "name": "Theo Fraser",
       "email": "theo.fraser@example.test",
-      "roles": ["STARTER"],
+      "roles": [
+        "STARTER"
+      ],
       "teamKey": "cia",
       "teamRole": null,
       "jobTitle": "Insight Analyst",
@@ -271,7 +303,9 @@
       "key": "nadia-brooks",
       "name": "Nadia Brooks",
       "email": "nadia.brooks@example.test",
-      "roles": ["STARTER"],
+      "roles": [
+        "STARTER"
+      ],
       "teamKey": "ops",
       "teamRole": null,
       "jobTitle": "Operations Analyst",
@@ -284,7 +318,9 @@
       "key": "ben-carver",
       "name": "Ben Carver",
       "email": "ben.carver@example.test",
-      "roles": ["STARTER"],
+      "roles": [
+        "STARTER"
+      ],
       "teamKey": "dwe",
       "teamRole": null,
       "jobTitle": "Engineer",
@@ -297,7 +333,9 @@
       "key": "hana-lindqvist",
       "name": "Hana Lindqvist",
       "email": "hana.lindqvist@example.test",
-      "roles": ["STARTER"],
+      "roles": [
+        "STARTER"
+      ],
       "teamKey": "cia",
       "teamRole": null,
       "jobTitle": "Data Analyst",
@@ -310,7 +348,9 @@
       "key": "jordan-price",
       "name": "Jordan Price",
       "email": "jordan.price@example.test",
-      "roles": ["STARTER"],
+      "roles": [
+        "STARTER"
+      ],
       "teamKey": "dwe",
       "teamRole": null,
       "jobTitle": "Platform Engineer",
@@ -323,7 +363,9 @@
       "key": "mia-chen",
       "name": "Mia Chen",
       "email": "mia.chen@example.test",
-      "roles": ["STARTER"],
+      "roles": [
+        "STARTER"
+      ],
       "teamKey": "cia",
       "teamRole": null,
       "jobTitle": "Insight Analyst",
@@ -336,7 +378,9 @@
       "key": "lucy-adebayo",
       "name": "Lucy Adebayo",
       "email": "lucy.adebayo@example.test",
-      "roles": ["STARTER"],
+      "roles": [
+        "STARTER"
+      ],
       "teamKey": "ops",
       "teamRole": null,
       "jobTitle": "Team Lead (trainee)",
@@ -349,7 +393,9 @@
       "key": "oscar-reyes",
       "name": "Oscar Reyes",
       "email": "oscar.reyes@example.test",
-      "roles": ["STARTER"],
+      "roles": [
+        "STARTER"
+      ],
       "teamKey": "dwe",
       "teamRole": null,
       "jobTitle": "Engineer",
@@ -362,7 +408,9 @@
       "key": "freya-lind",
       "name": "Freya Lind",
       "email": "freya.lind@example.test",
-      "roles": ["STARTER"],
+      "roles": [
+        "STARTER"
+      ],
       "teamKey": "ops",
       "teamRole": null,
       "jobTitle": "Operations Analyst",
@@ -375,7 +423,9 @@
       "key": "elena-varga",
       "name": "Elena Varga",
       "email": "elena.varga@example.test",
-      "roles": ["STARTER"],
+      "roles": [
+        "STARTER"
+      ],
       "teamKey": "dwe",
       "teamRole": null,
       "jobTitle": "Engineer",
@@ -400,8 +450,14 @@
       "completedAt": null,
       "hireviewStatus": "NOT_STARTED",
       "taskStates": [
-        { "templateKey": "guest-invite-sent", "status": "DONE" },
-        { "templateKey": "allocate-buddy", "status": "DONE" }
+        {
+          "templateKey": "guest-invite-sent",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "allocate-buddy",
+          "status": "DONE"
+        }
       ]
     },
     {
@@ -418,10 +474,23 @@
       "completedAt": null,
       "hireviewStatus": "ACTION_NEEDED",
       "taskStates": [
-        { "templateKey": "guest-invite-sent", "status": "DONE" },
-        { "templateKey": "guest-sign-in", "status": "DONE" },
-        { "templateKey": "allocate-buddy", "status": "DONE" },
-        { "templateKey": "complete-vetting-steps", "status": "BLOCKED", "blockedReason": "HireView action needed" }
+        {
+          "templateKey": "guest-invite-sent",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "guest-sign-in",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "allocate-buddy",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "complete-vetting-steps",
+          "status": "BLOCKED",
+          "blockedReason": "First Advantage action needed"
+        }
       ]
     },
     {
@@ -433,7 +502,7 @@
       "startDate": "2026-11-30",
       "currentStage": "PEV",
       "status": "exited",
-      "exitReason": "WITHDRAWN",
+      "exitReason": "ACCEPTED_ANOTHER_OFFER",
       "exitedAt": "2026-11-06",
       "completedAt": null,
       "hireviewStatus": "IN_PROGRESS",
@@ -453,15 +522,42 @@
       "completedAt": null,
       "hireviewStatus": "CLEARED",
       "taskStates": [
-        { "templateKey": "guest-invite-sent", "status": "DONE" },
-        { "templateKey": "guest-sign-in", "status": "DONE" },
-        { "templateKey": "allocate-buddy", "status": "DONE" },
-        { "templateKey": "hireview-vetting-status", "status": "DONE" },
-        { "templateKey": "internal-account-created", "status": "DONE" },
-        { "templateKey": "sailpoint-persona-applied", "status": "DONE" },
-        { "templateKey": "colleague-file-id-created", "status": "DONE" },
-        { "templateKey": "propose-day-0-arrangements", "status": "TODO" },
-        { "templateKey": "agree-pre-start-check-ins", "status": "TODO" }
+        {
+          "templateKey": "guest-invite-sent",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "guest-sign-in",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "allocate-buddy",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "hireview-vetting-status",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "internal-account-created",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "sailpoint-persona-applied",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "colleague-file-id-created",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "propose-day-0-arrangements",
+          "status": "TODO"
+        },
+        {
+          "templateKey": "agree-pre-start-check-ins",
+          "status": "TODO"
+        }
       ]
     },
     {

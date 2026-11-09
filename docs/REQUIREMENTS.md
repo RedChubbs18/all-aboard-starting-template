@@ -2,6 +2,8 @@
 
 Provided by Team 05 on 2026-11-09. FR references used throughout the build point here.
 
+> **Corrections since the brief:** see `docs/DECISIONS.md` D9 to D15. In particular, "HireView" below means **First Advantage** (D9), and the Colleague File ID comes from SailPoint (D11).
+
 ## 1. Purpose
 
 Build one centralised, mobile-first web app that guides a new colleague from conditional offer through Day 30. It pulls the scattered parts of onboarding (access, vetting, equipment, bookings, training, team intro, goals) into one place, with a gamified journey for the starter, a dashboard for line managers (LM), MI for People & Places (P&P), and an admin interface.

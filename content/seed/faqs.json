@@ -72,14 +72,14 @@
   {
     "id": "faq-11",
     "question": "What if my vetting is delayed?",
-    "answer": "Vetting timescales vary. Check your status on the vetting task. If it says Action needed, complete the steps in HireView (https://example.test/hireview, placeholder). You get reminders until it is done. If the status hasn't changed and you are worried, contact P&P through the Teams chat link on the PEV page. If vetting is not cleared in time, your start date may move (example).",
+    "answer": "Vetting timescales vary. Check your status on the vetting task. If it says Action needed, complete the steps in First Advantage (https://example.test/hireview, placeholder). You get reminders until it is done. If the status hasn't changed and you are worried, contact P&P through the Teams chat link on the PEV page. If vetting is not cleared in time, your start date may move (example).",
     "tags": ["vetting", "delay", "delayed", "pev", "hireview", "status", "start date", "reminder", "late"],
     "sourceSlug": "pev-vetting-explainer"
   },
   {
     "id": "faq-12",
     "question": "Where do I send vetting documents?",
-    "answer": "Upload vetting documents only through HireView, using the link on your vetting task. Don't send documents by email or in Teams chat. If you can't upload, contact P&P through the Teams chat link on the PEV page.",
+    "answer": "Upload vetting documents only through First Advantage, using the link on your vetting task. Don't send documents by email or in Teams chat. If you can't upload, contact P&P through the Teams chat link on the PEV page.",
     "tags": ["vetting", "documents", "upload", "hireview", "email", "send", "pev"],
     "sourceSlug": "pev-vetting-explainer"
   },

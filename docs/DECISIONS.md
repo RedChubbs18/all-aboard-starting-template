@@ -9,6 +9,13 @@
 | D5 | Git | Commit and push freely to the fork. Run a secret scan before every push. | 2026-11-09 |
 | D6 | Roles | Roles are stored in the app DB, keyed by Entra `oid`, not Entra app roles. That way the admin UI (FR-AD.3) can manage them. | 2026-11-09 |
 | D8 | AI model | `claude-opus-5-5` at effort `low` for both the chatbot and the photo check. Uses structured outputs and prompt-caches the FAQ corpus. Server-side refusal fallbacks (`fallbacks: "default"`) are on. If the API errors or there's no key, it falls back to the mock. | 2026-11-09 |
+| D9 | PEV provider | Pre-employment vetting uses **First Advantage**, not HireView. User-facing text says First Advantage. The code identifiers (`hireview` adapter key, `hireviewStatus`) are renamed to `firstadvantage` in one sweep after integration. | 2026-11-09 |
+| D10 | Stage meanings | Conditional offer: the colleague has accepted the role. Vetting (PEV): the colleague has received the First Advantage request to enter their vetting information. Unconditional offer: PEV is complete **and** all other offer conditions are met (new gating task `offer-conditions-met`, owned by P&P). Day 0: first day. Day 30: day 30 onwards. A First Advantage "cleared" result alone must not advance the stage; it completes the vetting task, and the stage advances when all PEV gating tasks are done. | 2026-11-09 |
+| D11 | Colleague File ID | Generated automatically by SailPoint (IAM), so adapterKey is `sailpoint`, not Workday. | 2026-11-09 |
+| D12 | Photo recertification | Both P&P and the starter's LM can override (recertify) a rejected pass photo. | 2026-11-09 |
+| D13 | Offer-to-start gap | Can be up to 3 months. Due dates are computed from the start date and clamped so none falls before the journey was created (offer acceptance) plus a small grace period. | 2026-11-09 |
+| D14 | Exit reasons | Wherever possible the reason comes from the colleague. A starter can withdraw from the app, choosing a reason category and optionally adding a short comment (with a warning not to include personal details). Categories: `ACCEPTED_ANOTHER_OFFER, ROLE_NOT_RIGHT, PERSONAL_CIRCUMSTANCES, PAY_OR_BENEFITS, LOCATION_OR_HYBRID, ONBOARDING_EXPERIENCE, PREFER_NOT_TO_SAY, OTHER`, plus P&P-recorded `FAILED_PEV, OFFER_WITHDRAWN_BY_LBG, NO_SHOW`. Also stored: who supplied the reason (COLLEAGUE or PNP). | 2026-11-09 |
+| D15 | Buddy | Buddies sign in with their own access. They get a read-only view of their starter, plus a chat link, and can complete BUDDY-owned tasks only. | 2026-11-09 |
 | D7 | Horse graphics | Original placeholder SVGs until the team supplies official assets. | 2026-11-09 |
 
 ## Still open

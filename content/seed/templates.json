@@ -22,7 +22,9 @@
     "owner": "STARTER",
     "type": "ACTION",
     "dueOffsetDays": -27,
-    "dependsOn": ["guest-invite-sent"],
+    "dependsOn": [
+      "guest-invite-sent"
+    ],
     "source": "CORE",
     "adapterKey": null,
     "gating": true,
@@ -37,7 +39,9 @@
     "owner": "LM",
     "type": "ACTION",
     "dueOffsetDays": -26,
-    "dependsOn": ["guest-invite-sent"],
+    "dependsOn": [
+      "guest-invite-sent"
+    ],
     "source": "CORE",
     "adapterKey": null,
     "gating": false,
@@ -52,7 +56,9 @@
     "owner": "BUDDY",
     "type": "ACTION",
     "dueOffsetDays": -23,
-    "dependsOn": ["allocate-buddy"],
+    "dependsOn": [
+      "allocate-buddy"
+    ],
     "source": "CORE",
     "adapterKey": null,
     "gating": false,
@@ -67,7 +73,9 @@
     "owner": "STARTER",
     "type": "INFO",
     "dueOffsetDays": -27,
-    "dependsOn": ["guest-sign-in"],
+    "dependsOn": [
+      "guest-sign-in"
+    ],
     "source": "CORE",
     "adapterKey": null,
     "gating": false,
@@ -82,7 +90,9 @@
     "owner": "STARTER",
     "type": "INFO",
     "dueOffsetDays": -25,
-    "dependsOn": ["guest-sign-in"],
+    "dependsOn": [
+      "guest-sign-in"
+    ],
     "source": "CORE",
     "adapterKey": null,
     "gating": false,
@@ -97,7 +107,9 @@
     "owner": "STARTER",
     "type": "INFO",
     "dueOffsetDays": -24,
-    "dependsOn": ["allocate-buddy"],
+    "dependsOn": [
+      "allocate-buddy"
+    ],
     "source": "CORE",
     "adapterKey": null,
     "gating": false,
@@ -112,7 +124,9 @@
     "owner": "STARTER",
     "type": "ACTION",
     "dueOffsetDays": -24,
-    "dependsOn": ["allocate-buddy"],
+    "dependsOn": [
+      "allocate-buddy"
+    ],
     "source": "CORE",
     "adapterKey": null,
     "gating": false,
@@ -127,7 +141,9 @@
     "owner": "STARTER",
     "type": "INFO",
     "dueOffsetDays": -22,
-    "dependsOn": ["guest-sign-in"],
+    "dependsOn": [
+      "guest-sign-in"
+    ],
     "source": "CORE",
     "adapterKey": null,
     "gating": false,
@@ -136,13 +152,15 @@
   },
   {
     "key": "complete-vetting-steps",
-    "title": "Complete your vetting steps in HireView",
-    "description": "Open HireView and complete every step it lists. Upload documents only there.",
+    "title": "Complete your vetting steps in First Advantage",
+    "description": "Open First Advantage and complete every step it lists. Upload documents only there.",
     "stage": "PEV",
     "owner": "STARTER",
     "type": "ACTION",
     "dueOffsetDays": -23,
-    "dependsOn": ["guest-sign-in"],
+    "dependsOn": [
+      "guest-sign-in"
+    ],
     "source": "CORE",
     "adapterKey": "hireview",
     "gating": false,
@@ -151,17 +169,36 @@
   },
   {
     "key": "hireview-vetting-status",
-    "title": "Vetting status (HireView)",
-    "description": "Your vetting status from HireView. Moves your journey on once it is cleared.",
+    "title": "Vetting status (First Advantage)",
+    "description": "Your vetting status from First Advantage. Moves your journey on once it is cleared.",
     "stage": "PEV",
     "owner": "SYSTEM",
     "type": "INTEGRATION_STATUS",
     "dueOffsetDays": -23,
-    "dependsOn": ["guest-sign-in"],
+    "dependsOn": [
+      "guest-sign-in"
+    ],
     "source": "CORE",
     "adapterKey": "hireview",
     "gating": true,
     "contentSlug": "pev-vetting-explainer",
+    "condition": null
+  },
+  {
+    "key": "offer-conditions-met",
+    "title": "Other offer conditions met",
+    "description": "P&P confirms any other conditions in your offer are met (for example references). Together with a complete vetting result, this makes your offer unconditional.",
+    "stage": "PEV",
+    "owner": "PNP",
+    "type": "ACTION",
+    "dueOffsetDays": -21,
+    "dependsOn": [
+      "guest-sign-in"
+    ],
+    "source": "CORE",
+    "adapterKey": null,
+    "gating": true,
+    "contentSlug": null,
     "condition": null
   },
   {
@@ -172,7 +209,9 @@
     "owner": "SYSTEM",
     "type": "INTEGRATION_STATUS",
     "dueOffsetDays": -23,
-    "dependsOn": ["complete-vetting-steps"],
+    "dependsOn": [
+      "complete-vetting-steps"
+    ],
     "source": "CORE",
     "adapterKey": "notification",
     "gating": false,
@@ -187,7 +226,9 @@
     "owner": "SYSTEM",
     "type": "INTEGRATION_STATUS",
     "dueOffsetDays": -21,
-    "dependsOn": ["hireview-vetting-status"],
+    "dependsOn": [
+      "hireview-vetting-status"
+    ],
     "source": "CORE",
     "adapterKey": "identity",
     "gating": true,
@@ -202,7 +243,9 @@
     "owner": "SYSTEM",
     "type": "INTEGRATION_STATUS",
     "dueOffsetDays": -20,
-    "dependsOn": ["internal-account-created"],
+    "dependsOn": [
+      "internal-account-created"
+    ],
     "source": "CORE",
     "adapterKey": "sailpoint",
     "gating": true,
@@ -212,14 +255,16 @@
   {
     "key": "colleague-file-id-created",
     "title": "Colleague File ID created",
-    "description": "Your Colleague File ID is created in Workday. IT requests unlock once it exists.",
+    "description": "Your Colleague File ID is created in SailPoint. IT requests unlock once it exists.",
     "stage": "UNCONDITIONAL_OFFER",
     "owner": "SYSTEM",
     "type": "INTEGRATION_STATUS",
     "dueOffsetDays": -20,
-    "dependsOn": ["hireview-vetting-status"],
+    "dependsOn": [
+      "hireview-vetting-status"
+    ],
     "source": "CORE",
-    "adapterKey": "workday",
+    "adapterKey": "sailpoint",
     "gating": true,
     "contentSlug": "it-requests-explainer",
     "condition": null
@@ -232,7 +277,9 @@
     "owner": "STARTER",
     "type": "CHECKLIST",
     "dueOffsetDays": -5,
-    "dependsOn": ["internal-account-created"],
+    "dependsOn": [
+      "internal-account-created"
+    ],
     "source": "CORE",
     "adapterKey": null,
     "gating": true,
@@ -247,7 +294,9 @@
     "owner": "STARTER",
     "type": "ACTION",
     "dueOffsetDays": -19,
-    "dependsOn": ["colleague-file-id-created"],
+    "dependsOn": [
+      "colleague-file-id-created"
+    ],
     "source": "CORE",
     "adapterKey": "itrequest",
     "gating": false,
@@ -262,7 +311,9 @@
     "owner": "LM",
     "type": "CHECKLIST",
     "dueOffsetDays": -14,
-    "dependsOn": ["guest-invite-sent"],
+    "dependsOn": [
+      "guest-invite-sent"
+    ],
     "source": "CORE",
     "adapterKey": null,
     "gating": false,
@@ -277,7 +328,9 @@
     "owner": "STARTER",
     "type": "ORDER",
     "dueOffsetDays": -16,
-    "dependsOn": ["internal-account-created"],
+    "dependsOn": [
+      "internal-account-created"
+    ],
     "source": "CORE",
     "adapterKey": "equipment",
     "gating": true,
@@ -292,7 +345,9 @@
     "owner": "LM",
     "type": "ACTION",
     "dueOffsetDays": -14,
-    "dependsOn": ["guest-invite-sent"],
+    "dependsOn": [
+      "guest-invite-sent"
+    ],
     "source": "CORE",
     "adapterKey": null,
     "gating": false,
@@ -307,7 +362,9 @@
     "owner": "STARTER",
     "type": "ACTION",
     "dueOffsetDays": -13,
-    "dependsOn": ["propose-day-0-arrangements"],
+    "dependsOn": [
+      "propose-day-0-arrangements"
+    ],
     "source": "CORE",
     "adapterKey": null,
     "gating": false,
@@ -322,7 +379,9 @@
     "owner": "STARTER",
     "type": "BOOKING",
     "dueOffsetDays": -12,
-    "dependsOn": ["internal-account-created"],
+    "dependsOn": [
+      "internal-account-created"
+    ],
     "source": "CORE",
     "adapterKey": "booking",
     "gating": false,
@@ -337,7 +396,9 @@
     "owner": "STARTER",
     "type": "ACTION",
     "dueOffsetDays": -12,
-    "dependsOn": ["internal-account-created"],
+    "dependsOn": [
+      "internal-account-created"
+    ],
     "source": "CORE",
     "adapterKey": "photocheck",
     "gating": false,
@@ -352,7 +413,9 @@
     "owner": "SYSTEM",
     "type": "INTEGRATION_STATUS",
     "dueOffsetDays": -11,
-    "dependsOn": ["upload-pass-photo"],
+    "dependsOn": [
+      "upload-pass-photo"
+    ],
     "source": "CORE",
     "adapterKey": "photocheck",
     "gating": false,
@@ -362,12 +425,14 @@
   {
     "key": "photo-check-override",
     "title": "Review photo check (P&P override)",
-    "description": "The photo check failed. P&P can review the photo and override the check.",
+    "description": "If the automatic photo check rejects a photo that is actually fine, P&P or the line manager can review and recertify it so the pass order can go ahead.",
     "stage": "UNCONDITIONAL_OFFER",
     "owner": "PNP",
     "type": "ACTION",
     "dueOffsetDays": -11,
-    "dependsOn": ["upload-pass-photo"],
+    "dependsOn": [
+      "upload-pass-photo"
+    ],
     "source": "CORE",
     "adapterKey": "photocheck",
     "gating": false,
@@ -382,7 +447,10 @@
     "owner": "SYSTEM",
     "type": "ORDER",
     "dueOffsetDays": -7,
-    "dependsOn": ["photo-check-passed", "confirm-day-0-arrangements"],
+    "dependsOn": [
+      "photo-check-passed",
+      "confirm-day-0-arrangements"
+    ],
     "source": "CORE",
     "adapterKey": "pass",
     "gating": false,
@@ -397,7 +465,9 @@
     "owner": "SYSTEM",
     "type": "INTEGRATION_STATUS",
     "dueOffsetDays": -10,
-    "dependsOn": ["internal-account-created"],
+    "dependsOn": [
+      "internal-account-created"
+    ],
     "source": "CORE",
     "adapterKey": null,
     "gating": false,
@@ -412,7 +482,9 @@
     "owner": "LM",
     "type": "ACTION",
     "dueOffsetDays": -10,
-    "dependsOn": ["guest-invite-sent"],
+    "dependsOn": [
+      "guest-invite-sent"
+    ],
     "source": "CORE",
     "adapterKey": null,
     "gating": false,
@@ -427,7 +499,9 @@
     "owner": "LM",
     "type": "CHECKLIST",
     "dueOffsetDays": -3,
-    "dependsOn": ["guest-invite-sent"],
+    "dependsOn": [
+      "guest-invite-sent"
+    ],
     "source": "CORE",
     "adapterKey": null,
     "gating": false,
@@ -442,7 +516,9 @@
     "owner": "STARTER",
     "type": "TRAINING",
     "dueOffsetDays": -7,
-    "dependsOn": ["internal-account-created"],
+    "dependsOn": [
+      "internal-account-created"
+    ],
     "source": "CORE",
     "adapterKey": "workday",
     "gating": false,
@@ -457,7 +533,9 @@
     "owner": "STARTER",
     "type": "ACTION",
     "dueOffsetDays": 0,
-    "dependsOn": ["device-choice-submitted"],
+    "dependsOn": [
+      "device-choice-submitted"
+    ],
     "source": "CORE",
     "adapterKey": "equipment",
     "gating": true,
@@ -472,7 +550,9 @@
     "owner": "STARTER",
     "type": "INFO",
     "dueOffsetDays": 0,
-    "dependsOn": ["confirm-day-0-arrangements"],
+    "dependsOn": [
+      "confirm-day-0-arrangements"
+    ],
     "source": "CORE",
     "adapterKey": null,
     "gating": false,
@@ -502,7 +582,9 @@
     "owner": "STARTER",
     "type": "INFO",
     "dueOffsetDays": 0,
-    "dependsOn": ["agree-pre-start-check-ins"],
+    "dependsOn": [
+      "agree-pre-start-check-ins"
+    ],
     "source": "CORE",
     "adapterKey": null,
     "gating": false,
@@ -517,7 +599,9 @@
     "owner": "STARTER",
     "type": "BOOKING",
     "dueOffsetDays": 0,
-    "dependsOn": ["book-induction"],
+    "dependsOn": [
+      "book-induction"
+    ],
     "source": "CORE",
     "adapterKey": "booking",
     "gating": false,
@@ -532,7 +616,9 @@
     "owner": "STARTER",
     "type": "TRAINING",
     "dueOffsetDays": 1,
-    "dependsOn": ["view-mandatory-training"],
+    "dependsOn": [
+      "view-mandatory-training"
+    ],
     "source": "CORE",
     "adapterKey": "workday",
     "gating": false,
@@ -547,7 +633,9 @@
     "owner": "STARTER",
     "type": "ORDER",
     "dueOffsetDays": 1,
-    "dependsOn": ["read-workspace-info"],
+    "dependsOn": [
+      "read-workspace-info"
+    ],
     "source": "CORE",
     "adapterKey": "equipment",
     "gating": false,
@@ -577,7 +665,9 @@
     "owner": "LM",
     "type": "ACTION",
     "dueOffsetDays": 5,
-    "dependsOn": ["draft-30-60-90-goals"],
+    "dependsOn": [
+      "draft-30-60-90-goals"
+    ],
     "source": "CORE",
     "adapterKey": null,
     "gating": true,
@@ -622,7 +712,9 @@
     "owner": "STARTER",
     "type": "INFO",
     "dueOffsetDays": 30,
-    "dependsOn": ["cascade-performance-goals"],
+    "dependsOn": [
+      "cascade-performance-goals"
+    ],
     "source": "CORE",
     "adapterKey": null,
     "gating": false,
@@ -652,7 +744,9 @@
     "owner": "LM",
     "type": "ACTION",
     "dueOffsetDays": -14,
-    "dependsOn": ["colleague-file-id-created"],
+    "dependsOn": [
+      "colleague-file-id-created"
+    ],
     "source": "TEAM",
     "teamKey": "dwe",
     "adapterKey": "itrequest",
@@ -668,7 +762,9 @@
     "owner": "LM",
     "type": "ACTION",
     "dueOffsetDays": -14,
-    "dependsOn": ["colleague-file-id-created"],
+    "dependsOn": [
+      "colleague-file-id-created"
+    ],
     "source": "TEAM",
     "teamKey": "dwe",
     "adapterKey": "itrequest",
@@ -684,7 +780,9 @@
     "owner": "LM",
     "type": "ACTION",
     "dueOffsetDays": -10,
-    "dependsOn": ["internal-account-created"],
+    "dependsOn": [
+      "internal-account-created"
+    ],
     "source": "TEAM",
     "teamKey": "dwe",
     "adapterKey": null,
@@ -700,7 +798,9 @@
     "owner": "LM",
     "type": "CHECKLIST",
     "dueOffsetDays": -7,
-    "dependsOn": ["forward-team-calls"],
+    "dependsOn": [
+      "forward-team-calls"
+    ],
     "source": "TEAM",
     "teamKey": "dwe",
     "adapterKey": null,
@@ -716,7 +816,9 @@
     "owner": "LM",
     "type": "ACTION",
     "dueOffsetDays": -3,
-    "dependsOn": ["allocate-buddy"],
+    "dependsOn": [
+      "allocate-buddy"
+    ],
     "source": "TEAM",
     "teamKey": "dwe",
     "adapterKey": null,
