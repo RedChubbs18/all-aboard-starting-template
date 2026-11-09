@@ -42,6 +42,9 @@ Optional `prisma/seed.local.json` (gitignored) maps seeded users to real identit
 Set by `AUTH_MODE`.
 
 - `demo` (the `.env.example` default). The home page lists every seeded user. Picking one sets a signed, httpOnly `demo_session` cookie (`DEMO_SESSION_SECRET`). Demo mode is active only when the variable is exactly `demo`; any other value, or unset, means Entra. The persona endpoints return 404 outside demo mode.
+  - Production builds (`npm start`) ignore `AUTH_MODE=demo` unless `ALLOW_DEMO_MODE=1` is also set.
+  - An empty, short or `change-me` `DEMO_SESSION_SECRET` is never used. The server uses a random per-process key instead (with a one-line warning), so demo sessions reset when it restarts.
+  - Demo sign-in works freely only on this computer (`localhost`). Other devices get 403 unless `DEMO_PIN` is set, and then the persona switcher asks for the PIN. After 10 wrong PINs in 10 minutes, sign-in is paused.
 - `entra`. Set `NEXT_PUBLIC_ENTRA_CLIENT_ID`, `NEXT_PUBLIC_ENTRA_TENANT_ID` (the tenant GUID, used as the authority so B2B guests work) and `NEXT_PUBLIC_ENTRA_REDIRECT_URI` (a SPA redirect URI on the app registration). The browser signs in with MSAL and sends the ID token as `Authorization: Bearer`. The server verifies signature, issuer, audience (client id or `api://client id`), expiry and `tid` against the tenant JWKS, maps `oid` to `User.entraOid`, and loads roles from the database. A valid Entra user with no `User` row sees the "not onboarded yet" page (HTTP 403 `not_onboarded`). No Entra app registration exists yet; infra creates it later.
 
 Roles: STARTER, BUDDY, LM, PNP, ADMIN (a user can hold several, stored in `User.roles`). Visibility rules are in `src/lib/auth/access.ts`: LM sees journeys where `lmId` is self, buddy is read-only on their allocated starter, starter sees only their own journey, PNP and ADMIN see all.
@@ -62,11 +65,12 @@ Roles: STARTER, BUDDY, LM, PNP, ADMIN (a user can hold several, stored in `User.
 
 1. Find the laptop's IP: `ipconfig getifaddr en0` on macOS.
 2. Add it to your local `.env`: `ALLOWED_DEV_ORIGINS=<that-ip>`. Don't commit it.
-3. Run `npm run dev:lan`, then open `http://<that-ip>:3000` on the phone.
+3. In demo mode, also set `DEMO_PIN=<6+ digits>` in `.env`. Without it, other devices get 403 from the persona switcher. Venue Wi-Fi is shared, and demo mode can sign anyone in as ADMIN.
+4. Run `npm run dev:lan`, then open `http://<that-ip>:3000` on the phone.
 
 Over plain `http://<ip>`:
 
-- **Demo mode (`AUTH_MODE=demo`) works.** The persona switcher and every page are fine.
+- **Demo mode (`AUTH_MODE=demo`) works with the PIN.** The persona switcher shows a PIN field. With both `ALLOWED_DEV_ORIGINS` and `DEMO_PIN` set, the laptop asks for the PIN too, because the `Host` header that marks a request as local can be faked by other devices on the network.
 - **Entra sign-in doesn't work.** Entra accepts `http` redirect URIs only for `localhost`, and MSAL needs a secure context.
 - **No PWA install or service worker.** Browsers allow these only on HTTPS or `localhost`.
 

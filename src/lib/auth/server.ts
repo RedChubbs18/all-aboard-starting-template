@@ -5,8 +5,10 @@
  *    against the tenant JWKS (issuer + audience + tid), then `oid` mapped to a User row.
  * Roles always come from the database (User.roles), never from the token.
  */
+import { randomBytes } from "node:crypto";
 import { SignJWT, createRemoteJWKSet, jwtVerify, type JWTPayload, type JWTVerifyGetKey } from "jose";
 import { prisma } from "@/server/db";
+import { csrfCheck, type CsrfOptions } from "./csrf";
 import { parseRoles, hasAnyRole, type Role, type SessionUser } from "./roles";
 
 export class AuthError extends Error {
@@ -20,11 +22,29 @@ export class AuthError extends Error {
 }
 
 export const DEMO_COOKIE = "demo_session";
-const DEMO_PLACEHOLDER = "dev-only-change-me-dev-only-change-me";
 
 export type AuthMode = "demo" | "entra";
-/** Demo mode never activates unless the variable is explicitly "demo". */
-export const authMode = (): AuthMode => (process.env.AUTH_MODE === "demo" ? "demo" : "entra");
+
+const g = globalThis as unknown as { __demoSecret?: Uint8Array; __demoWarned?: Set<string> };
+function warnOnce(key: string, msg: string) {
+  g.__demoWarned ??= new Set();
+  if (g.__demoWarned.has(key)) return;
+  g.__demoWarned.add(key);
+  console.warn(msg);
+}
+
+/**
+ * Demo mode never activates unless the variable is explicitly "demo". It makes every persona, including ADMIN,
+ * one click away, so production builds (`next start`) refuse it unless ALLOW_DEMO_MODE=1 is also set.
+ */
+export const authMode = (): AuthMode => {
+  if (process.env.AUTH_MODE !== "demo") return "entra";
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_DEMO_MODE !== "1") {
+    warnOnce("prod", "[auth] AUTH_MODE=demo is ignored in production. Set ALLOW_DEMO_MODE=1 to allow it (local demos only).");
+    return "entra";
+  }
+  return "demo";
+};
 
 // -------------------------------------------------------------------- Entra
 
@@ -67,13 +87,21 @@ export async function verifyEntraToken(token: string, o: EntraVerifyOptions): Pr
 
 // --------------------------------------------------------------------- demo
 
+/** The old `.env.example` value and anything like it is public, so it is never used as a key. */
+export const isPlaceholderSecret = (s: string) => /change[-_ ]?me/i.test(s);
+
+/**
+ * DEMO_SESSION_SECRET when it is set, 16+ chars and not a placeholder (in every environment). Otherwise a random
+ * per-process key (kept across dev hot reloads): demo sessions then reset when the server restarts.
+ */
 function demoSecret(): Uint8Array {
   const s = process.env.DEMO_SESSION_SECRET ?? "";
-  if (s.length < 16) throw new Error("DEMO_SESSION_SECRET must be set (16+ chars) when AUTH_MODE=demo");
-  if (process.env.NODE_ENV === "production" && s === DEMO_PLACEHOLDER) {
-    throw new Error("DEMO_SESSION_SECRET is still the .env.example placeholder");
+  if (s.length >= 16 && !isPlaceholderSecret(s)) return new TextEncoder().encode(s);
+  if (!g.__demoSecret) {
+    g.__demoSecret = new Uint8Array(randomBytes(32));
+    warnOnce("secret", "[auth] DEMO_SESSION_SECRET is missing, short or a placeholder; using a random per-process key (demo sessions reset on restart).");
   }
-  return new TextEncoder().encode(s);
+  return g.__demoSecret;
 }
 
 export async function signDemoSession(userId: string): Promise<string> {
@@ -86,8 +114,7 @@ async function verifyDemoSession(token: string): Promise<string> {
     const { payload } = await jwtVerify(token, demoSecret(), { algorithms: ["HS256"] });
     if (!payload.sub) throw new Error("no sub");
     return payload.sub;
-  } catch (e) {
-    if (e instanceof Error && e.message.startsWith("DEMO_SESSION_SECRET")) throw e;
+  } catch {
     throw new AuthError(401, "invalid_token", "Invalid demo session");
   }
 }
@@ -158,9 +185,13 @@ type Handler<C> = (req: Request, ctx: C, user: SessionUser) => Promise<Response>
 /**
  * Route handler wrapper: `export const GET = withRole(["LM","PNP"], async (req, ctx, user) => ...)`.
  * Converts AuthError to JSON 401/403. Every API route must use this (or requireRole).
+ * Non-GET requests also pass the CSRF check in `./csrf` (same-origin Origin, JSON body; multipart only
+ * when `opts.allowMultipart`).
  */
-export function withRole<C = unknown>(roles: Role[], handler: Handler<C>) {
+export function withRole<C = unknown>(roles: Role[], handler: Handler<C>, opts: CsrfOptions = {}) {
   return async (req: Request, ctx: C): Promise<Response> => {
+    const csrf = csrfCheck(req, opts);
+    if (csrf) return csrf;
     try {
       const user = await requireRole(req, ...roles);
       return await handler(req, ctx, user);

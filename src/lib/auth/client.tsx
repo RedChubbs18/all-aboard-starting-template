@@ -20,11 +20,13 @@ export interface SessionValue {
   user: SessionUser | null;
   error: string | null;
   personas: Persona[];
+  /** Demo mode off the host computer: the server wants DEMO_PIN with the persona switch. */
+  demoPinRequired: boolean;
   /** Entra: redirect to Microsoft sign-in. Demo: no-op (use switchPersona). */
   signIn(): Promise<void>;
   signOut(): Promise<void>;
-  /** Demo mode only. */
-  switchPersona(userId: string): Promise<void>;
+  /** Demo mode only. `pin` is sent when the server requires DEMO_PIN. */
+  switchPersona(userId: string, pin?: string): Promise<void>;
   /** fetch() that authenticates the call (bearer token in Entra mode, cookie in demo mode). */
   apiFetch(path: string, init?: RequestInit): Promise<Response>;
 }
@@ -43,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [personas, setPersonas] = useState<Persona[]>([]);
+  const [demoPinRequired, setDemoPinRequired] = useState(false);
   const msal = useRef<PublicClientApplication | null>(null);
   const modeRef = useRef<"demo" | "entra" | null>(null);
 
@@ -97,8 +100,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         modeRef.current = cfg.mode;
         setMode(cfg.mode);
         if (cfg.mode === "demo") {
+          setDemoPinRequired(cfg.demoPinRequired === true);
           const p = await fetch("/api/demo/personas");
           if (p.ok) setPersonas((await p.json()).personas);
+          else setError((await p.json().catch(() => ({}))).message ?? "Demo sign-in is not available");
         } else {
           const { PublicClientApplication } = await import("@azure/msal-browser");
           const app = new PublicClientApplication(getMsalConfig());
@@ -132,6 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       error,
       personas,
+      demoPinRequired,
       apiFetch,
       async signIn() {
         if (modeRef.current === "entra") await msal.current?.loginRedirect({ scopes: LOGIN_SCOPES });
@@ -145,21 +151,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await msal.current?.logoutRedirect();
         }
       },
-      async switchPersona(userId: string) {
+      async switchPersona(userId: string, pin?: string) {
         const r = await fetch("/api/demo/login", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ userId }),
+          body: JSON.stringify(pin ? { userId, pin } : { userId }),
         });
         if (!r.ok) {
-          setError("Could not switch persona");
+          setError(r.status === 403 || r.status === 429 ? ((await r.json().catch(() => ({}))).message ?? "Could not switch persona") : "Could not switch persona");
           return;
         }
+        setError(null);
         setStatus("loading");
         await loadMe();
       },
     }),
-    [status, mode, user, error, personas, apiFetch, loadMe],
+    [status, mode, user, error, personas, demoPinRequired, apiFetch, loadMe],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

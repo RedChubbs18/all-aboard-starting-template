@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useSession } from "@/lib/auth/client";
 
 /** Signed-out view: persona switcher (demo mode) or Microsoft sign-in (Entra mode). */
 export function SignIn() {
-  const { mode, personas, switchPersona, signIn, error } = useSession();
+  const { mode, personas, switchPersona, signIn, error, demoPinRequired } = useSession();
+  const [pin, setPin] = useState("");
   return (
     <section aria-labelledby="signin-h" className="rounded-lg bg-surface p-6 shadow-card">
       <h1 id="signin-h" className="text-2xl font-semibold text-brand-strong">Welcome aboard</h1>
@@ -12,11 +14,12 @@ export function SignIn() {
       {mode === "demo" ? (
         <>
           <p className="mt-2 text-text-muted">Demo mode: choose who you want to be.</p>
+          {demoPinRequired && <label className="mt-3 block">Demo PIN <input type="password" inputMode="numeric" autoComplete="off" value={pin} onChange={(e) => setPin(e.target.value)} className="ml-2 rounded-md border border-border px-2 py-1" /></label>}
           <ul className="mt-4 grid gap-2 sm:grid-cols-2">
             {personas.map((p) => (
               <li key={p.id}>
                 <button
-                  onClick={() => switchPersona(p.id)}
+                  onClick={() => switchPersona(p.id, pin || undefined)}
                   className="min-h-12 w-full rounded-md border border-border bg-surface px-3 py-2 text-left hover:bg-brand-soft"
                 >
                   <span className="block font-medium">{p.displayName}</span>
