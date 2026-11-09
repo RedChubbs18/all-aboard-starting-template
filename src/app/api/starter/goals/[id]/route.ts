@@ -1,7 +1,7 @@
 import { withRole } from "@/lib/auth/server";
 import { prisma } from "@/server/db";
 import { loadJourney, updateGoal } from "@/server/journey-service";
-import { canEditGoals } from "../../_lib/goals";
+import { canEditGoals, goalsLockedUntil } from "../../_lib/goals";
 import { guard, HttpError, readJson } from "../../_lib/http";
 
 /** Edit text or tick a 30-60-90 goal. Cascaded goals are the LM's and read-only for the starter. */
@@ -13,6 +13,7 @@ export const PATCH = withRole<{ params: Promise<{ id: string }> }>(["STARTER", "
     const journey = await loadJourney(goal.journeyId);
     if (!journey) throw new HttpError(404, "not_found", "Journey not found");
     if (!canEditGoals(user, journey) || journey.status !== "active") throw new HttpError(403, "forbidden", "You cannot edit this goal");
+    if (goalsLockedUntil(user, journey)) throw new HttpError(403, "goals_locked", "You can edit your goals from your first day");
     if (goal.horizon === "CASCADED" && journey.starterId === user.id) throw new HttpError(403, "forbidden", "Cascaded goals are set by your line manager");
     const body = await readJson<{ text?: unknown; done?: unknown }>(req);
     const patch: { text?: string; done?: boolean } = {};

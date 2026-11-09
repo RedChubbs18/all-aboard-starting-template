@@ -29,6 +29,10 @@ export interface TaskDto {
   blockedReason: string | null;
   dependsOn: string[];
   gating: boolean;
+  /** F12: shown as "Optional", never gating, not counted in progress. */
+  optional?: boolean;
+  /** F4: opening the task page completes it. */
+  autoCompleteOnOpen?: boolean;
   contentSlug: string | null;
   adapterKey: string | null;
   source: "CORE" | "TEAM" | "BESPOKE";
@@ -65,6 +69,19 @@ export interface JourneyDto {
   viewerIsStarter: boolean;
   tasks: TaskDto[];
   firstadvantage: FirstAdvantageSummary | null;
+  /** F2: progress over ALL applicable tasks (every owner), so hidden manager delays still show. */
+  overall?: Record<Stage, StageTally>;
+  /** F7: First Advantage failed. Starters see a full-page warning and all starter actions return 409. */
+  vettingFailed?: boolean;
+  /** F7: P&P phone placeholder. */
+  pnpPhone?: string;
+}
+
+export interface StageTally {
+  done: number;
+  total: number;
+  gatingDone: number;
+  gatingTotal: number;
 }
 
 export interface JourneyResponse {

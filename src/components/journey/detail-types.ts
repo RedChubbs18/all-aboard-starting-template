@@ -16,6 +16,7 @@ export interface Day0Dto {
   where: string;
   whenAt: string;
   who: string;
+  notes?: string | null;
   confirmedAt: string | null;
 }
 
@@ -23,7 +24,7 @@ export type Detail =
   | { kind: "none" }
   | { kind: "checklist"; steps: string[] }
   | { kind: "booking"; sessions: InductionSession[]; booking: Booking | null }
-  | { kind: "order"; mode: "device" | "home"; choice: EquipmentChoice | null }
+  | { kind: "order"; mode: "device" | "peripherals" | "home"; choice: EquipmentChoice | null }
   | { kind: "collect"; choice: EquipmentChoice | null }
   | { kind: "firstadvantage"; status: FirstAdvantageSummary }
   | { kind: "system"; provider: string; statusText: string; updatedAt: string | null }
