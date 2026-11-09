@@ -49,7 +49,9 @@ describe("journey-service", () => {
     expect(state!.status).toBe("action_needed");
 
     const cleared = await svc.applyIntegrationStatus(j.id, "hireview", "cleared");
-    expect(cleared.currentStage).toBe("UNCONDITIONAL_OFFER");
+    expect(cleared.currentStage).toBe("PEV"); // D10: cleared alone does not advance the stage
+    const advanced = await svc.completeTask(j.id, `${P}offer-conditions`, { actorId: `${P}lm` });
+    expect(advanced.currentStage).toBe("UNCONDITIONAL_OFFER");
   });
 
   it("rolls back when the engine throws", async () => {

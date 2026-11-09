@@ -170,7 +170,7 @@
   {
     "key": "hireview-vetting-status",
     "title": "Vetting status (First Advantage)",
-    "description": "Your vetting status from First Advantage. Moves your journey on once it is cleared.",
+    "description": "Your vetting status from First Advantage. A cleared result completes this step; your offer becomes unconditional once every vetting step is done.",
     "stage": "PEV",
     "owner": "SYSTEM",
     "type": "INTEGRATION_STATUS",
@@ -192,9 +192,7 @@
     "owner": "PNP",
     "type": "ACTION",
     "dueOffsetDays": -21,
-    "dependsOn": [
-      "guest-sign-in"
-    ],
+    "dependsOn": [],
     "source": "CORE",
     "adapterKey": null,
     "gating": true,

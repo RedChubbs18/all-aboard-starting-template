@@ -1,24 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { COLLEAGUE_REASONS, PNP_REASONS, REASON_LABEL, reasonLabel } from "@/domain/exit-reasons";
 import { useApi } from "@/lib/auth/use-api";
 import { Alert, Drawer, Field, btnCls, inputCls, useNotice, useSend, type Fields } from "./common";
 
 interface J { id: string; starterName: string; teamName: string; startDate: string; stage: string; status: string; exitReason: string | null }
 
 const GROUPS: { label: string; reasons: [string, string][] }[] = [
-  {
-    label: "Recorded by P&P",
-    reasons: [["FAILED_PEV", "Failed vetting"], ["OFFER_WITHDRAWN_BY_LBG", "Offer withdrawn by the bank"], ["NO_SHOW", "Did not turn up"]],
-  },
-  {
-    label: "What the colleague told us",
-    reasons: [
-      ["ACCEPTED_ANOTHER_OFFER", "Accepted another offer"], ["ROLE_NOT_RIGHT", "Role not right"], ["PERSONAL_CIRCUMSTANCES", "Personal circumstances"],
-      ["PAY_OR_BENEFITS", "Pay or benefits"], ["LOCATION_OR_HYBRID", "Location or hybrid working"], ["ONBOARDING_EXPERIENCE", "Onboarding experience"],
-      ["PREFER_NOT_TO_SAY", "Prefers not to say"], ["OTHER", "Other"],
-    ],
-  },
+  { label: "Recorded by P&P", reasons: PNP_REASONS.map((r) => [r, REASON_LABEL[r]]) },
+  { label: "What the colleague told us", reasons: COLLEAGUE_REASONS.map((r) => [r, REASON_LABEL[r]]) },
 ];
 
 /** D14: record that a starter has left. Available to P&P and Admin through the API. */
@@ -55,7 +46,7 @@ export function JourneysManager() {
           <li key={j.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
             <div>
               <p className="font-medium">{j.starterName}</p>
-              <p className="text-sm text-text-muted">{j.teamName} | starts {j.startDate.slice(0, 10)} | {j.stage} | {j.status}{j.exitReason ? ` (${j.exitReason})` : ""}</p>
+              <p className="text-sm text-text-muted">{j.teamName} | starts {j.startDate.slice(0, 10)} | {j.stage} | {j.status}{j.exitReason ? ` (${reasonLabel(j.exitReason)})` : ""}</p>
             </div>
             {j.status === "active" && (
               <button type="button" className={btnCls.secondary} aria-label={`Record exit for ${j.starterName}`} onClick={() => { setTarget(j); setReason(""); setNote(""); setErrors({}); }}>

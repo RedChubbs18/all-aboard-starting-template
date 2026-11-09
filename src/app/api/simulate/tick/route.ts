@@ -17,7 +17,15 @@ const body = z.object({
 export const POST = withRole(["ADMIN", "PNP"], (req, _ctx, user) =>
   guarded(async () => {
     const raw = (await req.text()).trim();
-    const parsed = body.safeParse(raw ? JSON.parse(raw) : {});
+    let json: unknown = {};
+    if (raw) {
+      try {
+        json = JSON.parse(raw);
+      } catch {
+        return Response.json({ error: "invalid_json", message: "The request body is not valid JSON" }, { status: 400 });
+      }
+    }
+    const parsed = body.safeParse(json);
     if (!parsed.success) return Response.json({ error: "invalid_body", message: "force must be boolean, hours a positive number" }, { status: 400 });
     const b = parsed.data;
     return Response.json(await runReminders(new Date(), { ...b, actorId: user.id }));

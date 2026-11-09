@@ -44,16 +44,39 @@ describe("simulate: First Advantage (hireview adapter)", () => {
     expect(types).toEqual(expect.arrayContaining(["INTEGRATION_STATUS", "JOURNEY_FLAGGED", "REMINDER_SENT"]));
   });
 
-  it("cleared completes the vetting task, unflags, and (with offer conditions met) advances the stage", async () => {
+  it("cleared completes the vetting task and unflags, but does not force the stage (D10)", async () => {
     await simulate("hireview", ALEX, "action_needed");
     await simulate("hireview", ALEX, "cleared");
     expect((await task(ALEX, "hireview-vetting-status"))!.status).toBe("DONE");
-    expect((await js.loadJourney(ALEX))!.flagged).toBe(false);
-    const gate = await task(ALEX, "offer-conditions-met"); // exists once D10 templates land
-    if (gate && gate.status !== "DONE") {
-      expect((await runDemoStep("offer_conditions_met", {}, ALEX)).changes.length).toBeGreaterThan(0);
-    }
+    const j = (await js.loadJourney(ALEX))!;
+    expect(j.flagged).toBe(false);
+    expect(j.currentStage).not.toBe("UNCONDITIONAL_OFFER");
+    expect((await task(ALEX, "offer-conditions-met"))!.status).not.toBe("DONE");
+  });
+
+  it("offer_conditions_met completes the guest sign-in prerequisite (with an event) and then advances the stage", async () => {
+    await simulate("hireview", ALEX, "cleared");
+    expect((await task(ALEX, "guest-sign-in"))!.status).not.toBe("DONE");
+    const r = await runDemoStep("offer_conditions_met", {}, ALEX);
+    expect(r.changes.length).toBeGreaterThan(0);
+    expect((await task(ALEX, "guest-sign-in"))!.status).toBe("DONE");
+    expect((await task(ALEX, "offer-conditions-met"))!.status).toBe("DONE");
     expect((await js.loadJourney(ALEX))!.currentStage).toBe("UNCONDITIONAL_OFFER");
+    expect((await js.listEvents(ALEX)).map((e) => e.type)).toContain("DEMO_PREREQUISITE");
+  });
+
+  it("runs the whole demo script in order: action needed, cleared, offer conditions, system tasks, Day 0", async () => {
+    const flagged = await runDemoStep("firstadvantage_action_needed", {}, ALEX);
+    expect(flagged.changes.join(" ")).toMatch(/flagged/);
+    await runDemoStep("firstadvantage_cleared", {}, ALEX);
+    expect((await js.loadJourney(ALEX))!.flagged).toBe(false);
+    expect((await js.loadJourney(ALEX))!.currentStage).toBe("PEV");
+    const oc = await runDemoStep("offer_conditions_met", {}, ALEX);
+    expect(oc.changes.join(" ")).toMatch(/Stage moved from PEV to UNCONDITIONAL_OFFER/);
+    const sys = await runDemoStep("system_tasks", {}, ALEX);
+    expect(sys.message).toMatch(/IT request task/);
+    await runDemoStep("jump_day0", {}, ALEX);
+    expect((await js.loadJourney(ALEX))!.currentStage).toBe("DAY_0");
   });
 
   it("rejects unknown statuses and non-simulatable journeys", async () => {
@@ -67,8 +90,7 @@ describe("system tasks unlock IT requests (FR-3.1 to FR-3.3)", () => {
     const itr = await getAdapter("itrequest");
     await expect(itr.raise(ALEX, "GitHub access")).rejects.toBeInstanceOf(ColleagueFileIdMissingError);
     await simulate("hireview", ALEX, "cleared");
-    const gate = await task(ALEX, "offer-conditions-met");
-    if (gate && gate.status !== "DONE") await runDemoStep("offer_conditions_met", {}, ALEX);
+    await runDemoStep("offer_conditions_met", {}, ALEX);
     expect((await task(ALEX, "raise-it-requests"))!.status).toBe("LOCKED");
 
     const r = await runDemoStep("system_tasks", {}, ALEX);
@@ -84,8 +106,7 @@ describe("system tasks unlock IT requests (FR-3.1 to FR-3.3)", () => {
     await simulate("identity", ALEX, "internal_created"); // vetting not cleared: the task is still locked
     expect((await task(ALEX, "internal-account-created"))!.status).toBe("LOCKED");
     await simulate("hireview", ALEX, "cleared");
-    const gate = await task(ALEX, "offer-conditions-met");
-    if (gate && gate.status !== "DONE") await runDemoStep("offer_conditions_met", {}, ALEX);
+    await runDemoStep("offer_conditions_met", {}, ALEX);
     expect((await task(ALEX, "internal-account-created"))!.status).toBe("DONE");
   });
 });
@@ -178,6 +199,12 @@ describe("route guards", () => {
     expect(Array.isArray((await tick.json()).sent)).toBe(true);
     expect((await demoPost(await as(admin, "POST", "/api/simulate/demo", { step: "reset" }), undefined)).status).toBe(200);
     expect((await demoPost(await as(admin, "POST", "/api/simulate/demo", { step: "bogus" }), undefined)).status).toBe(400);
+    const bad = new Request("http://localhost/api/simulate/tick", {
+      method: "POST",
+      headers: { cookie: `${DEMO_COOKIE}=${await signDemoSession(admin)}`, "content-type": "application/json" },
+      body: "{not json",
+    });
+    expect((await tickPost(bad, undefined)).status).toBe(400);
   });
 
   it("notifications are per user: list own, mark own read, 404 for others", async () => {

@@ -35,28 +35,7 @@ export const stageLabel = (s: string | null | undefined): string => (s && s in S
 
 export { STAGES };
 
-export const COLLEAGUE_REASONS = [
-  "ACCEPTED_ANOTHER_OFFER", "ROLE_NOT_RIGHT", "PERSONAL_CIRCUMSTANCES", "PAY_OR_BENEFITS",
-  "LOCATION_OR_HYBRID", "ONBOARDING_EXPERIENCE", "PREFER_NOT_TO_SAY", "OTHER",
-] as const;
-export const PNP_REASONS = ["FAILED_PEV", "OFFER_WITHDRAWN_BY_LBG", "NO_SHOW"] as const;
-
-export const REASON_LABEL: Record<string, string> = {
-  ACCEPTED_ANOTHER_OFFER: "Accepted another offer",
-  ROLE_NOT_RIGHT: "Role not right",
-  PERSONAL_CIRCUMSTANCES: "Personal circumstances",
-  PAY_OR_BENEFITS: "Pay or benefits",
-  LOCATION_OR_HYBRID: "Location or hybrid working",
-  ONBOARDING_EXPERIENCE: "Onboarding experience",
-  PREFER_NOT_TO_SAY: "Prefer not to say",
-  OTHER: "Other",
-  FAILED_PEV: "Failed pre-employment vetting",
-  OFFER_WITHDRAWN_BY_LBG: "Offer withdrawn by the company",
-  NO_SHOW: "No show",
-};
-
-/** Readable reason text. Unknown or legacy codes (e.g. WITHDRAWN) are humanised rather than hidden. */
-export const reasonLabel = (r: string | null | undefined): string =>
-  !r ? "Not recorded" : (REASON_LABEL[r] ?? r.replace(/_/g, " ").toLowerCase().replace(/^./, (c) => c.toUpperCase()));
+// D14: the category list, labels and helpers live in one module (shared with the engine, P&P record-exit and starter withdraw).
+export { COLLEAGUE_REASONS, PNP_REASONS, REASON_LABEL, reasonLabel } from "@/domain/exit-reasons";
 
 export const sourceLabel = (s: string | null | undefined): string => (s === "COLLEAGUE" ? "Colleague" : s === "PNP" ? "P&P" : "Not recorded");

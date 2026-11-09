@@ -108,7 +108,7 @@ describe("seedNewStarter", () => {
     expect(j.status).toBe("exited");
     expect(j.exitReason).toBe("NO_SHOW");
     const ev = await prisma.event.findFirstOrThrow({ where: { journeyId: r.journeyId, type: "JOURNEY_EXITED" } });
-    expect(ev.data).toMatchObject({ reasonSource: "PNP", reason: "NO_SHOW" });
+    expect(ev.data).toMatchObject({ reasonSource: "PNP", reason: "NO_SHOW", comment: "Did not arrive", stage: "CONDITIONAL_OFFER" });
     await expect(admin.recordExit(ids.pnp, r.journeyId, { reason: "NO_SHOW" })).rejects.toMatchObject({ status: 409 });
     await expect(admin.recordExit(ids.pnp, r.journeyId, { reason: "BOGUS" })).rejects.toMatchObject({ status: 400 });
   });

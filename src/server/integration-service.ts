@@ -399,27 +399,46 @@ export async function demoJourneyId(): Promise<string> {
   return j.id;
 }
 
+/**
+ * Demo prerequisite: Alex starts before guest sign-in. First Advantage and P&P steps only make sense once the
+ * starter has signed in, so the demo completes that task for them (audited, never by weakening the engine).
+ */
+async function ensureGuestSignedIn(journeyId: string, ctx: ActorCtx): Promise<string[]> {
+  const j = await loadOrThrow(journeyId);
+  const t = j.tasks.find((x) => x.key === "guest-sign-in" && x.applicable);
+  if (!t || j.status !== "active" || !OPEN.has(t.status)) return [];
+  await js.completeTask(journeyId, t.key, { actorId: ctx.actorId ?? null, now: ctx.now });
+  await js.recordEvent({
+    journeyId, actorId: ctx.actorId ?? null, type: "DEMO_PREREQUISITE", entity: "Task", entityId: t.id,
+    to: "DONE", data: { key: t.key, simulated: true }, createdAt: ctx.now ?? new Date(),
+  });
+  return [`Demo: "${t.title}" completed for the starter`];
+}
+
 export async function runDemoStep(step: DemoStep, ctx: ActorCtx = {}, journeyId?: string): Promise<DemoResult> {
   const id = journeyId ?? (await demoJourneyId());
   const done = (message: string, changes: string[]): DemoResult => ({ step, journeyId: id, message, changes });
   switch (step) {
     case "firstadvantage_action_needed": {
+      const pre = await ensureGuestSignedIn(id, ctx);
       const r = await simulate("hireview", id, "action_needed", undefined, ctx);
-      return done("First Advantage: action needed. Reminder sent, journey flagged.", r.changes);
+      return done("First Advantage: action needed. Reminder sent, journey flagged.", [...pre, ...r.changes]);
     }
     case "firstadvantage_cleared": {
+      const pre = await ensureGuestSignedIn(id, ctx);
       const r = await simulate("hireview", id, "cleared", undefined, ctx);
-      return done("First Advantage cleared. The vetting task is complete.", r.changes);
+      return done("First Advantage cleared. The vetting task is complete; the stage moves on once P&P confirm the other offer conditions.", [...pre, ...r.changes]);
     }
     case "offer_conditions_met": {
+      const pre = await ensureGuestSignedIn(id, ctx);
       const j = await loadOrThrow(id);
       const t = j.tasks.find((x) => x.key === "offer-conditions-met" && x.applicable);
       if (!t) return done("No offer-conditions task in these templates; nothing to do.", []);
       if (TERMINAL.has(t.status)) return done("Offer conditions were already met.", []);
-      if (!OPEN.has(t.status)) return done("Offer conditions are still locked. Clear First Advantage first.", []);
+      if (!OPEN.has(t.status)) return done(`Offer conditions are still locked (the journey is at ${j.currentStage}).`, pre);
       const after = await js.completeTask(id, t.key, { actorId: ctx.actorId ?? null, now: ctx.now });
       const reconciled = await reconcileSystemTasks(id, ctx);
-      return done("P&P: offer conditions met.", [...diff(j, after), ...reconciled]);
+      return done("P&P: offer conditions met.", [...pre, ...diff(j, after), ...reconciled]);
     }
     case "system_tasks": {
       const before = await loadOrThrow(id);

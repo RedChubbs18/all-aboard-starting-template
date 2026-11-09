@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { isExitReason } from "./exit-reasons";
 import {
   STAGES,
   stageIndex,
@@ -14,6 +15,19 @@ import {
 } from "./types";
 
 const DAY_MS = 86_400_000;
+
+/**
+ * D13: the offer-to-start gap can be up to 3 months, so computed due dates are clamped so that
+ * none falls before the journey creation date plus this many days.
+ */
+export const MIN_DUE_GRACE_DAYS = 2;
+
+/** Due date = start date + offset, but never earlier than `createdAt` + MIN_DUE_GRACE_DAYS. */
+export function computeDueDate(startDate: Date, offsetDays: number, createdAt: Date, graceDays = MIN_DUE_GRACE_DAYS): Date {
+  const due = addDays(startDate, offsetDays);
+  const floor = addDays(createdAt, graceDays);
+  return due.getTime() < floor.getTime() ? floor : due;
+}
 
 export class EngineError extends Error {}
 
@@ -97,7 +111,7 @@ export interface CreateJourneyOptions {
   newId?: () => string;
 }
 
-export function taskFromTemplate(t: TemplateInput, startDate: Date, newId: () => string): TaskState {
+export function taskFromTemplate(t: TemplateInput, startDate: Date, newId: () => string, createdAt: Date = new Date()): TaskState {
   return {
     id: newId(),
     templateId: t.id ?? null,
@@ -108,7 +122,7 @@ export function taskFromTemplate(t: TemplateInput, startDate: Date, newId: () =>
     owner: t.owner,
     type: t.type,
     status: "LOCKED",
-    dueDate: addDays(startDate, t.dueOffsetDays),
+    dueDate: computeDueDate(startDate, t.dueOffsetDays, createdAt),
     completedAt: null,
     blockedReason: null,
     evidence: null,
@@ -153,7 +167,7 @@ export function createJourney(templates: TemplateInput[], opts: CreateJourneyOpt
     completedAt: null,
     flagged: false,
     flagReason: null,
-    tasks: selected.map((t) => taskFromTemplate(t, opts.startDate, newId)),
+    tasks: selected.map((t) => taskFromTemplate(t, opts.startDate, newId, nowOf(ctx))),
   };
   const created = ev(journey, ctx, {
     type: "JOURNEY_CREATED",
@@ -460,8 +474,9 @@ export function normalizeIntegrationStatus(status: string): NormalizedIntegratio
 
 /**
  * Apply an external system status to every task carrying `adapterKey`.
- *  - COMPLETE: task DONE and unblocked. HireView `cleared` also forces the journey to at
- *    least UNCONDITIONAL_OFFER (stage progression rule, REQUIREMENTS section 4).
+ *  - COMPLETE: task DONE and unblocked (clears the flag). The stage is never forced (D10): it
+ *    advances only through normal gating, once every PEV gating task (including
+ *    `offer-conditions-met`) is done.
  *  - ACTION_NEEDED: task BLOCKED, journey flagged (shows on LM and MI dashboards).
  *  - FAILED: task BLOCKED, reassigned to PNP, flagged. The journey is NOT exited.
  *  - IN_PROGRESS: task IN_PROGRESS (and unblocked) when it was TODO/BLOCKED.
@@ -537,25 +552,24 @@ export function applyIntegrationStatus(
       completedAt: next === "DONE" ? nowOf(ctx) : t.completedAt,
     };
   });
-  let j: JourneyState = { ...journey, tasks };
+  const j: JourneyState = { ...journey, tasks };
 
-  if (norm === "COMPLETE" && adapterKey === "hireview") {
-    const target: Stage = "UNCONDITIONAL_OFFER";
-    if (stageIndex(j.currentStage) < stageIndex(target)) {
-      const m = moveToStage(j, target, ctx, "hireview_cleared");
-      j = m.journey;
-      events.push(...m.events);
-    }
-  }
   const s = settle(j, ctx);
   return { journey: s.journey, events: [...events, ...s.events] };
 }
 
 // ---------------------------------------------------------------------- exit
 
-export function exitJourney(journey: JourneyState, reason: string, ctx?: Ctx): EngineResult {
+export interface ExitOptions extends Ctx {
+  /** Extra audit data merged into the JOURNEY_EXITED event (e.g. reasonSource, comment). */
+  data?: Record<string, unknown>;
+}
+
+/** D14: `reason` must be one of EXIT_REASONS. The comment belongs in `data` (event only), never on the journey. */
+export function exitJourney(journey: JourneyState, reason: string, ctx?: ExitOptions): EngineResult {
   assertActive(journey);
   if (!reason.trim()) throw new EngineError("An exit reason is required");
+  if (!isExitReason(reason.trim())) throw new EngineError(`Unknown exit reason: ${reason.trim()}`);
   const j: JourneyState = {
     ...journey,
     status: "exited",
@@ -571,7 +585,7 @@ export function exitJourney(journey: JourneyState, reason: string, ctx?: Ctx): E
         entityId: j.id,
         from: "active",
         to: "exited",
-        data: { reason: j.exitReason, stage: journey.currentStage },
+        data: { ...(ctx?.data ?? {}), reason: j.exitReason, stage: journey.currentStage },
       }),
     ],
   };

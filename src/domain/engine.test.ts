@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   EngineError,
+  MIN_DUE_GRACE_DAYS,
+  addDays,
+  computeDueDate,
   addBespokeTask,
   advanceStage,
   applyIntegrationStatus,
@@ -45,10 +48,35 @@ describe("createJourney", () => {
     expect(journey.tasks).toHaveLength(TEMPLATES.length - 1);
   });
 
-  it("computes due dates from startDate + dueOffsetDays", () => {
-    const { journey } = make();
-    expect(journey.tasks.find((t) => t.key === "intro")!.dueDate.toISOString()).toBe("2026-11-01T00:00:00.000Z");
+  it("computes due dates from startDate + dueOffsetDays, clamped to creation + grace (D13)", () => {
+    const { journey } = make(); // start 22 days out: "intro" (-30) would fall before creation
+    const floor = addDays(now, MIN_DUE_GRACE_DAYS).toISOString();
+    expect(journey.tasks.find((t) => t.key === "intro")!.dueDate.toISOString()).toBe(floor);
+    expect(journey.tasks.find((t) => t.key === "contract")!.dueDate.toISOString()).toBe(floor); // -28
+    expect(journey.tasks.find((t) => t.key === "pev-hireview")!.dueDate.toISOString()).toBe(floor); // -21 -> Nov 10, still before the floor
+    expect(journey.tasks.find((t) => t.key === "internal-account")!.dueDate.toISOString()).toBe("2026-11-21T00:00:00.000Z"); // -10, unaffected
     expect(journey.tasks.find((t) => t.key === "goals")!.dueDate.toISOString()).toBe("2026-12-31T00:00:00.000Z");
+  });
+
+  it("never sets a due date before creation + grace, for a start date 3 months or 2 weeks out", () => {
+    for (const start of [new Date("2027-02-09T00:00:00Z"), new Date("2026-11-23T00:00:00Z")]) {
+      const { journey } = createJourney(TEMPLATES, { starterId: "s", lmId: "l", teamId: "team-a", startDate: start, now, newId });
+      const floor = addDays(now, MIN_DUE_GRACE_DAYS).getTime();
+      for (const t of journey.tasks) expect(t.dueDate.getTime()).toBeGreaterThanOrEqual(floor);
+    }
+    // 3 months out: offsets are untouched
+    const far = createJourney(TEMPLATES, { starterId: "s", lmId: "l", teamId: "team-a", startDate: new Date("2027-02-09T00:00:00Z"), now, newId }).journey;
+    expect(far.tasks.find((t) => t.key === "intro")!.dueDate.toISOString()).toBe("2027-01-10T00:00:00.000Z");
+    // 2 weeks out: early tasks collapse to the floor, later ones keep their offset
+    const near = createJourney(TEMPLATES, { starterId: "s", lmId: "l", teamId: "team-a", startDate: new Date("2026-11-23T00:00:00Z"), now, newId }).journey;
+    expect(near.tasks.find((t) => t.key === "intro")!.dueDate.toISOString()).toBe(addDays(now, MIN_DUE_GRACE_DAYS).toISOString());
+    expect(near.tasks.find((t) => t.key === "goals")!.dueDate.toISOString()).toBe("2026-12-23T00:00:00.000Z");
+  });
+
+  it("computeDueDate leaves later dates alone", () => {
+    const created = new Date("2026-11-09T09:00:00Z");
+    expect(computeDueDate(new Date("2027-01-01T00:00:00Z"), -5, created).toISOString()).toBe("2026-12-27T00:00:00.000Z");
+    expect(computeDueDate(new Date("2026-11-10T00:00:00Z"), -5, created).toISOString()).toBe("2026-11-11T09:00:00.000Z");
   });
 
   it("starts at CONDITIONAL_OFFER with only unblocked current-stage tasks TODO", () => {
@@ -131,7 +159,7 @@ describe("stage progression", () => {
   });
 
   it("does nothing on a non-active journey", () => {
-    const j = exitJourney(make().journey, "withdrew", { now }).journey;
+    const j = exitJourney(make().journey, "ROLE_NOT_RIGHT", { now }).journey;
     expect(advanceStage(j).events).toHaveLength(0);
   });
 });
@@ -141,22 +169,25 @@ describe("applyIntegrationStatus", () => {
     return completeTask(make().journey, "intro", { now }).journey;
   }
 
-  it("HireView cleared marks the task DONE and moves to UNCONDITIONAL_OFFER", () => {
+  it("cleared completes the vetting task but does NOT force the stage (D10)", () => {
     const r = applyIntegrationStatus(atPev(), "hireview", "cleared", { now });
     expect(status(r.journey, "pev-hireview")).toBe("DONE");
-    expect(r.journey.currentStage).toBe("UNCONDITIONAL_OFFER");
-    expect(status(r.journey, "internal-account")).toBe("TODO");
+    expect(r.journey.currentStage).toBe("PEV");
+    expect(status(r.journey, "offer-conditions")).toBe("TODO");
+    expect(status(r.journey, "internal-account")).toBe("LOCKED");
+    expect(r.events.some((e) => e.type === "STAGE_CHANGED")).toBe(false);
   });
 
-  it("HireView cleared forces the stage even if other PEV gating tasks are open", () => {
-    const tpl = [
-      ...TEMPLATES,
-      { ...TEMPLATES[0], key: "pev-extra", stage: "PEV" as const, gating: true, dependsOn: [], title: "Extra" },
-    ];
-    let j = createJourney(tpl, { starterId: "s", lmId: "l", teamId: "team-a", startDate, now }).journey;
-    j = completeTask(j, "intro", { now }).journey;
-    j = applyIntegrationStatus(j, "hireview", "cleared", { now }).journey;
-    expect(j.currentStage).toBe("UNCONDITIONAL_OFFER");
+  it("the stage advances once the other PEV gating task is done too, in either order", () => {
+    const cleared = applyIntegrationStatus(atPev(), "hireview", "cleared", { now }).journey;
+    const a = completeTask(cleared, "offer-conditions", { now });
+    expect(a.journey.currentStage).toBe("UNCONDITIONAL_OFFER");
+    expect(status(a.journey, "internal-account")).toBe("TODO");
+    expect(a.events.some((e) => e.type === "STAGE_CHANGED" && e.to === "UNCONDITIONAL_OFFER")).toBe(true);
+    // P&P first, then cleared
+    const first = completeTask(atPev(), "offer-conditions", { now }).journey;
+    expect(first.currentStage).toBe("PEV");
+    expect(applyIntegrationStatus(first, "hireview", "cleared", { now }).journey.currentStage).toBe("UNCONDITIONAL_OFFER");
   });
 
   it("action_needed blocks the task and flags the journey; cleared unflags", () => {
@@ -188,6 +219,7 @@ describe("applyIntegrationStatus", () => {
 
   it("system completion unlocks dependants (Colleague File ID -> IT requests)", () => {
     let j = applyIntegrationStatus(atPev(), "hireview", "cleared", { now }).journey;
+    j = completeTask(j, "offer-conditions", { now }).journey;
     expect(status(j, "it-request")).toBe("LOCKED");
     j = applyIntegrationStatus(j, "identity", "created", { now }).journey;
     expect(status(j, "it-request")).toBe("TODO");
@@ -227,11 +259,17 @@ describe("setTaskStatus / bespoke / exit", () => {
 
   it("exits with a reason and records the stage reached", () => {
     const j = completeTask(make().journey, "intro", { now }).journey;
-    const r = exitJourney(j, "Accepted another offer", { now });
-    expect(r.journey).toMatchObject({ status: "exited", exitReason: "Accepted another offer", exitStage: "PEV" });
+    const r = exitJourney(j, "ACCEPTED_ANOTHER_OFFER", { now });
+    expect(r.journey).toMatchObject({ status: "exited", exitReason: "ACCEPTED_ANOTHER_OFFER", exitStage: "PEV" });
     expect(r.events[0]).toMatchObject({ type: "JOURNEY_EXITED" });
     expect(() => exitJourney(j, " ")).toThrow(EngineError);
+    expect(() => exitJourney(j, "Accepted another offer")).toThrow(/Unknown exit reason/);
     expect(() => completeTask(r.journey, "pev-hireview")).toThrow(/exited/);
+  });
+
+  it("merges optional data into the JOURNEY_EXITED event without overriding reason or stage (D14)", () => {
+    const r = exitJourney(make().journey, "NO_SHOW", { now, data: { reasonSource: "PNP", comment: "did not arrive", reason: "x", stage: "x" } });
+    expect(r.events[0].data).toEqual({ reasonSource: "PNP", comment: "did not arrive", reason: "NO_SHOW", stage: "CONDITIONAL_OFFER" });
   });
 });
 

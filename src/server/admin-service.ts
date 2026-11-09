@@ -9,6 +9,7 @@ import { prisma } from "./db";
 import { ADAPTER_KEYS, type AdapterKey } from "@/domain/types";
 import { parseRoles } from "@/lib/auth/roles";
 import { getAdapter, listAdapterModes, setAdapterMode, type AdapterMode } from "@/adapters/registry";
+import { EXIT_REASONS } from "@/domain/exit-reasons";
 import { createJourneyForStarter, exitJourney, recordEvent, NotFoundError } from "./journey-service";
 import {
   contentInputSchema,
@@ -354,7 +355,7 @@ export async function seedNewStarter(actorId: string, input: unknown) {
     starterName: starter.displayName,
     taskCount: journey.tasks.length,
     identity,
-    links: { journey: `/journey?journeyId=${journey.id}`, lm: `/lm/${journey.id}` },
+    links: { journey: "/journey", lm: `/lm/starters/${journey.id}` },
   };
 }
 
@@ -371,21 +372,6 @@ export async function getDirectory() {
 }
 
 // -------------------------------------------------------------- record exit
-
-/** D14: P&P-recorded reasons plus colleague categories (when relaying what the colleague said). */
-export const EXIT_REASONS = [
-  "FAILED_PEV",
-  "OFFER_WITHDRAWN_BY_LBG",
-  "NO_SHOW",
-  "ACCEPTED_ANOTHER_OFFER",
-  "ROLE_NOT_RIGHT",
-  "PERSONAL_CIRCUMSTANCES",
-  "PAY_OR_BENEFITS",
-  "LOCATION_OR_HYBRID",
-  "ONBOARDING_EXPERIENCE",
-  "PREFER_NOT_TO_SAY",
-  "OTHER",
-] as const;
 
 export async function listAdminJourneys() {
   const rows = await prisma.journey.findMany({ orderBy: { startDate: "asc" }, include: { team: true } });
@@ -407,12 +393,7 @@ export async function recordExit(actorId: string, journeyId: string, input: unkn
   const journey = await prisma.journey.findUnique({ where: { id: journeyId } });
   if (!journey) throw new NotFoundError("Journey not found");
   if (journey.status !== "active") throw new AdminError(409, "This journey is not active, so an exit cannot be recorded.");
-  await exitJourney(journeyId, v.reason, { actorId });
-  // The engine event has no reasonSource field; tag the event just written (same request) and add the optional note.
-  const ev = await prisma.event.findFirst({ where: { journeyId, type: "JOURNEY_EXITED" }, orderBy: { createdAt: "desc" } });
-  if (ev) {
-    const data = { ...((ev.data as Record<string, unknown> | null) ?? {}), reasonSource: "PNP", ...(v.note ? { note: v.note } : {}) };
-    await prisma.event.update({ where: { id: ev.id }, data: { data: data as object } });
-  }
+  // D14: reasonSource and the optional note (as `comment`, which MI reads) go straight into the JOURNEY_EXITED event.
+  await exitJourney(journeyId, v.reason, { actorId, data: { reasonSource: "PNP", ...(v.note ? { comment: v.note } : {}) } });
   return { ok: true, reason: v.reason };
 }

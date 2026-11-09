@@ -14,6 +14,7 @@ import {
   setTaskStatus as engSetStatus,
   settle,
   type BespokeTaskInput,
+  type ExitOptions,
   type Progress,
 } from "@/domain/engine";
 import type {
@@ -278,7 +279,8 @@ export async function applyIntegrationStatus(
   });
 }
 
-export const exitJourney = (journeyId: string, reason: string, ctx: Ctx = {}) =>
+/** `ctx.data` (e.g. `{ reasonSource, comment }`) is merged into the JOURNEY_EXITED event. */
+export const exitJourney = (journeyId: string, reason: string, ctx: ExitOptions = {}) =>
   mutateJourney(journeyId, (j) => engExit(j, reason, ctx));
 
 /** Re-run recompute/advance/flag (e.g. after an admin edits dependencies). */
