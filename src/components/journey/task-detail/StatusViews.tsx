@@ -61,7 +61,7 @@ export function FirstAdvantagePanel({ data, onChanged }: { data: TaskDetailRespo
           <meta.Icon aria-hidden className="size-6" />
           {meta.label}
         </span>
-        <h3 className="font-semibold">What this means</h3>
+        <h2 className="font-semibold">What this means</h2>
         <p>{meta.what}</p>
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted">
           <span>Last checked {formatDateTime(s.updatedAt)}</span>
@@ -87,6 +87,7 @@ export function FirstAdvantagePanel({ data, onChanged }: { data: TaskDetailRespo
             <ButtonLink href={s.actionUrl} external variant="primary" className="mt-2">
               Open First Advantage
               <ExternalLink aria-hidden className="size-5" />
+              <span className="sr-only"> (opens in a new tab)</span>
             </ButtonLink>
           )}
         </Alert>
@@ -95,7 +96,7 @@ export function FirstAdvantagePanel({ data, onChanged }: { data: TaskDetailRespo
       {/* FR-2.2: always visible on the vetting stage */}
       {data.journey.pnp && data.task.stage === "PEV" && (
         <section aria-label="People and Places support">
-          <h3 className="mb-2 font-semibold">Need help with your vetting?</h3>
+          <h2 className="mb-2 font-semibold">Need help with your vetting?</h2>
           <ContactCard name={data.journey.pnp.name} role="People & Places" upn={data.journey.pnp.upn} photoUrl={data.journey.pnp.photoUrl} variant="compact" />
         </section>
       )}
@@ -136,12 +137,12 @@ export function TrainingList({ data }: { data: TaskDetailResponse }) {
   const done = d.items.filter((i) => i.status === "COMPLETE").length;
   return (
     <div>
-      <h3 className="font-semibold">
+      <h2 className="font-semibold">
         Mandatory training{" "}
         <span className="font-normal text-muted">
           ({done} of {d.items.length} complete)
         </span>
-      </h3>
+      </h2>
       <ul className="mt-2 space-y-2">
         {d.items.map((i) => (
           <Card as="li" key={i.id} className="flex items-center justify-between gap-3 p-3">

@@ -50,6 +50,14 @@ export function FaqHelp() {
   const faqs = useMemo(() => (data?.faqs ?? []).map(toItem), [data]);
   const results = useMemo(() => filterFaqs(faqs, query, topic), [faqs, query, topic]);
 
+  // The result count is announced ~500ms after typing stops, not on every keystroke.
+  const countText = data ? resultCountText(results.length) : "";
+  const [announced, setAnnounced] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setAnnounced(countText), 500);
+    return () => clearTimeout(t);
+  }, [countText]);
+
   // Deep link (/faq#faq-12, used by assistant citations): open that item once data is loaded.
   useEffect(() => {
     if (hashHandled.current || !faqs.length) return;
@@ -117,8 +125,11 @@ export function FaqHelp() {
         </ChipRow>
       </div>
 
-      <p role="status" className="text-sm text-muted">
-        {data ? resultCountText(results.length) : ""}
+      <p aria-hidden="true" className="text-sm text-muted">
+        {countText}
+      </p>
+      <p role="status" className="sr-only">
+        {announced}
       </p>
 
       {loading && (

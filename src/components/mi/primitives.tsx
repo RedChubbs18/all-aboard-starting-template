@@ -36,7 +36,7 @@ export function Badge({ tone, icon, children }: { tone: keyof typeof TONE; icon?
 export function Section({ title, actions, children, id }: { title: string; actions?: ReactNode; children: ReactNode; id?: string }) {
   const hid = useId();
   return (
-    <Card as="section" aria-labelledby={hid} id={id}>
+    <Card as="section" aria-labelledby={hid} id={id} className="scroll-mt-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id={hid} className="text-xl font-bold">{title}</h2>
         {actions}
@@ -183,9 +183,10 @@ export function ChartCard({
   return (
     <figure aria-labelledby={tid} className="rounded-md border border-line bg-card px-[22px] py-5">
       <figcaption className="flex flex-wrap items-center justify-between gap-2">
-        <span id={tid} className="text-lg font-bold">{title}</span>
+        <h3 id={tid} className="text-lg font-bold">{title}</h3>
+        {/* Fixed label: the pressed state carries the toggle, so the name does not change (WCAG 4.1.2). */}
         <button type="button" aria-pressed={asTable} onClick={() => setAsTable((v) => !v)} className={buttonClass("secondary", "md", "px-3 text-sm")}>
-          {asTable ? "View as chart" : "View as table"}
+          Show as table
         </button>
       </figcaption>
       {summary && <p className="mt-1 text-sm text-muted">{summary}</p>}

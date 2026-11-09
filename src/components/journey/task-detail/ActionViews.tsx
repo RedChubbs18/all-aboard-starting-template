@@ -72,6 +72,9 @@ export function ChecklistView({ data, onComplete, completing }: Props) {
   );
 }
 
+/** Synthetic WebVTT captions live in public/media, named after the video file (WCAG 1.2.2). */
+const captionsSrc = (url: string) => `/media/${(url.split("/").pop() ?? "video").replace(/\.[a-z0-9]+$/i, "").replace(/[^a-z0-9-]/gi, "")}.en.vtt`;
+
 /** FR-4.6: embedded video, completes on `ended`. A keyboard-accessible "I've watched it" is always available. */
 export function VideoView({ data, onComplete, completing }: Props) {
   const d = data.detail as Extract<Detail, { kind: "video" }>;
@@ -100,6 +103,7 @@ export function VideoView({ data, onComplete, completing }: Props) {
           }}
         >
           <source src={d.url} />
+          <track kind="captions" srcLang="en" label="English" src={captionsSrc(d.url)} default />
           Your browser can&apos;t play this video.
         </video>
       ) : (
@@ -108,7 +112,7 @@ export function VideoView({ data, onComplete, completing }: Props) {
         </Alert>
       )}
       {percent > 0 && !failed && <p className="tabular text-sm text-muted">Watched {percent}%</p>}
-      <p className="text-sm text-muted">Captions: this demo video has no captions file. The transcript is available below.</p>
+      <p className="text-sm text-muted">English captions are available from the video controls. The transcript is also below.</p>
       {data.content && (
         <details className="rounded-md border border-line bg-card p-3">
           <summary className="min-h-11 cursor-pointer py-2 font-semibold">Transcript</summary>
@@ -170,7 +174,7 @@ export function BookingView({ data, onChanged }: Props) {
                 className={cn(
                   "flex min-h-14 cursor-pointer items-center gap-3 rounded-md border-2 bg-card p-3",
                   sessionId === s.id ? "border-dark-green bg-brand-tint" : "border-line",
-                  full && "cursor-not-allowed opacity-60",
+                  full && "cursor-not-allowed",
                 )}
               >
                 <input type="radio" name={group} className="size-5 accent-[var(--color-brand)]" disabled={full} checked={sessionId === s.id} onChange={() => setSessionId(s.id)} />
@@ -187,11 +191,11 @@ export function BookingView({ data, onChanged }: Props) {
         </div>
       </fieldset>
       {canAct && (
-        <Button size="lg" className="w-full" loading={busy} aria-disabled={!sessionId} onClick={() => void book()}>
+        <Button size="lg" className="w-full" loading={busy} aria-disabled={!sessionId} aria-describedby={!sessionId ? "booking-help" : undefined} onClick={() => void book()}>
           Confirm booking
         </Button>
       )}
-      {canAct && !sessionId && <p className="text-sm text-muted">Choose a session to continue.</p>}
+      {canAct && !sessionId && <p id="booking-help" className="text-sm text-muted">Choose a session to continue.</p>}
     </div>
   );
 }
@@ -278,10 +282,10 @@ export function OrderView({ data, onChanged }: Props) {
       )}
       {canAct && (
         <>
-          <Button size="lg" className="w-full" aria-disabled={!ready} onClick={() => ready && setConfirm(true)}>
+          <Button size="lg" className="w-full" aria-disabled={!ready} aria-describedby={!ready ? "order-help" : undefined} onClick={() => ready && setConfirm(true)}>
             Review and confirm
           </Button>
-          {!ready && <p className="text-sm text-muted">{isHome ? "Choose at least one item." : isPeripherals ? "Choose your primary device first." : "Choose a laptop to continue."}</p>}
+          {!ready && <p id="order-help" className="text-sm text-muted">{isHome ? "Choose at least one item." : isPeripherals ? "Choose your primary device first." : "Choose a laptop to continue."}</p>}
         </>
       )}
       <Sheet open={confirm} onClose={() => setConfirm(false)} title="Confirm your order" variant="dialog">
@@ -329,14 +333,14 @@ export function CollectView({ data }: Props) {
   return (
     <Card className="space-y-3">
       <div>
-        <h3 className="font-semibold">Collect from</h3>
+        <h2 className="font-semibold">Collect from</h2>
         <p className="mt-1 flex items-start gap-2">
           <MapPin aria-hidden className="mt-0.5 size-5 shrink-0 text-brand-strong" />
           {d.choice.collectionPoint}
         </p>
       </div>
       <div>
-        <h3 className="font-semibold">Your items</h3>
+        <h2 className="font-semibold">Your items</h2>
         <ul className="mt-1 list-disc pl-5">
           <li>{d.choice.device === "MAC" ? "Mac laptop" : "Windows laptop"}</li>
           {peripherals.map((p) => (
@@ -378,7 +382,7 @@ export function Day0View({ data, onChanged }: Props) {
   return (
     <div className="space-y-3">
       <Card className="space-y-2">
-        <h3 className="font-semibold">{d.role === "wayfinding" ? "Your first-day meeting point" : "Your line manager's proposal"}</h3>
+        <h2 className="font-semibold">{d.role === "wayfinding" ? "Your first-day meeting point" : "Your line manager's proposal"}</h2>
         <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
           <dt className="font-semibold">Where</dt>
           <dd>{day0.where}</dd>

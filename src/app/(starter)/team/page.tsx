@@ -69,8 +69,9 @@ function TeamPage() {
         <ol className="mt-1 list-none space-y-0.5">
           {lm && <li>{lm.name} (line manager)</li>}
           {starterName && (
-            <li className="pl-4" aria-label={`reports to ${lm?.name ?? "your line manager"}`}>
+            <li className="pl-4">
               {starterName} (you)
+              <span className="sr-only">, reports to {lm?.name ?? "your line manager"}</span>
             </li>
           )}
         </ol>

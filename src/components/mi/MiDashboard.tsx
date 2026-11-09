@@ -65,20 +65,28 @@ export function MiDashboard() {
     </button>
   );
 
+  const toast = (n: NonNullable<typeof notice>) => (
+    <div className={`flex items-start gap-2 rounded-md p-3 text-card border border-line ${n.kind === "error" ? "bg-blocked" : "bg-dark-green"}`}>
+      <Icon name={n.kind === "error" ? "alert" : "check"} />
+      <p className="flex-1">{n.text}</p>
+      <button type="button" onClick={() => setNotice(null)} aria-label="Dismiss message" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md">
+        <Icon name="x" />
+      </button>
+    </div>
+  );
+
   return (
     <div className="mx-auto max-w-[1200px] space-y-4 pb-20 md:pb-4">
       <h1 className="text-[28px] font-bold leading-tight text-ink">Intake overview</h1>
 
-      <div className="fixed inset-x-3 top-3 z-50 md:inset-x-auto md:right-4 md:top-auto md:bottom-4 md:w-96" role={notice?.kind === "error" ? "alert" : "status"}>
-        {notice && (
-          <div className={`flex items-start gap-2 rounded-md p-3 text-card border border-line ${notice.kind === "error" ? "bg-blocked" : "bg-dark-green"}`}>
-            <Icon name={notice.kind === "error" ? "alert" : "check"} />
-            <p className="flex-1">{notice.text}</p>
-            <button type="button" onClick={() => setNotice(null)} aria-label="Dismiss message" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md">
-              <Icon name="x" />
-            </button>
-          </div>
-        )}
+      {/* Two always-mounted live regions (polite and assertive) so announcements are reliable; the role never swaps. */}
+      <div className="pointer-events-none fixed inset-x-3 top-3 z-50 md:inset-x-auto md:right-4 md:top-auto md:bottom-4 md:w-96">
+        <div role="status" className="pointer-events-auto">
+          {notice && notice.kind !== "error" && toast(notice)}
+        </div>
+        <div role="alert" className="pointer-events-auto">
+          {notice?.kind === "error" && toast(notice)}
+        </div>
       </div>
 
       {view && <FilterBar filters={filters} options={view.options} onChange={onFilters} />}
@@ -180,7 +188,7 @@ function Body({ data, onClear, post, reload, setNotice, exportBtn }: {
       {total === 0 ? (
         <Section title="Starters">{empty}</Section>
       ) : (
-        <div id="charts" className="grid scroll-mt-20 gap-4 lg:grid-cols-2">
+        <div id="charts" className="grid scroll-mt-2 gap-4 lg:grid-cols-2">
           <ChartCard
             title="Starters by current stage"
             summary={`${plural(total, "starter")} in this view`}
