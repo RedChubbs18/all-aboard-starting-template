@@ -10,6 +10,11 @@ export interface PhotoCheckInput {
 export interface PhotoCheckResult {
   pass: boolean;
   issues: string[];
+  /**
+   * Set when the automated check could not run (AI unavailable, refusal, error). The result is
+   * then issue-free so the starter is not blocked, and a line manager or P&P should review and recertify the photo manually (D12).
+   */
+  needsManualReview?: boolean;
 }
 
 /** FR-3.12: sunglasses, hats, unclear face. Submission is blocked until pass or a P&P override. */
