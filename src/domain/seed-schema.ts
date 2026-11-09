@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { TemplateInput } from "./types";
 import {
   CONTENT_TYPES,
   JOURNEY_STATUSES,
@@ -133,3 +134,25 @@ export type SeedTemplate = z.infer<typeof templateSchema>;
 export type SeedPeople = z.infer<typeof peopleFileSchema>;
 export type SeedJourney = z.infer<typeof journeySeedSchema>;
 export type SeedLocal = z.infer<typeof seedLocalSchema>;
+
+/** Seed template row to the engine's TemplateInput (shared by the seed loader and tests that load the real content/seed/templates.json). */
+export const toTemplateInput = (t: SeedTemplate): TemplateInput => ({
+  key: t.key,
+  title: t.title,
+  description: t.description,
+  stage: t.stage,
+  owner: t.owner,
+  type: t.type,
+  dueOffsetDays: t.dueOffsetDays,
+  dependsOn: t.dependsOn,
+  source: t.source,
+  teamId: t.teamKey ?? t.teamId ?? null,
+  adapterKey: t.adapterKey ?? null,
+  gating: t.gating,
+  optional: t.optional,
+  autoCompleteOnOpen: t.autoCompleteOnOpen,
+  contentSlug: t.contentSlug ?? null,
+  condition: t.condition ?? null,
+  sortOrder: t.sortOrder,
+});
+

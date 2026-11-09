@@ -10,6 +10,7 @@ import { ADAPTER_KEYS, type AdapterKey } from "@/domain/types";
 import { parseRoles } from "@/lib/auth/roles";
 import { getAdapter, listAdapterModes, setAdapterMode, type AdapterMode } from "@/adapters/registry";
 import { EXIT_REASONS } from "@/domain/exit-reasons";
+import { completeGuestInviteTask } from "./integration-service";
 import { createJourneyForStarter, exitJourney, recordEvent, NotFoundError } from "./journey-service";
 import {
   contentInputSchema,
@@ -351,6 +352,8 @@ export async function seedNewStarter(actorId: string, input: unknown, opts: { de
     const r = await adapter.inviteGuest(journey.id, v.inviteEmail ?? starter.upn);
     identity = { ok: true, status: r.status };
     await audit(actorId, "INTEGRATION_STATUS", "Integration", "identity", { status: r.status }, journey.id);
+    // The invite was sent, so complete `guest-invite-sent` (the engine writes the TASK_STATUS_CHANGED audit event).
+    await completeGuestInviteTask(journey.id, { actorId }, r.status);
   } catch (e) {
     identity = { ok: false, message: e instanceof Error ? e.message : "Invite failed" };
     await audit(actorId, "INTEGRATION_FAILED", "Integration", "identity", { message: identity.message }, journey.id);

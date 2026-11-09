@@ -130,6 +130,9 @@ describe("recomputeTasks", () => {
   it("respects conditions (FR-4.5): fallback only when induction not booked", () => {
     let { journey } = make();
     expect(journey.tasks.find((t) => t.key === "induction-fallback")!.applicable).toBe(true);
+    // book-induction is only open once its stage is reached (an external status never completes a LOCKED task).
+    for (const key of ["intro", "pev-firstadvantage", "offer-conditions"]) journey = completeTask(journey, key, { now }).journey;
+    expect(status(journey, "book-induction")).toBe("TODO");
     journey = applyIntegrationStatus(journey, "booking", "booked", { now }).journey;
     expect(status(journey, "book-induction")).toBe("DONE");
     expect(journey.tasks.find((t) => t.key === "induction-fallback")!.applicable).toBe(false);

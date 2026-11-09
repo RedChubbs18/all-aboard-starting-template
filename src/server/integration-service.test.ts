@@ -17,6 +17,12 @@ const ALEX = "journey-alex-morgan";
 const SAM = "journey-sam-ellery";
 const task = async (journeyId: string, key: string) => (await js.loadJourney(journeyId))!.tasks.find((t) => t.key === key);
 
+/** An external status never completes or blocks a LOCKED task, so get the journey to PEV first (the vetting task unlocks there). */
+const toPev = async (journeyId: string) => {
+  for (const key of ["guest-sign-in", "device-choice-submitted"]) await js.completeTask(journeyId, key, { actorId: "test" });
+  expect((await js.loadJourney(journeyId))!.currentStage).toBe("PEV");
+};
+
 beforeAll(() => {
   process.env.AUTH_MODE = "demo";
 });
@@ -30,6 +36,7 @@ beforeEach(async () => {
 
 describe("simulate: First Advantage (firstadvantage adapter)", () => {
   it("action_needed blocks the task, flags the journey and sends a reminder to the starter", async () => {
+    await toPev(ALEX);
     const r = await simulate("firstadvantage", ALEX, "action_needed", undefined, { actorId: "admin-x" });
     expect(r.flagged).toBe(true);
     const t = await task(ALEX, "firstadvantage-vetting-status");
@@ -45,6 +52,7 @@ describe("simulate: First Advantage (firstadvantage adapter)", () => {
   });
 
   it("cleared completes the vetting task and unflags, but does not force the stage (D10)", async () => {
+    await toPev(ALEX);
     await simulate("firstadvantage", ALEX, "action_needed");
     await simulate("firstadvantage", ALEX, "cleared");
     expect((await task(ALEX, "firstadvantage-vetting-status"))!.status).toBe("DONE");
@@ -213,6 +221,7 @@ describe("route guards", () => {
   it("lets ADMIN and PNP simulate, tick and read state, and validates input", async () => {
     const admin = (await prisma.user.findMany()).find((u) => (u.roles as string[]).includes("ADMIN"))!.id;
     const pnp = (await prisma.user.findMany()).find((u) => (u.roles as string[]).includes("PNP"))!.id;
+    await toPev(ALEX);
     const ok = await simulatePost(await as(admin, "POST", "/api/simulate", { adapterKey: "firstadvantage", journeyId: ALEX, status: "action_needed" }), undefined);
     expect(ok.status).toBe(200);
     expect((await ok.json()).flagged).toBe(true);

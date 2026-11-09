@@ -13,8 +13,8 @@ import {
   peopleFileSchema,
   seedLocalSchema,
   templatesFileSchema,
+  toTemplateInput,
   type SeedPeople,
-  type SeedTemplate,
 } from "@/domain/seed-schema";
 import { createJourney, recomputeTasks, refreshFlag } from "@/domain/engine";
 import { STAGES, stageIndex, type NewEvent, type TaskState, type TemplateInput } from "@/domain/types";
@@ -59,26 +59,6 @@ export function resolveSources(): SeedSources {
     people: bothReal ? p : path.join(FIXTURE_DIR, "people.json"),
   };
 }
-
-const toTemplateInput = (t: SeedTemplate): TemplateInput => ({
-  key: t.key,
-  title: t.title,
-  description: t.description,
-  stage: t.stage,
-  owner: t.owner,
-  type: t.type,
-  dueOffsetDays: t.dueOffsetDays,
-  dependsOn: t.dependsOn,
-  source: t.source,
-  teamId: t.teamKey ?? t.teamId ?? null,
-  adapterKey: t.adapterKey ?? null,
-  gating: t.gating,
-  optional: t.optional,
-  autoCompleteOnOpen: t.autoCompleteOnOpen,
-  contentSlug: t.contentSlug ?? null,
-  condition: t.condition ?? null,
-  sortOrder: t.sortOrder,
-});
 
 const DAY = 86_400_000;
 

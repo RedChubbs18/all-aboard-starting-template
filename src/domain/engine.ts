@@ -69,6 +69,22 @@ export function isEffectivelyDone(t: TaskState, tasks: TaskState[]): boolean {
   return !!by && tasks.some((x) => by.includes(x.key) && x.status === "DONE");
 }
 
+/**
+ * D3 clarification: the one definition of "overdue" (progress, LM list, MI issues and chase).
+ * An applicable, non-optional task that is not effectively done (a DONE override counts), is not LOCKED
+ * (it is waiting on something else) and whose due date is in the past. Pass the journey's tasks so
+ * override satisfaction can be seen; without them only the task's own status is used.
+ */
+export function isOverdue(
+  t: Pick<TaskState, "key" | "status" | "dueDate" | "applicable"> & { optional?: boolean },
+  now: Date,
+  tasks?: TaskState[],
+): boolean {
+  if (!t.applicable || t.optional || t.status === "LOCKED") return false;
+  if (t.status === "DONE" || (tasks && isEffectivelyDone(t as TaskState, tasks))) return false;
+  return t.dueDate.getTime() < now.getTime();
+}
+
 const statusOf = (tasks: TaskState[], key: string) => tasks.find((t) => t.key === key)?.status;
 
 /** Named conditions used by seeded templates (content/seed/templates.json). */
@@ -462,7 +478,7 @@ export function addBespokeTask(
 
 export type NormalizedIntegration = "NOT_STARTED" | "IN_PROGRESS" | "ACTION_NEEDED" | "COMPLETE" | "FAILED";
 
-const COMPLETE = new Set(["cleared", "complete", "completed", "done", "ready", "created", "applied", "confirmed", "issued", "granted", "ordered", "booked", "available"]);
+const COMPLETE = new Set(["cleared", "complete", "completed", "done", "ready", "created", "applied", "confirmed", "issued", "granted", "ordered", "booked", "available", "collected", "delivered", "printed", "fulfilled"]);
 const FAILED = new Set(["failed", "error", "rejected"]);
 const ACTION = new Set(["action_needed", "actionneeded", "action-needed", "blocked"]);
 const PROGRESS = new Set(["in_progress", "inprogress", "pending", "requested", "invited", "submitted"]);
@@ -506,7 +522,8 @@ export function applyIntegrationStatus(
   ];
   const label = adapterKey;
   const tasks = journey.tasks.map((t) => {
-    if (t.adapterKey !== adapterKey || !t.applicable || t.status === "DONE") return t;
+    // LOCKED tasks are waiting on a stage or dependency: an external status must not skip them ahead.
+    if (t.adapterKey !== adapterKey || !t.applicable || t.status === "DONE" || t.status === "LOCKED") return t;
     let next: TaskStatus = t.status;
     let blockedReason: string | null = t.blockedReason;
     let owner = t.owner;
@@ -560,6 +577,29 @@ export function applyIntegrationStatus(
 
   const s = settle(j, ctx);
   return { journey: s.journey, events: [...events, ...s.events] };
+}
+
+/**
+ * FR-3.12: a person must review the starter's photo. Applies photocheck `action_needed` (blocks the open
+ * upload task) and also blocks the SYSTEM result task `photo-check-passed` even though it is LOCKED behind
+ * the upload. That BLOCKED status is what makes the `photo-check-failed` condition true, so the P&P/LM
+ * override task appears, and (via SATISFIED_BY) a DONE override satisfies it again.
+ */
+export function requestPhotoReview(journey: JourneyState, ctx?: Ctx & { detail?: string }): EngineResult {
+  const r = applyIntegrationStatus(journey, "photocheck", "action_needed", ctx);
+  const t = r.journey.tasks.find((x) => x.key === "photo-check-passed" && x.applicable);
+  if (!t || t.status === "DONE" || t.status === "BLOCKED") return r;
+  const reason = ctx?.detail ?? "photocheck: action needed";
+  const blocked: JourneyState = {
+    ...r.journey,
+    tasks: r.journey.tasks.map((x) => (x.id === t.id ? { ...x, status: "BLOCKED" as const, blockedReason: reason } : x)),
+  };
+  const e = ev(journey, ctx, {
+    type: "TASK_STATUS_CHANGED", entity: "Task", entityId: t.id, from: t.status, to: "BLOCKED",
+    data: { key: t.key, via: "photocheck", blockedReason: reason },
+  });
+  const s = settle(blocked, ctx);
+  return { journey: s.journey, events: [...r.events, e, ...s.events] };
 }
 
 // ------------------------------------------------------------------- vetting
@@ -625,14 +665,16 @@ export interface Progress {
 export function progress(journey: JourneyState, now: Date = new Date(), nextLimit = 5): Progress {
   // Optional tasks (F12) never count towards progress.
   const live = journey.tasks.filter((t) => t.applicable && !t.optional);
-  const done = live.filter((t) => t.status === "DONE").length;
-  const open = live.filter((t) => t.status !== "DONE");
+  // An overridden photo-check-passed counts as done (isEffectivelyDone), so it neither blocks progress nor flags.
+  const isDone = (t: TaskState) => isEffectivelyDone(t, journey.tasks);
+  const done = live.filter(isDone).length;
+  const open = live.filter((t) => !isDone(t));
   const byDue = (a: TaskState, b: TaskState) =>
     a.dueDate.getTime() - b.dueDate.getTime() || a.sortOrder - b.sortOrder || a.key.localeCompare(b.key);
   const perStage = Object.fromEntries(
     STAGES.map((s) => {
       const st = live.filter((t) => t.stage === s);
-      return [s, { total: st.length, done: st.filter((t) => t.status === "DONE").length }];
+      return [s, { total: st.length, done: st.filter(isDone).length }];
     }),
   ) as Progress["perStage"];
   return {
@@ -645,7 +687,7 @@ export function progress(journey: JourneyState, now: Date = new Date(), nextLimi
     stageCount: STAGES.length,
     perStage,
     nextDue: [...open].sort(byDue).slice(0, nextLimit),
-    overdue: open.filter((t) => t.dueDate.getTime() < now.getTime()).sort(byDue),
+    overdue: open.filter((t) => isOverdue(t, now, journey.tasks)).sort(byDue),
     blocked: open.filter((t) => t.status === "BLOCKED").sort(byDue),
   };
 }

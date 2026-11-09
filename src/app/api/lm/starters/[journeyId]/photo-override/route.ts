@@ -4,6 +4,7 @@ import { HttpError, lmRoute, parseBody, requireWritableJourney, type JourneyPara
 import { canActOnTask } from "@/lib/auth/access";
 import { completeTask as engineComplete } from "@/domain/engine";
 import { mutateJourney } from "@/server/journey-service";
+import { orderPassAfterRecertification } from "@/server/integration-service";
 
 const schema = z.object({
   justification: z
@@ -38,5 +39,6 @@ export const POST = lmRoute<JourneyParams>(async (req, ctx, user) => {
       ],
     };
   });
+  await orderPassAfterRecertification(journeyId, { actorId: user.id });
   return Response.json(await buildDetail(journeyId, user));
 });

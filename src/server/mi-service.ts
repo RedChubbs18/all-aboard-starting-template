@@ -9,6 +9,7 @@ import { recordEvent, toJourneyState } from "./journey-service";
 import { getAdapter } from "@/adapters/registry";
 import { COLLEAGUE_REASONS, PNP_REASONS } from "@/components/mi/labels";
 import type { MiFilters } from "@/components/mi/filters";
+import { isEffectivelyDone, isOverdue } from "@/domain/engine";
 import { STAGES, type JourneyState, type Stage, type TaskState } from "@/domain/types";
 
 const DAY = 86_400_000;
@@ -107,18 +108,17 @@ export interface Issue {
 
 export const daysBetween = (later: Date, earlier: Date): number => Math.floor((later.getTime() - earlier.getTime()) / DAY);
 
-/** Past due and still actionable (LOCKED tasks wait on a dependency, so they are not counted). */
-export const isOverdue = (t: Pick<TaskState, "status" | "dueDate" | "applicable">, now: Date): boolean =>
-  t.applicable && (t.status === "TODO" || t.status === "IN_PROGRESS" || t.status === "BLOCKED") && t.dueDate.getTime() < now.getTime();
+/** D3 clarification: one shared definition of "overdue" (src/domain/engine.ts). */
+export { isOverdue };
 
 /** Issue kind for a task, or null when it is not an issue. Integration status wins over generic BLOCKED. */
-export function classifyTask(t: TaskState, integrationStatus: string | undefined, now: Date): IssueKind | null {
-  if (!t.applicable || t.status === "DONE" || t.status === "LOCKED") return null;
+export function classifyTask(t: TaskState, integrationStatus: string | undefined, now: Date, tasks?: TaskState[]): IssueKind | null {
+  if (!t.applicable || t.status === "DONE" || t.status === "LOCKED" || (tasks && isEffectivelyDone(t, tasks))) return null;
   const s = integrationStatus?.toLowerCase();
   if (t.adapterKey && s === "failed") return "FAILED";
   if (t.adapterKey && s === "action_needed") return "ACTION_NEEDED";
   if (t.status === "BLOCKED") return "BLOCKED";
-  if (isOverdue(t, now)) return "OVERDUE";
+  if (isOverdue(t, now, tasks)) return "OVERDUE";
   return null;
 }
 
@@ -133,7 +133,7 @@ export function buildIssues(
     if (j.status !== "active") continue;
     const lmName = names.get(j.lmId) ?? "Unknown";
     for (const t of j.tasks) {
-      const kind = classifyTask(t, t.adapterKey ? integration.get(`${j.id}|${t.adapterKey}`) : undefined, now);
+      const kind = classifyTask(t, t.adapterKey ? integration.get(`${j.id}|${t.adapterKey}`) : undefined, now, j.tasks);
       if (!kind) continue;
       out.push({
         journeyId: j.id,
@@ -144,7 +144,7 @@ export function buildIssues(
         kind,
         owner: t.owner,
         adapterKey: t.adapterKey,
-        daysOverdue: isOverdue(t, now) ? Math.max(1, daysBetween(now, t.dueDate)) : 0,
+        daysOverdue: isOverdue(t, now, j.tasks) ? Math.max(1, daysBetween(now, t.dueDate)) : 0,
         blockedReason: t.blockedReason,
         lmId: j.lmId,
         lmName,
@@ -178,7 +178,7 @@ export function buildChaseRows(journeys: JourneyState[], names: Map<string, stri
   for (const j of journeys) {
     if (j.status !== "active") continue;
     for (const t of j.tasks) {
-      if (t.owner !== "LM" || !isOverdue(t, now)) continue;
+      if (t.owner !== "LM" || !isOverdue(t, now, j.tasks)) continue;
       const list = byLm.get(j.lmId) ?? [];
       list.push({ journeyId: j.id, starterName: names.get(j.starterId) ?? "Unknown", taskKey: t.key, title: t.title, daysOverdue: Math.max(1, daysBetween(now, t.dueDate)) });
       byLm.set(j.lmId, list);

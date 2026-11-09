@@ -2,6 +2,7 @@ import { z } from "zod";
 import { withRole } from "@/lib/auth/server";
 import { prisma } from "@/server/db";
 import { recordEvent } from "@/server/journey-service";
+import { completeGuestInviteTask } from "@/server/integration-service";
 import { prismaStore } from "@/adapters/store";
 import { createIdentityMock } from "@/adapters/identity/mock";
 import { createIdentityReal } from "@/adapters/identity/real";
@@ -29,14 +30,28 @@ export const POST = withRole(["ADMIN"], async (req, ctx: { params: Promise<{ jou
   if (current.status !== "none") return Response.json({ error: "conflict", message: "An invite result is already recorded for this journey" }, { status: 409 });
 
   if (body.status === "invited") {
+    // The guest signs in with this object id, so it must map to the starter (entraOid is unique).
+    const starter = await prisma.user.findUnique({ where: { id: journey.starterId } });
+    const owner = await prisma.user.findUnique({ where: { entraOid: body.guestObjectId } });
+    if (owner && owner.id !== journey.starterId) {
+      return Response.json(
+        { error: "conflict", message: "That guest account is already linked to another user, so it cannot sign in as this starter. The invite was not recorded; run npm run db:reset or invite a different email." },
+        { status: 409 },
+      );
+    }
+    // Never overwrite an existing, different mapping: that would lock a real person out.
+    const link = !!starter && (starter.entraOid === null || starter.entraOid === body.guestObjectId);
     const r = await createIdentityReal(prismaStore).recordGuestInvite(journeyId, body.guestObjectId);
-    await recordEvent({ journeyId, actorId: user.id, type: "INTEGRATION_STATUS", entity: "Integration", entityId: "identity", data: { status: r.status, via: "graph", guestObjectId: body.guestObjectId } });
-    return Response.json({ status: r.status, via: "graph" });
+    if (link && starter!.entraOid === null) await prisma.user.update({ where: { id: starter!.id }, data: { entraOid: body.guestObjectId } });
+    await recordEvent({ journeyId, actorId: user.id, type: "INTEGRATION_STATUS", entity: "Integration", entityId: "identity", data: { status: r.status, via: "graph", guestObjectId: body.guestObjectId, oidLinked: link } });
+    await completeGuestInviteTask(journeyId, { actorId: user.id }, "graph"); // the invite went out
+    return Response.json({ status: r.status, via: "graph", oidLinked: link });
   }
 
   // Fallback: the demo invite. The mock never stores the address; the work placeholder satisfies its format check.
   const starter = await prisma.user.findUnique({ where: { id: journey.starterId } });
   const r = await createIdentityMock(prismaStore).inviteGuest(journeyId, starter?.upn ?? "starter@example.test");
   await recordEvent({ journeyId, actorId: user.id, type: "INTEGRATION_STATUS", entity: "Integration", entityId: "identity", data: { status: r.status, via: "mock_fallback", reason: body.reason } });
+  await completeGuestInviteTask(journeyId, { actorId: user.id }, "mock"); // the demo invite was sent
   return Response.json({ status: r.status, via: "mock_fallback" });
 });

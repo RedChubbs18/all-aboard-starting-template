@@ -1,5 +1,5 @@
 import { withRole } from "@/lib/auth/server";
-import { applyIntegrationStatus, recordEvent } from "@/server/journey-service";
+import { recordEvent, requestPhotoReview } from "@/server/journey-service";
 import { assertCanAct, taskContext } from "../_lib/context";
 import { guard, HttpError, readJson, str } from "../_lib/http";
 
@@ -16,7 +16,7 @@ export const POST = withRole(["STARTER", "LM", "PNP", "ADMIN"], (req, _ctx, user
     const { journey, task } = await taskContext(user, taskId);
     assertCanAct(user, journey, task);
     if (task.key !== "upload-pass-photo") throw new HttpError(409, "wrong_task", "This task does not take a photo");
-    await applyIntegrationStatus(journey.id, "photocheck", "action_needed", { actorId: user.id, detail: "Photo was not accepted. The starter asked for a review." });
+    await requestPhotoReview(journey.id, { actorId: user.id, detail: "Photo was not accepted. The starter asked for a review." });
     await recordEvent({ journeyId: journey.id, actorId: user.id, type: "SUPPORT_RAISED", entity: "Task", entityId: task.id, data: { reason: "photo_review_requested" } });
     return Response.json({ ok: true });
   }),

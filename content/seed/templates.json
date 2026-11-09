@@ -451,9 +451,7 @@
     "owner": "PNP",
     "type": "ACTION",
     "dueOffsetDays": -11,
-    "dependsOn": [
-      "upload-pass-photo"
-    ],
+    "dependsOn": [],
     "source": "CORE",
     "adapterKey": "photocheck",
     "gating": false,

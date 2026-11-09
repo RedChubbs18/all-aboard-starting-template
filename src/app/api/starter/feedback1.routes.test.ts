@@ -81,6 +81,7 @@ describe("F4 auto-complete on open", () => {
 describe("F7 vetting failed blocks every starter action", () => {
   it("returns an empty list with the warning flag, and 409 for starter actions", async () => {
     await complete("guest-sign-in");
+    await complete("device-choice-submitted"); // the vetting task unlocks at PEV; external statuses do not skip a LOCKED task
     await js.applyIntegrationStatus((await prisma.journey.findUniqueOrThrow({ where: { starterId: ALEX } })).id, "firstadvantage", "failed");
     const { body } = await call<JourneyResponse>(getJourney, ALEX, "/api/starter/journey");
     expect(body.journey.vettingFailed).toBe(true);

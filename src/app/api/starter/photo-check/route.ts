@@ -1,7 +1,7 @@
 import { getAdapter } from "@/adapters/registry";
 import { withRole } from "@/lib/auth/server";
 import { takePhotoRateLimit } from "@/server/chat-service";
-import { applyIntegrationStatus, recordEvent } from "@/server/journey-service";
+import { recordEvent, requestPhotoReview } from "@/server/journey-service";
 import { assertCanAct, taskContext } from "../_lib/context";
 import { guard, HttpError } from "../_lib/http";
 import { newPhotoRef, signPhotoRef } from "../_lib/photo-token";
@@ -89,7 +89,7 @@ export const POST = withRole(
       }
       if (result.needsManualReview) {
         // Fail closed (M1): never a pass token without a real check. Same review route as photo-review.
-        await applyIntegrationStatus(journey.id, "photocheck", "action_needed", {
+        await requestPhotoReview(journey.id, {
           actorId: user.id,
           detail: "The automated photo check was unavailable. The photo needs a manual review.",
         });

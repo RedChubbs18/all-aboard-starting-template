@@ -7,7 +7,8 @@
  *  - demo helpers for the /admin/simulate Demo script.
  *
  * Journey, task and event writes go through journey-service. The one exception is resetDemoStarter(),
- * which rebuilds a journey (it deletes and re-persists that journey's tasks via persistEngineResult).
+ * which rebuilds a journey (it deletes and re-persists that journey's tasks via persistEngineResult) and, being
+ * demo-only, also clears that journey's Day 0, goals, check-ins and events.
  */
 import { prisma } from "./db";
 import { getAdapter, getAdapterMode, isSimulatable, type AdapterMode } from "@/adapters/registry";
@@ -105,9 +106,32 @@ export const SYSTEM_RULES: SystemRule[] = [
     satisfied: async (j) => ["invited", "guest_active", "internal_created"].includes((await (await getAdapter("identity")).getStatus(j)).status),
   },
   {
+    // A "cleared" result can arrive while the vetting task is still locked (it is no longer forced); it completes on unlock.
+    taskKey: "firstadvantage-vetting-status",
+    label: "First Advantage vetting",
+    satisfied: async (j) => (await (await getAdapter("firstadvantage")).getVettingStatus(j)).status === "cleared",
+  },
+  {
     taskKey: "internal-account-created",
     label: "Internal account",
     satisfied: async (j) => (await (await getAdapter("identity")).getStatus(j)).status === "internal_created",
+  },
+  {
+    // Eptura Engage has no adapter: access is provisioned with the internal account, so the same state completes it.
+    taskKey: "eptura-engage-access",
+    label: "Eptura Engage access",
+    satisfied: async (j) => (await (await getAdapter("identity")).getStatus(j)).status === "internal_created",
+  },
+  {
+    // An LM can propose Day 0 before the task unlocks; the proposal exists, so the task completes once it is open.
+    taskKey: "propose-day-0-arrangements",
+    label: "Day 0 proposal",
+    satisfied: async (j) => !!(await prisma.day0Arrangement.findUnique({ where: { journeyId: j }, select: { journeyId: true } })),
+  },
+  {
+    taskKey: "allocate-buddy",
+    label: "Buddy allocation",
+    satisfied: async (j) => !!(await prisma.journey.findUnique({ where: { id: j }, select: { buddyId: true } }))?.buddyId,
   },
   {
     taskKey: "sailpoint-persona-applied",
@@ -120,6 +144,18 @@ export const SYSTEM_RULES: SystemRule[] = [
     satisfied: async (j) => !!(await (await getAdapter("sailpoint")).getColleagueFileId(j)),
   },
 ];
+
+/**
+ * After an invite has been sent (mock, or real through Graph) completes `guest-invite-sent` if it is still open.
+ * The engine writes the TASK_STATUS_CHANGED audit event (actor included). Returns true when it completed the task.
+ */
+export async function completeGuestInviteTask(journeyId: string, ctx: ActorCtx = {}, evidence?: string): Promise<boolean> {
+  const j = await loadOrThrow(journeyId);
+  const t = j.tasks.find((x) => x.key === "guest-invite-sent" && x.applicable);
+  if (j.status !== "active" || !t || !OPEN.has(t.status)) return false;
+  await js.completeTask(journeyId, t.key, { actorId: ctx.actorId ?? null, now: ctx.now, evidence: evidence ?? null });
+  return true;
+}
 
 /**
  * Completes SYSTEM tasks whose external state exists and whose dependencies are met. LOCKED tasks wait;
@@ -149,6 +185,37 @@ export async function reconcileSystemTasks(journeyId: string, ctx: ActorCtx = {}
     if (!progressed) break;
   }
   return changes;
+}
+
+/**
+ * D12: after P&P or the LM recertify a rejected photo, the pass order must still be able to go ahead. The starter
+ * has no checked photo token, so once Day 0 is confirmed this places the order itself (opaque reference only, never
+ * an image) and completes the starter's upload task, which clears the review flag. Safe to call repeatedly: it
+ * does nothing unless the override is DONE, Day 0 is confirmed and the order is still open. Returns true when ordered.
+ */
+export async function orderPassAfterRecertification(journeyId: string, ctx: ActorCtx = {}): Promise<boolean> {
+  const j = await loadOrThrow(journeyId);
+  if (j.status !== "active") return false;
+  const byKey = (k: string) => j.tasks.find((t) => t.key === k && t.applicable);
+  const order = byKey("order-photo-id-pass");
+  if (byKey("photo-check-override")?.status !== "DONE" || !order || !OPEN.has(order.status)) return false;
+  const day0 = await prisma.day0Arrangement.findUnique({ where: { journeyId } });
+  if (!day0?.confirmedAt) return false;
+  const photoRef = `recertified-${journeyId.slice(0, 8)}`;
+  try {
+    await (await getAdapter("pass")).orderPass(journeyId, { photoRef, location: day0.where });
+  } catch (e) {
+    if (e instanceof Error && e.name === "AdapterNotConfiguredError") return false;
+    throw e;
+  }
+  const upload = byKey("upload-pass-photo");
+  if (upload && OPEN.has(upload.status)) await js.completeTask(journeyId, upload.key, { actorId: ctx.actorId ?? null, now: ctx.now, evidence: photoRef });
+  await js.applyIntegrationStatus(journeyId, "pass", "ordered", { actorId: ctx.actorId ?? null, now: ctx.now });
+  await js.recordEvent({
+    journeyId, actorId: ctx.actorId ?? null, type: "INTEGRATION_STATUS", entity: "Integration", entityId: "pass",
+    to: "ordered", data: { via: "photo_recertification" }, createdAt: ctx.now ?? new Date(),
+  });
+  return true;
 }
 
 // ----------------------------------------------------------------- simulate
@@ -376,6 +443,8 @@ export async function getSimulationView(journeyId: string) {
 // -------------------------------------------------------------- demo script
 
 export const DEMO_STARTER_ID = "alex-morgan";
+/** IntegrationState adapterKey written by the mock Workday webhook (workday-service). */
+export const WORKDAY_OFFER_KEY = "workday-offer";
 export const DEMO_STEPS = [
   "firstadvantage_action_needed",
   "firstadvantage_cleared",
@@ -425,14 +494,37 @@ async function ensureGuestSignedIn(journeyId: string, ctx: ActorCtx): Promise<st
   return out;
 }
 
+/** A demo journey is the seeded demo starter's, or one created by the mock Workday webhook (it has a `workday-offer` IntegrationState row). */
+async function isDemoJourney(journeyId: string): Promise<boolean> {
+  const j = await prisma.journey.findUnique({ where: { id: journeyId }, select: { starterId: true } });
+  if (!j) return false;
+  if (j.starterId === DEMO_STARTER_ID) return true;
+  return !!(await prisma.integrationState.findUnique({ where: { journeyId_adapterKey: { journeyId, adapterKey: WORKDAY_OFFER_KEY } }, select: { id: true } }));
+}
+
 /**
  * The destructive demo steps (jump to Day 0, reset) rebuild or bulk-complete a journey, so they only ever run on
- * the demo starter's journey, never on a real or exited/completed starter picked by id (L1).
+ * demo journeys (the demo starter's, or one onboarded live through mock Workday), never on a real starter picked by id (L1).
  */
 async function assertDemoStarterJourney(journeyId: string): Promise<void> {
-  const j = await prisma.journey.findUnique({ where: { id: journeyId }, select: { starterId: true } });
-  if (!j) throw new SimulationError("Journey not found", 404);
-  if (j.starterId !== DEMO_STARTER_ID) throw new SimulationError("This demo step only works on the demo starter's journey", 403);
+  const exists = await prisma.journey.findUnique({ where: { id: journeyId }, select: { id: true } });
+  if (!exists) throw new SimulationError("Journey not found", 404);
+  if (!(await isDemoJourney(journeyId))) throw new SimulationError("This demo step only works on a demo journey (the demo starter's, or one created by mock Workday)", 403);
+}
+
+/**
+ * Demo: completes one open SYSTEM task directly (audited with DEMO_SIMULATED), for adapters that cannot be
+ * simulated (REAL mode) or have no adapter. LOCKED tasks are left alone; they unlock as earlier ones complete.
+ */
+async function completeSystemTaskDirect(journeyId: string, taskKey: string, ctx: ActorCtx): Promise<string[]> {
+  const t = (await loadOrThrow(journeyId)).tasks.find((x) => x.key === taskKey && x.applicable);
+  if (!t || !OPEN.has(t.status)) return [];
+  await js.completeTask(journeyId, taskKey, { actorId: ctx.actorId ?? null, now: ctx.now });
+  await js.recordEvent({
+    journeyId, actorId: ctx.actorId ?? null, type: "DEMO_SIMULATED", entity: "Task", entityId: t.id,
+    to: "DONE", data: { key: taskKey, simulated: true }, createdAt: ctx.now ?? new Date(),
+  });
+  return [`Task "${t.title}": ${t.status} to DONE`];
 }
 
 export async function runDemoStep(step: DemoStep, ctx: ActorCtx = {}, journeyId?: string): Promise<DemoResult> {
@@ -451,6 +543,7 @@ export async function runDemoStep(step: DemoStep, ctx: ActorCtx = {}, journeyId?
     }
     case "offer_conditions_met": {
       const pre = await ensureGuestSignedIn(id, ctx);
+      pre.push(...(await reconcileSystemTasks(id, ctx)));
       const j = await loadOrThrow(id);
       const t = j.tasks.find((x) => x.key === "offer-conditions-met" && x.applicable);
       if (!t) return done("No offer-conditions task in these templates; nothing to do.", []);
@@ -463,12 +556,17 @@ export async function runDemoStep(step: DemoStep, ctx: ActorCtx = {}, journeyId?
     case "system_tasks": {
       const before = await loadOrThrow(id);
       const changes: string[] = [];
-      for (const [key, status] of [["identity", "internal_created"], ["sailpoint", "applied"], ["sailpoint", "file_id_created"]] as const) {
-        changes.push(...(await simulate(key, id, status, undefined, ctx)).changes);
+      // [adapter, status, SYSTEM task completed directly when that adapter is REAL (it cannot be simulated)]
+      const steps = [["identity", "internal_created", "internal-account-created"], ["sailpoint", "applied", "sailpoint-persona-applied"], ["sailpoint", "file_id_created", "colleague-file-id-created"]] as const;
+      for (const [key, status, taskKey] of steps) {
+        if ((await getAdapterMode(key)) === "REAL") changes.push(...(await completeSystemTaskDirect(id, taskKey, ctx)));
+        else changes.push(...(await simulate(key, id, status, undefined, ctx)).changes);
       }
+      // Eptura Engage has no adapter: completed by key (the SYSTEM rule also does this once the account exists).
+      changes.push(...(await completeSystemTaskDirect(id, "eptura-engage-access", ctx)));
       const after = await loadOrThrow(id);
       const itUnlocked = after.tasks.filter((t) => t.adapterKey === "itrequest" && t.applicable && t.status !== "LOCKED").length;
-      return done(`System tasks run: account, SailPoint persona, Colleague File ID. ${itUnlocked} IT request task(s) unlocked.`, [...new Set(changes)].concat(diff(before, after).filter((c) => !changes.includes(c))));
+      return done(`System tasks run: account, SailPoint persona, Colleague File ID, Eptura Engage access. ${itUnlocked} IT request task(s) unlocked.`, [...new Set(changes)].concat(diff(before, after).filter((c) => !changes.includes(c))));
     }
     case "jump_day0":
       await assertDemoStarterJourney(id);
@@ -521,13 +619,15 @@ const templateInputs = async (): Promise<TemplateInput[]> =>
 
 /**
  * Rebuilds the journey from the current templates (same id, people and start date), restores the seeded
- * early tasks, and clears mock state and notifications for it. Events are kept (append-only) and a DEMO_RESET event is added.
+ * early tasks, and clears mock state, notifications, Day 0 arrangement, goals, check-ins and events for it. Only a new
+ * DEMO_RESET event remains. Demo journeys only (the demo starter's, or one onboarded through mock Workday).
  */
 export async function resetDemoStarter(journeyId: string, ctx: ActorCtx = {}): Promise<string[]> {
   const current = await loadOrThrow(journeyId);
   if (current.starterId !== DEMO_STARTER_ID && current.status !== "active") {
     throw new SimulationError(`Journey is ${current.status}; only the demo starter can be reset`, 409);
   }
+  await assertDemoStarterJourney(journeyId);
   const templates = await templateInputs();
   const now = ctx.now ?? new Date();
   const created = engCreate(templates, {
@@ -547,11 +647,17 @@ export async function resetDemoStarter(journeyId: string, ctx: ActorCtx = {}): P
     if (!(e instanceof Error && e.name === "AdapterNotConfiguredError")) throw e;
   }
   await prisma.$transaction(async (tx) => {
+    // Demo journeys only (asserted by the caller): clear everything the journey accumulated so MI is not polluted.
     await tx.task.deleteMany({ where: { journeyId } });
+    await tx.day0Arrangement.deleteMany({ where: { journeyId } });
+    await tx.goal.deleteMany({ where: { journeyId } });
+    await tx.checkIn.deleteMany({ where: { journeyId } });
+    await tx.event.deleteMany({ where: { journeyId } });
     await js.persistEngineResult(tx, { ...current, tasks: [] }, { journey: fresh, events: [] }, [
       { journeyId, actorId: ctx.actorId ?? null, type: "DEMO_RESET", entity: "Journey", entityId: journeyId, from: current.currentStage, to: fresh.currentStage, data: null, createdAt: now },
     ]);
-    await tx.integrationState.deleteMany({ where: { journeyId } });
+    // Keep the mock Workday link row: it is what marks a live-onboarded journey as a demo journey.
+    await tx.integrationState.deleteMany({ where: { journeyId, adapterKey: { not: WORKDAY_OFFER_KEY } } });
   });
   return [`Stage reset to ${fresh.currentStage}`, "Mock state and notifications cleared"];
 }
