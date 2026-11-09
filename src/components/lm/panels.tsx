@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { chatLink } from "@/lib/teams";
 import { GOAL_HORIZONS, STAGES, type GoalHorizon } from "@/domain/types";
-import { bespokeTaskSchema, buddySchema, CADENCES, checkInSchema, day0Schema, fieldErrors, goalPatchSchema, goalSchema } from "./schemas";
+import { bespokeTaskSchema, teamItemSchema, buddySchema, CADENCES, checkInSchema, day0Schema, fieldErrors, goalPatchSchema, goalSchema } from "./schemas";
 import { report, type PanelProps } from "./tasks";
 import type { GoalDto, StarterDetail } from "./types";
 import {
@@ -192,7 +192,7 @@ export function Day0Panel(p: PanelProps) {
   }
 
   return (
-    <Panel id="day0" title="Day 0 arrangement">
+    <Panel id="day0" title="Day 0: your arrangements">
       {d.day0 ? (
         <div className="space-y-2">
           <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
@@ -204,19 +204,19 @@ export function Day0Panel(p: PanelProps) {
             <dd>{d.day0.who}</dd>
           </dl>
           {d.day0.confirmedAt ? (
-            <Alert tone="success" title="Confirmed by the starter" role="status">
-              {formatDate(d.day0.confirmedAt)}
-            </Alert>
+            <Alert tone="success" title={`Confirmed on ${formatDate(d.day0.confirmedAt)}`} role="status" />
           ) : (
-            <Alert tone="warning" title="Waiting for the starter to confirm" />
+            <Alert tone="warning" title={`Waiting for ${d.starter.displayName.split(" ")[0]} to confirm`} />
           )}
         </div>
       ) : (
-        <p className="text-muted">Not proposed yet. Agree where, when and who the starter meets on Day 0.</p>
+        <Alert tone="info" title="You haven't set up Day 0 yet">
+          Tell {d.starter.displayName.split(" ")[0]} where to go, when, and who to ask for. They will see it and confirm.
+        </Alert>
       )}
       {d.journey.status === "active" && !open && (
         <Button variant="secondary" onClick={() => setOpen(true)}>
-          {d.day0 ? "Change proposal" : "Propose Day 0"}
+          {d.day0 ? "Change arrangements" : "Set up Day 0"}
         </Button>
       )}
       {open && (
@@ -454,6 +454,54 @@ export function BespokeTaskSheet({ open, onClose, ...p }: PanelProps & { open: b
         <div className="flex flex-wrap gap-2">
           <Button type="submit" busy={busy} disabled={busy}>
             Add task
+          </Button>
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </Sheet>
+  );
+}
+
+// ------------------------------------------------------ team checklist item (F11)
+
+export function TeamItemSheet({ open, onClose, ...p }: PanelProps & { open: boolean; onClose: () => void }) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [owner, setOwner] = useState("LM");
+  const [errors, setErrors] = useState<Errors>({});
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const v = teamItemSchema.safeParse({ title, description, dueDate, owner });
+    if (!v.success) return setErrors(fieldErrors(v.error));
+    setErrors({});
+    setBusy(true);
+    const r = await p.mutate({ path: `${p.base}/team-items`, method: "POST", body: v.data });
+    setBusy(false);
+    if (report(r, p, "Team checklist item added")) {
+      setTitle(""); setDescription(""); setDueDate(""); setOwner("LM");
+      onClose();
+    } else if (r.fields) setErrors(r.fields);
+  }
+
+  return (
+    <Sheet open={open} title="Add team checklist item" onClose={onClose}>
+      <form onSubmit={submit} noValidate className="space-y-4">
+        <ErrorSummary message={Object.keys(errors).length ? firstError(errors) : null} />
+        <TextField label="Title" value={title} maxLength={120} onChange={(e) => setTitle(e.target.value)} error={errors.title} />
+        <TextArea label="Description (optional)" value={description} maxLength={500} onChange={(e) => setDescription(e.target.value)} error={errors.description} />
+        <TextField label="Due date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} error={errors.dueDate} />
+        <SelectField label="Who does this" value={owner} onChange={(e) => setOwner(e.target.value)} error={errors.owner}>
+          <option value="LM">Me (the line manager)</option>
+          <option value="STARTER">The starter</option>
+        </SelectField>
+        <div className="flex flex-wrap gap-2">
+          <Button type="submit" busy={busy} disabled={busy}>
+            Add item
           </Button>
           <Button variant="ghost" onClick={onClose}>
             Cancel

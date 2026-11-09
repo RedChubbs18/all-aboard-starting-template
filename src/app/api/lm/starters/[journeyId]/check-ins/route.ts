@@ -1,5 +1,5 @@
 import { buildDetail } from "../../../_lib/detail";
-import { lmRoute, parseBody, requireManagedJourney, type JourneyParams } from "../../../_lib/guard";
+import { lmRoute, parseBody, requireWritableJourney, type JourneyParams } from "../../../_lib/guard";
 import { checkInSchema } from "@/components/lm/schemas";
 import { meetingLink } from "@/lib/teams";
 import { prisma } from "@/server/db";
@@ -10,7 +10,7 @@ const CADENCE_LABEL = { WEEKLY: "weekly", FORTNIGHTLY: "fortnightly", MONTHLY: "
 /** FR-LM.3 / FR-4.7: agree a check-in cadence and generate a Teams meeting link (deep link, no Graph writes). */
 export const POST = lmRoute<JourneyParams>(async (req, ctx, user) => {
   const { journeyId } = await ctx.params;
-  const j = await requireManagedJourney(journeyId, user);
+  const j = await requireWritableJourney(journeyId, user);
   const v = await parseBody(req, checkInSchema);
   const [starter, lm] = await Promise.all([
     prisma.user.findUnique({ where: { id: j.starterId } }),

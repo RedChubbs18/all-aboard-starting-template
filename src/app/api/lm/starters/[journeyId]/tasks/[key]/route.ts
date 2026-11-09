@@ -1,5 +1,5 @@
 import { buildDetail } from "../../../../_lib/detail";
-import { HttpError, lmRoute, parseBody, requireManagedJourney } from "../../../../_lib/guard";
+import { HttpError, lmRoute, parseBody, requireWritableJourney } from "../../../../_lib/guard";
 import { LINK_TASK_KEYS, taskPatchSchema } from "@/components/lm/schemas";
 import { canActOnTask } from "@/lib/auth/access";
 import { loadJourney, mutateJourney, setTaskStatus } from "@/server/journey-service";
@@ -10,7 +10,7 @@ import { loadJourney, mutateJourney, setTaskStatus } from "@/server/journey-serv
  */
 export const PATCH = lmRoute<{ params: Promise<{ journeyId: string; key: string }> }>(async (req, ctx, user) => {
   const { journeyId, key } = await ctx.params;
-  const ref = await requireManagedJourney(journeyId, user);
+  const ref = await requireWritableJourney(journeyId, user);
   const v = await parseBody(req, taskPatchSchema);
   const journey = await loadJourney(journeyId);
   const task = journey?.tasks.find((t) => t.key === key && t.applicable);

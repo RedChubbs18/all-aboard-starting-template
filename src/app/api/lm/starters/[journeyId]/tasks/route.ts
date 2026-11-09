@@ -1,12 +1,12 @@
 import { buildDetail } from "../../../_lib/detail";
-import { lmRoute, parseBody, requireManagedJourney, type JourneyParams } from "../../../_lib/guard";
+import { lmRoute, parseBody, requireWritableJourney, type JourneyParams } from "../../../_lib/guard";
 import { bespokeTaskSchema } from "@/components/lm/schemas";
 import { addBespokeTask } from "@/server/journey-service";
 
 /** FR-3.6: add a bespoke task. It is owned by the starter and appears on their journey immediately. */
 export const POST = lmRoute<JourneyParams>(async (req, ctx, user) => {
   const { journeyId } = await ctx.params;
-  await requireManagedJourney(journeyId, user);
+  await requireWritableJourney(journeyId, user);
   const v = await parseBody(req, bespokeTaskSchema);
   await addBespokeTask(
     journeyId,

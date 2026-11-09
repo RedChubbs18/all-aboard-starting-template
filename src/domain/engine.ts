@@ -406,6 +406,8 @@ export interface BespokeTaskInput {
   dependsOn?: string[];
   gating?: boolean;
   key?: string;
+  /** Defaults to BESPOKE. The LM team checklist (F11) uses TEAM. */
+  source?: TaskState["source"];
 }
 
 /** FR-3.6: LM-added task. Appears immediately; never gating unless asked. */
@@ -434,7 +436,7 @@ export function addBespokeTask(
     blockedReason: null,
     evidence: null,
     dependsOn: input.dependsOn ?? [],
-    source: "BESPOKE",
+    source: input.source ?? "BESPOKE",
     adapterKey: null,
     gating: input.gating ?? false,
     contentSlug: null,
@@ -448,7 +450,7 @@ export function addBespokeTask(
     entityId: id,
     from: null,
     to: task.stage,
-    data: { key, title: task.title, source: "BESPOKE" },
+    data: { key, title: task.title, source: task.source },
   });
   const s = settle({ ...journey, tasks: [...journey.tasks, task] }, ctx);
   return { journey: s.journey, events: [e, ...s.events] };

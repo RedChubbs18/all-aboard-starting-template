@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { buildDetail, PHOTO_OVERRIDE_KEY } from "../../../_lib/detail";
-import { HttpError, lmRoute, parseBody, requireManagedJourney, type JourneyParams } from "../../../_lib/guard";
+import { HttpError, lmRoute, parseBody, requireWritableJourney, type JourneyParams } from "../../../_lib/guard";
 import { canActOnTask } from "@/lib/auth/access";
 import { completeTask as engineComplete } from "@/domain/engine";
 import { mutateJourney } from "@/server/journey-service";
@@ -19,7 +19,7 @@ const schema = z.object({
  */
 export const POST = lmRoute<JourneyParams>(async (req, ctx, user) => {
   const { journeyId } = await ctx.params;
-  const ref = await requireManagedJourney(journeyId, user);
+  const ref = await requireWritableJourney(journeyId, user);
   if (!canActOnTask(user, ref, "PNP", PHOTO_OVERRIDE_KEY)) throw new HttpError(403, "forbidden", "You cannot recertify this photo");
   const { justification } = await parseBody(req, schema);
   await mutateJourney(journeyId, (j) => {

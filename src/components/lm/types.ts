@@ -22,6 +22,8 @@ export interface StarterSummary {
 
 export interface StarterListResponse {
   starters: StarterSummary[];
+  /** Completed and exited journeys: read-only records, never deleted (F15). */
+  past: StarterSummary[];
 }
 
 export interface Person {

@@ -63,6 +63,7 @@ export function StarterList() {
   const { data, error, loading, reload } = useApi<StarterListResponse>("/api/lm/starters");
   const [attentionOnly, setAttentionOnly] = useState(false);
   const all = data?.starters ?? [];
+  const past = data?.past ?? [];
   const rows = attentionOnly ? all.filter((s) => s.needsAttention) : all;
   const attention = all.filter((s) => s.needsAttention).length;
 
@@ -106,6 +107,29 @@ export function StarterList() {
           </ul>
           <p className="text-sm text-muted">Starters who need attention come first.</p>
         </>
+      )}
+      {past.length > 0 && (
+        <details className="rounded-md border border-line bg-card">
+          <summary className="flex min-h-14 cursor-pointer items-center gap-3 px-[22px] font-semibold">
+            <span className="flex-1 text-[17px] font-bold">Past starters ({past.length})</span>
+            <span className="text-sm font-normal text-muted">Completed or left. Read-only.</span>
+          </summary>
+          <ul aria-label="Past starters" className="border-t border-line">
+            {past.map((s) => (
+              <li key={s.id} className="border-t border-line first:border-t-0">
+                <Link href={href(s)} className="flex min-h-14 items-center gap-3 px-[22px] py-3 hover:bg-page">
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[17px] font-bold">{s.starterName}</span>
+                    <span className="block text-sm text-muted">
+                      {STAGE_LABEL[s.stage]} · Started {formatDate(s.startDate)} · {s.status}
+                    </span>
+                  </span>
+                  <Icon name="chevron" className="text-muted" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </details>
       )}
     </div>
   );

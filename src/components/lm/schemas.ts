@@ -32,6 +32,14 @@ export const bespokeTaskSchema = z.object({
   dueDate: isoDate("Due date"),
 });
 
+/** F11: a team checklist item. `owner` is who ticks it off: the LM or the starter. */
+export const teamItemSchema = z.object({
+  title: text("Title", 120),
+  description: z.string().trim().max(500, "Description must be 500 characters or fewer").optional().default(""),
+  dueDate: isoDate("Due date"),
+  owner: z.enum(["LM", "STARTER"], { error: "Choose who does this" }),
+});
+
 export const buddySchema = z.object({ buddyId: z.string({ error: "Choose a buddy" }).min(1, "Choose a buddy") });
 
 export const day0Schema = z.object({
