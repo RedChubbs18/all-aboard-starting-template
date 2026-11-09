@@ -9,6 +9,7 @@ import type { ChatCorpus, Citation } from "@/adapters/chatbot/types";
 import { parseRoles } from "@/lib/auth/roles";
 import { chatLink } from "@/lib/teams";
 import { prisma } from "@/server/db";
+import { createRateLimiter, type RateLimitResult } from "@/server/rate-limit";
 
 export { MAX_QUESTION_CHARS };
 
@@ -63,22 +64,24 @@ export async function askAssistant(question: string): Promise<ChatReply> {
 // ------------------------------------------------------------ rate limiting
 
 export const RATE_LIMIT = { max: 10, windowMs: 60_000 };
-const hits = new Map<string, number[]>();
+const chatLimiter = createRateLimiter(RATE_LIMIT);
 
 /** Sliding window, in memory (per server instance; fine for the local demo). */
-export function takeRateLimit(userId: string, now = Date.now()): { ok: true } | { ok: false; retryAfterSec: number } {
-  const recent = (hits.get(userId) ?? []).filter((t) => now - t < RATE_LIMIT.windowMs);
-  if (recent.length >= RATE_LIMIT.max) {
-    hits.set(userId, recent);
-    return { ok: false, retryAfterSec: Math.max(1, Math.ceil((recent[0] + RATE_LIMIT.windowMs - now) / 1000)) };
-  }
-  recent.push(now);
-  hits.set(userId, recent);
-  return { ok: true };
+export function takeRateLimit(userId: string, now = Date.now()): RateLimitResult {
+  return chatLimiter.take(userId, now);
+}
+
+/** FR-3.12 photo checks call Claude vision, so they get a tighter per-user limit. */
+export const PHOTO_RATE_LIMIT = { max: 5, windowMs: 10 * 60_000 };
+const photoLimiter = createRateLimiter(PHOTO_RATE_LIMIT);
+
+export function takePhotoRateLimit(userId: string, now = Date.now()): RateLimitResult {
+  return photoLimiter.take(userId, now);
 }
 
 export function resetRateLimits() {
-  hits.clear();
+  chatLimiter.reset();
+  photoLimiter.reset();
 }
 
 // ------------------------------------------------------------ P&P contact
