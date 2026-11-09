@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "@/lib/auth/client";
+import { isPnpAdminPath } from "@/lib/auth/roles";
 
 export const inputCls =
   "min-h-11 w-full rounded-sm border-2 border-border bg-surface px-3 py-2 text-base text-text focus-visible:outline-3 focus-visible:outline-info";
@@ -92,10 +93,13 @@ const TABS = [
 
 export function AdminTabs() {
   const path = usePathname();
+  const { user } = useSession();
+  const isAdmin = !!user?.roles.includes("ADMIN");
+  const tabs = isAdmin ? TABS : TABS.filter((t) => isPnpAdminPath(t.href)); // P&P only sees the pages they may use
   return (
     <nav aria-label="Admin sections" className="mb-4 overflow-x-auto">
       <ul className="flex gap-1 border-b border-border">
-        {TABS.map((t) => {
+        {tabs.map((t) => {
           const active = t.href === "/admin" ? path === "/admin" : path.startsWith(t.href);
           return (
             <li key={t.href}>

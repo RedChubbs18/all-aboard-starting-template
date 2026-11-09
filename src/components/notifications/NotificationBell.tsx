@@ -19,7 +19,7 @@ const POLL_MS = 15_000;
  * Bell with an unread badge and an accessible popover list. Polls /api/notifications every ~15s while the tab is visible.
  * Mount it inside the signed-in shell (it renders nothing when signed out).
  */
-export function NotificationBell({ pollMs = POLL_MS }: { pollMs?: number }) {
+export function NotificationBell({ pollMs = POLL_MS, align = "right" }: { pollMs?: number; align?: "left" | "right" }) {
   const { apiFetch, status } = useSession();
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [unread, setUnread] = useState(0);
@@ -118,7 +118,7 @@ export function NotificationBell({ pollMs = POLL_MS }: { pollMs?: number }) {
         <section
           id={panelId}
           aria-label="Notifications"
-          className="absolute right-0 z-50 mt-2 max-h-[70dvh] w-[min(22rem,calc(100vw-1.5rem))] overflow-y-auto rounded-md border border-border bg-surface text-text shadow-card"
+          className={`absolute ${align === "left" ? "left-0" : "right-0"} z-50 mt-2 max-h-[70dvh] w-[min(22rem,calc(100vw-1.5rem))] overflow-y-auto rounded-md border border-border bg-surface text-text shadow-card`}
         >
           <h2 className="border-b border-border px-4 py-3 text-base font-semibold">Notifications</h2>
           {failed && <p role="alert" className="px-4 py-2 text-sm text-danger">Could not refresh. Showing the last list.</p>}

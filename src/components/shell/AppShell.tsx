@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "@/lib/auth/client";
 import { navFor } from "@/lib/auth/roles";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 /**
  * Landmarks: skip link, <header>, <nav> (side on md+, bottom bar on mobile), <main id="main">.
@@ -15,7 +16,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const items = status === "authenticated" ? navFor(user) : [];
 
   const link = (href: string, label: string, extra = "") => {
-    const active = pathname === href || pathname.startsWith(`${href}/`);
+    const matches = (h: string) => pathname === h || pathname.startsWith(`${h}/`);
+    // Only the most specific nav item is current (/admin/simulate must not also highlight /admin).
+    const active = matches(href) && !items.some((n) => n.href.length > href.length && matches(n.href));
     return (
       <Link
         key={href}
@@ -42,9 +45,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="flex items-center justify-between bg-brand-strong px-4 py-3 text-surface md:hidden">
         <Link href="/" className="text-lg font-semibold">All Aboard</Link>
         {status === "authenticated" && (
-          <button onClick={signOut} className="min-h-11 rounded-md px-3 text-sm underline">
-            {mode === "demo" ? "Switch persona" : "Sign out"}
-          </button>
+          <div className="flex items-center gap-1">
+            <NotificationBell />
+            <button onClick={signOut} className="min-h-11 rounded-md px-3 text-sm underline">
+              {mode === "demo" ? "Switch persona" : "Sign out"}
+            </button>
+          </div>
         )}
       </header>
 
@@ -53,10 +59,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           aria-label="Main"
           className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface md:static md:inset-auto md:w-60 md:shrink-0 md:border-r md:border-t-0"
         >
-          <div className="hidden px-4 py-4 text-lg font-semibold text-brand-strong md:block">All Aboard</div>
-          <ul className="flex justify-around gap-1 p-1 md:flex-col md:justify-start md:p-3">
+          <div className="hidden items-center justify-between px-4 py-4 text-lg font-semibold text-brand-strong md:flex">
+            <span>All Aboard</span>
+            {status === "authenticated" && <NotificationBell align="left" />}
+          </div>
+          <ul className="flex justify-around gap-1 overflow-x-auto p-1 md:flex-col md:justify-start md:overflow-visible md:p-3">
             {items.map((n) => (
-              <li key={n.href} className="flex-1 md:flex-none">{link(n.href, n.label, "w-full text-center md:text-left")}</li>
+              <li key={n.href} className="min-w-[4.5rem] flex-1 md:min-w-0 md:flex-none">{link(n.href, n.label, "w-full text-center md:text-left")}</li>
             ))}
           </ul>
           {user && (
