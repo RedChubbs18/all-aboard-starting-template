@@ -36,17 +36,19 @@ interface Props {
   /** Reports whether a photo has been taken (for the conditions list). */
   onCapturedChange?: (captured: boolean) => void;
   disabled?: boolean;
+  /** Focus the start button on mount (used after "Retake photo" removed the previous focus target). */
+  focusOnMount?: boolean;
 }
 
 /** Live camera viewfinder (STYLE section 15). The preview is mirrored; the exported JPEG is not. */
-export function CameraCapture({ onUse, onCapturedChange, disabled }: Props) {
+export function CameraCapture({ onUse, onCapturedChange, disabled, focusOnMount }: Props) {
   const [phase, setPhase] = useState<CameraPhase>("intro");
   const [shot, setShot] = useState<{ file: File; url: string } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const startId = useRef(0);
-  const wantFocus = useRef(false);
+  const wantFocus = useRef(!!focusOnMount);
 
   const stop = useCallback(() => {
     startId.current++; // invalidates any in-flight getUserMedia
@@ -133,13 +135,14 @@ export function CameraCapture({ onUse, onCapturedChange, disabled }: Props) {
 
   function retake() {
     setShot(null);
-    wantFocus.current = false;
+    wantFocus.current = true; // Retake unmounts; the start button (shown while starting) takes focus (WCAG 2.4.3)
     void start();
   }
 
   const fallback = FALLBACK[phase];
   const showStage = phase === "starting" || phase === "live" || phase === "captured";
-  const canRestart = phase === "intro" || phase === "paused" || phase === "denied" || phase === "nocamera" || phase === "error";
+  // The start button stays mounted while "starting" so keyboard focus is not dropped.
+  const canRestart = phase === "starting" || phase === "intro" || phase === "paused" || phase === "denied" || phase === "nocamera" || phase === "error";
 
   return (
     <div ref={rootRef}>
@@ -180,24 +183,31 @@ export function CameraCapture({ onUse, onCapturedChange, disabled }: Props) {
 
       <div className="mt-3 flex gap-2">
         {canRestart && (
-          <Button variant="primary" className="flex-1" disabled={disabled} onClick={() => void start()}>
-            <Camera aria-hidden className="size-5" />
-            {phase === "intro" ? "Start camera" : "Try camera again"}
+          <Button
+            data-step-focus
+            variant="primary"
+            className="flex-1"
+            aria-disabled={disabled || undefined}
+            loading={phase === "starting"}
+            onClick={() => void start()}
+          >
+            {phase !== "starting" && <Camera aria-hidden className="size-5" />}
+            {phase === "starting" ? "Starting camera..." : phase === "intro" ? "Start camera" : "Try camera again"}
           </Button>
         )}
         {phase === "live" && (
-          <Button data-step-focus variant="primary" className="flex-1" disabled={disabled} onClick={() => void take()}>
+          <Button data-step-focus variant="primary" className="flex-1" aria-disabled={disabled || undefined} onClick={() => void take()}>
             <Camera aria-hidden className="size-5" />
             Take photo
           </Button>
         )}
         {phase === "captured" && shot && (
           <>
-            <Button variant="secondary" className="flex-1" disabled={disabled} onClick={retake}>
+            <Button variant="secondary" className="flex-1" aria-disabled={disabled || undefined} onClick={retake}>
               <RotateCcw aria-hidden className="size-5" />
               Retake
             </Button>
-            <Button data-step-focus variant="primary" className="flex-1" disabled={disabled} onClick={() => onUse(shot.file)}>
+            <Button data-step-focus variant="primary" className="flex-1" aria-disabled={disabled || undefined} onClick={() => onUse(shot.file)}>
               <Check aria-hidden className="size-5" />
               Use this photo
             </Button>

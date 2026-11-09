@@ -42,7 +42,7 @@ interface CommonProps {
 
 type ButtonProps = CommonProps &
   Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className" | "children"> & {
-    /** Spinner, disables the button and sets aria-busy. */
+    /** Spinner and aria-busy. Uses aria-disabled (not `disabled`) with click-guarding so keyboard focus is kept (WCAG 2.4.3). */
     loading?: boolean;
     /** Sets aria-busy only (the action is running but the button stays focusable). */
     busy?: boolean;
@@ -50,13 +50,13 @@ type ButtonProps = CommonProps &
 
 /** Native button. With `aria-disabled` ("disabled with a visible reason") clicks are ignored but focus is kept. */
 export function Button({ variant, size, className, loading, busy, children, onClick, type = "button", ...rest }: ButtonProps) {
-  const ariaDisabled = rest["aria-disabled"] === true || rest["aria-disabled"] === "true";
+  const ariaDisabled = rest["aria-disabled"] === true || rest["aria-disabled"] === "true" || !!loading;
   return (
     <button
       type={type}
       {...rest}
       aria-busy={loading || busy || undefined}
-      disabled={rest.disabled || loading}
+      aria-disabled={ariaDisabled || undefined}
       onClick={ariaDisabled ? (e) => e.preventDefault() : onClick}
       className={buttonClass(variant, size, className)}
     >

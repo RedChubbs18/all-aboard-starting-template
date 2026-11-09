@@ -87,6 +87,23 @@ describe("CameraCapture", () => {
     expect(file.type).toBe("image/jpeg");
   });
 
+  it("keeps the start button mounted and focused while the camera starts, then focuses Take photo (WCAG 2.4.3)", async () => {
+    let resolve!: (s: MediaStream) => void;
+    setMedia(vi.fn(() => new Promise<MediaStream>((r) => (resolve = r))));
+    render(<CameraCapture onUse={vi.fn()} />);
+    const start = screen.getByRole("button", { name: "Start camera" });
+    start.focus();
+    fireEvent.click(start);
+    const starting = await screen.findByRole("button", { name: "Starting camera..." });
+    expect(starting).toBe(start);
+    expect(starting).toHaveAttribute("aria-disabled", "true");
+    expect(starting).not.toBeDisabled();
+    expect(starting).toHaveFocus();
+    resolve(fakeStream().stream);
+    const take = await screen.findByRole("button", { name: "Take photo" });
+    await waitFor(() => expect(take).toHaveFocus());
+  });
+
   it("stops the stream on unmount", async () => {
     const s = fakeStream();
     setMedia(vi.fn().mockResolvedValue(s.stream));

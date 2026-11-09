@@ -67,7 +67,7 @@ export function ContactCard({ name, role, upn, photoUrl, bio, subtitle, variant 
             href={chat}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`Chat with ${name} in Teams (opens in a new tab)`}
+            aria-label={`Chat on Teams with ${name} (opens in a new tab)`}
             className={buttonClass("secondary", "md", "flex-1")}
           >
             <MessageCircle aria-hidden className="size-5" />
@@ -77,7 +77,7 @@ export function ContactCard({ name, role, upn, photoUrl, bio, subtitle, variant 
             href={call}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`Call ${name} in Teams (opens in a new tab)`}
+            aria-label={`Call ${name} on Teams (opens in a new tab)`}
             className={buttonClass("secondary", "md", "flex-1")}
           >
             <Phone aria-hidden className="size-5" />

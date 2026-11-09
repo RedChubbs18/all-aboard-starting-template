@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Button } from "@/components/ui/Button";
 import { useApi } from "@/lib/auth/use-api";
 import { SelectField } from "./ui";
 import type { StarterListResponse } from "./types";
@@ -9,10 +11,13 @@ import type { StarterListResponse } from "./types";
 export function StarterSwitcher({ currentId }: { currentId: string }) {
   const router = useRouter();
   const { data } = useApi<StarterListResponse>("/api/lm/starters");
+  const [choice, setChoice] = useState<string | null>(null);
   if (!data || data.starters.length + data.past.length < 2) return null;
   return (
-    <div className="max-w-sm">
-      <SelectField label="Switch starter" value={currentId} onChange={(e) => router.push(`/lm/starters/${e.target.value}`)}>
+    <div className="flex max-w-sm items-end gap-2">
+      {/* Choosing an option changes nothing until "Go" is pressed (WCAG 3.2.2). */}
+      <div className="min-w-0 flex-1">
+      <SelectField label="Switch starter" value={choice ?? currentId} onChange={(e) => setChoice(e.target.value)}>
         <optgroup label="Current starters">
           {data.starters.map((s) => (
             <option key={s.id} value={s.id}>
@@ -30,6 +35,10 @@ export function StarterSwitcher({ currentId }: { currentId: string }) {
           </optgroup>
         )}
       </SelectField>
+      </div>
+      <Button variant="secondary" onClick={() => choice && choice !== currentId && router.push(`/lm/starters/${choice}`)}>
+        Go
+      </Button>
     </div>
   );
 }

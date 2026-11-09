@@ -47,9 +47,14 @@ export function BuddyView({ journeyId, onSelect }: { journeyId: string | null; o
   const toast = useToast();
   const [pending, setPending] = useState<string | null>(null);
   const selectId = useId();
+  // Keep the previous response while a newly chosen starter loads, so the select (and focus) stay mounted (WCAG 2.4.3).
+  const [last, setLast] = useState<BuddyResponse | null>(null);
+  if (data && data !== last) setLast(data);
+  const [choice, setChoice] = useState<string | null>(null);
+  const view = data ?? (loading ? last : null);
 
-  if (loading) return <Skeleton className="h-40 w-full" />;
-  if (error || !data) {
+  if (loading && !view) return <Skeleton className="h-40 w-full" />;
+  if (error || !view) {
     return (
       <Alert tone="danger" live="alert" title="Couldn't load your starters">
         <p>{error ?? "Something went wrong."}</p>
@@ -59,9 +64,9 @@ export function BuddyView({ journeyId, onSelect }: { journeyId: string | null; o
       </Alert>
     );
   }
-  const active = data.starters.filter((s) => s.status === "active");
-  const past = data.starters.filter((s) => s.status !== "active");
-  const selected = data.starters.find((s) => s.journeyId === data.selectedId) ?? null;
+  const active = view.starters.filter((s) => s.status === "active");
+  const past = view.starters.filter((s) => s.status !== "active");
+  const selected = view.starters.find((s) => s.journeyId === view.selectedId) ?? null;
   if (!selected) {
     return <EmptyState title="No starters yet">When a line manager picks you as a buddy, your starter will appear here.</EmptyState>;
   }
@@ -84,12 +89,17 @@ export function BuddyView({ journeyId, onSelect }: { journeyId: string | null; o
   return (
     <div className="space-y-4">
       <h1 className="sr-only">Your starters</h1>
-      {data.starters.length > 1 && (
+      <p role="status" className="sr-only">
+        {loading ? "Loading starter" : `Showing ${selected.name}`}
+      </p>
+      {view.starters.length > 1 && (
         <div>
           <label htmlFor={selectId} className="text-sm font-semibold">
             Starter
           </label>
-          <select id={selectId} className={controlClass} value={selected.journeyId} onChange={(e) => onSelect(e.target.value)}>
+          <div className="mt-1 flex gap-2">
+          {/* Choosing an option changes nothing until "Show" is pressed (WCAG 3.2.2). */}
+          <select id={selectId} className={controlClass} value={choice ?? selected.journeyId} onChange={(e) => setChoice(e.target.value)}>
             {active.length > 0 && (
               <optgroup label="Current starters">
                 {active.map((s) => (
@@ -109,8 +119,13 @@ export function BuddyView({ journeyId, onSelect }: { journeyId: string | null; o
               </optgroup>
             )}
           </select>
+          <Button variant="secondary" className="shrink-0" busy={loading} onClick={() => choice && choice !== selected.journeyId && onSelect(choice)}>
+            Show
+          </Button>
+          </div>
         </div>
       )}
+      <div aria-busy={loading || undefined} className="space-y-4">
       <StarterSummary s={selected} />
       {readOnly && (
         <Alert tone="info" title="Past starter">
@@ -122,7 +137,7 @@ export function BuddyView({ journeyId, onSelect }: { journeyId: string | null; o
           Your tasks for {selected.name.split(" ")[0]}
         </h2>
         <TaskList
-          tasks={data.tasks}
+          tasks={view.tasks}
           label="Your buddy tasks"
           readOnly={readOnly}
           viewerIsStarter={false}
@@ -131,6 +146,7 @@ export function BuddyView({ journeyId, onSelect }: { journeyId: string | null; o
           emptyText="You have no tasks for this starter right now."
         />
       </section>
+      </div>
     </div>
   );
 }

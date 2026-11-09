@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Owner, Stage } from "@/domain/types";
 import { Alert } from "@/components/ui/Alert";
 import { cn } from "@/components/ui/cn";
@@ -38,6 +38,13 @@ export function JourneyView({ data, onComplete, pendingId, lastCompletedTitle, r
   const view = useMemo(() => deriveView(journey, now ?? new Date()), [journey, now]);
   const [openRequest, setOpenRequest] = useState<{ stage: Stage; n: number } | null>(null);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+  // After withdrawing, the "Thinking of not joining?" button disappears: focus the closing heading and announce it (WCAG 2.4.3, 4.1.3).
+  const [justWithdrawn, setJustWithdrawn] = useState(false);
+  const closingRef = useRef<HTMLHeadingElement>(null);
+  const closed = journey.status === "exited";
+  useEffect(() => {
+    if (justWithdrawn && closed) closingRef.current?.focus();
+  }, [justWithdrawn, closed]);
   const split = layout === "split";
   const viewerIsStarter = journey.viewerIsStarter;
   const first = journey.starter.name.split(" ")[0];
@@ -50,8 +57,13 @@ export function JourneyView({ data, onComplete, pendingId, lastCompletedTitle, r
   if (journey.status === "exited" && viewerIsStarter) {
     return (
       <section aria-labelledby="closing-h" className="space-y-4">
+        {justWithdrawn && (
+          <p role="status" className="sr-only">
+            You&apos;ve withdrawn from onboarding. Your journey is now closed.
+          </p>
+        )}
         <div className="rounded-lg bg-card p-2 border border-line">
-          <EmptyState title="Thank you, and best wishes">
+          <EmptyState title="Thank you, and best wishes" headingRef={closingRef}>
             <span id="closing-h" className="sr-only">
               Journey closed
             </span>
@@ -183,7 +195,7 @@ export function JourneyView({ data, onComplete, pendingId, lastCompletedTitle, r
           <button type="button" onClick={() => setWithdrawOpen(true)} className="min-h-11 px-3 text-sm text-muted underline underline-offset-2">
             Thinking of not joining?
           </button>
-          <WithdrawDialog open={withdrawOpen} onClose={() => setWithdrawOpen(false)} onWithdrawn={() => { setWithdrawOpen(false); onWithdrawn?.(); }} />
+          <WithdrawDialog open={withdrawOpen} onClose={() => setWithdrawOpen(false)} onWithdrawn={() => { setWithdrawOpen(false); setJustWithdrawn(true); onWithdrawn?.(); }} />
         </footer>
       )}
     </div>

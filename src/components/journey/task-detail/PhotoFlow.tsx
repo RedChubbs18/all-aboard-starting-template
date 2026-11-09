@@ -24,11 +24,19 @@ export function PhotoFlow({ task, detail, onChanged }: { task: TaskDto; detail: 
   const [preview, setPreview] = useState<string | null>(null);
   const fileRef = useRef<File | null>(null);
   const [camCaptured, setCamCaptured] = useState(false);
+  const [focusCamera, setFocusCamera] = useState(false);
+  const controlsRef = useRef<HTMLDivElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const { post, busy } = usePost();
   const toast = useToast();
 
   useEffect(() => () => void (preview && URL.revokeObjectURL(preview)), [preview]);
+  // The camera's "Use this photo" button unmounts when the preview appears: hand focus to "Retake photo" (WCAG 2.4.3).
+  const hadPreview = useRef(false);
+  useEffect(() => {
+    if (preview && !hadPreview.current) controlsRef.current?.querySelector<HTMLElement>("[data-retake]")?.focus();
+    hadPreview.current = !!preview;
+  }, [preview]);
 
   const ordered = detail.order;
   const done = task.status === "DONE" || state.step === "submitted";
@@ -83,6 +91,7 @@ export function PhotoFlow({ task, detail, onChanged }: { task: TaskDto; detail: 
       if (p) URL.revokeObjectURL(p);
       return null;
     });
+    setFocusCamera(true); // the new camera's start button takes focus
     dispatch({ type: "RETRY" });
   }
 
@@ -110,6 +119,7 @@ export function PhotoFlow({ task, detail, onChanged }: { task: TaskDto; detail: 
     }
   }
 
+  const tipsMet = camCaptured || !!preview || state.step === "passed" || state.step === "submitting" || done;
   const checking = state.step === "checking";
   const canSubmit = canSubmitPhoto(state) && detail.day0Confirmed && !!detail.day0;
   const submitting = state.step === "submitting";
@@ -139,33 +149,34 @@ export function PhotoFlow({ task, detail, onChanged }: { task: TaskDto; detail: 
               )}
             </div>
           ) : (
-            <CameraCapture onUse={(f) => void choose(f)} onCapturedChange={setCamCaptured} disabled={pickDisabled} />
+            <CameraCapture onUse={(f) => void choose(f)} onCapturedChange={setCamCaptured} disabled={pickDisabled} focusOnMount={focusCamera} />
           )}
           <section aria-labelledby="photo-tips" className="mt-3 rounded-md border border-line bg-card">
-            <h3 id="photo-tips" className="px-4 pt-3 font-bold">
+            <h2 id="photo-tips" className="px-4 pt-3 font-bold">
               Before you start
-            </h3>
+            </h2>
             <ul className="mt-1">
               {TIPS.map((t) => (
                 <li key={t} className="flex items-start gap-3 border-t border-line px-4 py-2.5 first:border-t-0">
                   <span
                     aria-hidden
-                    className={`mt-1 size-4 shrink-0 rounded-full ${camCaptured || preview || state.step === "passed" || state.step === "submitting" || done ? "bg-brand" : "border-2 border-disabled"}`}
+                    className={`mt-1 size-4 shrink-0 rounded-full ${tipsMet ? "bg-brand" : "border-2 border-disabled"}`}
                   />
+                  <span className="sr-only">{tipsMet ? "Met: " : "Not yet: "}</span>
                   {t}
                 </li>
               ))}
             </ul>
           </section>
-          <div className="mt-3 flex gap-2">
+          <div ref={controlsRef} className="mt-3 flex gap-2">
             <input ref={fileInput} type="file" accept="image/*" className="sr-only" tabIndex={-1} aria-hidden onChange={(e) => { void choose(e.target.files?.[0]); e.target.value = ""; }} />
             {preview && (
-              <Button variant={state.step === "rejected" ? "primary" : "secondary"} className="flex-1" disabled={pickDisabled} onClick={retake}>
+              <Button data-retake variant={state.step === "rejected" ? "primary" : "secondary"} className="flex-1" aria-disabled={pickDisabled || undefined} onClick={retake}>
                 <RotateCcw aria-hidden className="size-5" />
                 Retake photo
               </Button>
             )}
-            <Button variant="secondary" className="flex-1" disabled={pickDisabled} onClick={() => fileInput.current?.click()}>
+            <Button variant="secondary" className="flex-1" aria-disabled={pickDisabled || undefined} onClick={() => fileInput.current?.click()}>
               <ImageUp aria-hidden className="size-5" />
               Upload a photo instead
             </Button>

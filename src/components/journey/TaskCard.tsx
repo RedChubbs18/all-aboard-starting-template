@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useRef } from "react";
 import { Check, Info } from "lucide-react";
 import type { Owner } from "@/domain/types";
 import { OwnerBadge, STATUS_META } from "@/components/ui/Badge";
@@ -35,6 +36,7 @@ const TYPE_LABEL: Record<TaskDto["type"], string> = {
 
 /** Task row (STYLE section 13): tick left, timing label, title, note, owner pill right. The row is one link (44px+ target); a separate button completes plain tasks. */
 export function TaskCard({ task, readOnly, highlightOwner, viewerIsStarter = true, now = new Date(), onComplete, pending }: TaskCardProps) {
+  const rowRef = useRef<HTMLAnchorElement>(null);
   const overdue = task.status !== "DONE" && task.status !== "LOCKED" && isOverdue(task.dueDate, now);
   const highlight = !!highlightOwner && task.owner === highlightOwner;
   const waiting = task.status === "LOCKED" && task.lockedReason;
@@ -45,7 +47,7 @@ export function TaskCard({ task, readOnly, highlightOwner, viewerIsStarter = tru
   if (compact) {
     return (
       <li className="border-t border-line bg-page/60 first:border-t-0">
-        <Link href={`/journey/task/${task.id}`} className="flex min-h-11 items-center gap-3 px-4 py-2 text-sm hover:bg-page">
+        <Link href={`/journey/task/${task.id}`} className="flex min-h-11 items-center gap-3 px-4 py-2 text-sm hover:bg-page focus-inset">
           <Tick status={task.status} className="size-5 shrink-0" />
           <span className="min-w-0 flex-1">
             <span className={cn("block font-semibold", task.status === "DONE" && "text-muted")}>{task.title}</span>
@@ -60,7 +62,7 @@ export function TaskCard({ task, readOnly, highlightOwner, viewerIsStarter = tru
   }
   return (
     <li className={cn("border-t border-line first:border-t-0", highlight && "border-l-4 border-l-brand bg-brand-tint")}>
-      <Link href={`/journey/task/${task.id}`} className="flex min-h-14 items-start gap-3 px-4 py-3 hover:bg-page">
+      <Link ref={rowRef} href={`/journey/task/${task.id}`} className="flex min-h-14 items-start gap-3 px-4 py-3 hover:bg-page focus-inset">
         <Tick status={task.status} className="mt-0.5" />
         <span className="min-w-0 flex-1">
           <span className={cn("block text-xs font-bold", overdue ? "text-blocked" : "text-muted")}>
@@ -81,7 +83,14 @@ export function TaskCard({ task, readOnly, highlightOwner, viewerIsStarter = tru
       </Link>
       {quick && (
         <div className="px-4 pb-3 pl-[50px]">
-          <Button variant="secondary" loading={pending} onClick={() => onComplete?.(task)} aria-label={`Mark ${task.title} as done`}>
+          <Button variant="secondary" loading={pending} 
+            onClick={() => {
+              // The button unmounts once the task is DONE, so move focus to the row first (WCAG 2.4.3).
+              rowRef.current?.focus();
+              onComplete?.(task);
+            }}
+            aria-label={`Mark done: ${task.title}`}
+          >
             <Check aria-hidden className="size-5" strokeWidth={1.8} />
             Mark done
           </Button>

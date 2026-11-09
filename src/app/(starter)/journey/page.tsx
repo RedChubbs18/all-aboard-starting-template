@@ -54,8 +54,8 @@ function StarterJourney({ journeyId }: { journeyId: string | null }) {
 
   async function onComplete(task: TaskDto) {
     const r = await complete(task.id);
-    if (r.ok) toast.success(`Task done: ${task.title}`);
-    else toast.error(r.error ?? "Couldn't save that. Please try again.");
+    // Success is announced once, by the journey track's live region (progress and next step), and shown by the tick and marker.
+    if (!r.ok) toast.error(r.error ?? "Couldn't save that. Please try again.");
   }
 
   if (loading) return <JourneySkeleton />;

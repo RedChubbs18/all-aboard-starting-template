@@ -51,9 +51,9 @@ export function AdaptersManager() {
             <button
               type="button"
               className={btnCls.secondary}
-              disabled={busy}
-              aria-label={`Switch ${LABELS[a.key] ?? a.key} to ${a.mode === "MOCK" ? "REAL" : "MOCK"}`}
-              onClick={() => (a.mode === "MOCK" ? setConfirm(a) : change(a, "MOCK"))}
+              aria-disabled={busy || undefined}
+              aria-label={`Switch to ${a.mode === "MOCK" ? "REAL" : "MOCK"}: ${LABELS[a.key] ?? a.key}`}
+              onClick={() => !busy && (a.mode === "MOCK" ? setConfirm(a) : change(a, "MOCK"))}
             >
               Switch to {a.mode === "MOCK" ? "REAL" : "MOCK"}
             </button>

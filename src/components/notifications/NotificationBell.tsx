@@ -125,7 +125,7 @@ export function NotificationBell({ pollMs = POLL_MS, align = "right" }: { pollMs
           ) : (
             <ul>
               {items.map((n) => (
-                <li key={n.id} className={`border-b border-line last:border-0 ${n.read ? "" : "bg-brand-tint"}`}>
+                <li key={n.id} id={`notif-${panelId}-${n.id}`} tabIndex={-1} className={`border-b border-line last:border-0 focus-inset ${n.read ? "" : "bg-brand-tint"}`}>
                   <div className="flex items-start gap-2 px-4 py-3">
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold">
@@ -145,9 +145,13 @@ export function NotificationBell({ pollMs = POLL_MS, align = "right" }: { pollMs
                     {!n.read && (
                       <button
                         type="button"
-                        onClick={() => void markRead(n)}
+                        onClick={() => {
+                          // This button disappears once read: keep focus inside the list (WCAG 2.4.3).
+                          document.getElementById(`notif-${panelId}-${n.id}`)?.focus();
+                          void markRead(n);
+                        }}
                         className="min-h-11 shrink-0 rounded-full px-3 text-sm font-semibold text-brand-strong hover:bg-brand-tint"
-                        aria-label={`Mark as read: ${n.title}`}
+                        aria-label={`Mark read: ${n.title}`}
                       >
                         Mark read
                       </button>
