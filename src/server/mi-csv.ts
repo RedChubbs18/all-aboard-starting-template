@@ -114,6 +114,6 @@ export const vettingCsv = (o: Overview) => {
 
 export const intakeCsv = (o: Overview) =>
   toCsv(
-    ["Starter", "Team", "Line manager", "Stage", "Start date", "Days to start", "Gating tasks done", "Gating tasks total", "Readiness (%)", "Behind"],
-    o.intake.starters.map((r) => [r.starterName, r.teamName, r.lmName, stageLabel(r.stage), day(r.startDate), r.daysToStart, r.done, r.total, r.readinessPct, r.behind ? "Yes" : "No"]),
+    ["Starter", "Team", "Line manager", "Stage", "Start date", "Days to start", "Gating tasks done", "Gating tasks total", "Readiness (%)", "Behind", "Behind because"],
+    o.intake.starters.map((r) => [r.starterName, r.teamName, r.lmName, stageLabel(r.stage), day(r.startDate), r.daysToStart, r.done, r.total, r.readinessPct, r.behind ? "Yes" : "No", r.behindReasons.join("; ")]),
   );

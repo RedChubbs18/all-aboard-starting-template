@@ -641,7 +641,7 @@ export async function getOverview(f: MiFilters, now = new Date()): Promise<Overv
     lm: { league, byTeam: buildLmRollup(facts, flags, "team"), byArea: buildLmRollup(facts, flags, "area"), flags },
     attrition: { ...attrition, earlyWarning },
     flow: { tasks: buildTaskBottlenecks(all.journeys, now), vetting: buildVetting(all.events, all.journeys, all.names, all.meta, now) },
-    intake: buildIntake(all.journeys, all.names, all.meta, now),
+    intake: buildIntake(all.journeys, all.names, all.meta, now, undefined, earlyWarning),
   };
 }
 

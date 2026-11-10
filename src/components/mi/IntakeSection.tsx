@@ -45,14 +45,14 @@ export function IntakeSection({ intake, exportBtn }: Props) {
             { key: "start", header: "Starts", sort: (r) => r.startDate, cell: (r) => <>{fmtDate(r.startDate)}<span className="block text-sm text-muted">in {r.daysToStart} d</span></> },
             { key: "stage", header: "Stage", sort: (r) => r.stage, cell: (r) => stageLabel(r.stage) },
             { key: "ready", header: "Readiness", sort: (r) => r.readinessPct, cell: (r) => `${r.readinessPct}% (${r.done} of ${r.total})` },
-            { key: "flag", header: "Status", sort: (r) => (r.behind ? 1 : 0), cell: (r) => (r.behind ? <Badge tone="danger" icon="alert">Behind</Badge> : <Badge tone="success" icon="check">On track</Badge>) },
+            { key: "flag", header: "Status", sort: (r) => (r.behind ? 1 : 0), cell: (r) => (r.behind ? <><Badge tone="danger" icon="alert">Behind</Badge><span className="mt-1 block text-sm font-normal text-muted">{r.behindReasons.join("; ")}</span></> : <Badge tone="success" icon="check">On track</Badge>) },
           ]}
         />
       </div>
       <Explain>
         <p><span className="font-semibold">Start week:</span> active starters with a start date from today to the end of the 13th week, grouped by the Monday of their start week.</p>
         <p><span className="font-semibold">Readiness:</span> gating tasks in the stages before Day 0 (conditional offer, vetting, unconditional offer) that apply to the starter and are done, over all of them. A week&apos;s figure pools its starters&apos; tasks.</p>
-        <p><span className="font-semibold">Behind:</span> starting within {READINESS.behindWithinDays} days with readiness under {READINESS.behindBelowPct}%.</p>
+        <p><span className="font-semibold">Behind:</span> any of: starting within {READINESS.behindWithinDays} days with readiness under {READINESS.behindBelowPct}%; starting within {READINESS.behindWithinDays} days with an overdue line manager action; or a HIGH early-warning rating (two or more risk signals, see Early warning). Readiness counts gating tasks only, so line manager actions that are not gating can leave readiness high while the starter is still behind. The reason is shown in the Status column.</p>
         <p>These figures ignore the status filter; the date range and other filters apply.</p>
       </Explain>
     </Section>

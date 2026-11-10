@@ -627,6 +627,8 @@ export interface IntakeStarter {
   total: number;
   readinessPct: number;
   behind: boolean;
+  /** Why the starter is behind (empty when on track). */
+  behindReasons: string[];
 }
 
 export interface IntakeWeek {
@@ -645,8 +647,14 @@ export interface IntakeOutlook {
   readinessPct: number | null;
 }
 
-/** Active starters starting today or later, bucketed into the next 13 Monday-based weeks, with pooled readiness. */
-export function buildIntake(journeys: JourneyState[], names: Map<string, string>, meta: Map<string, JourneyMeta>, now: Date, weeks = OUTLOOK_WEEKS): IntakeOutlook {
+/**
+ * Active starters starting today or later, bucketed into the next 13 Monday-based weeks, with pooled readiness.
+ * "Behind" (reasons are listed) when any of: starting within READINESS.behindWithinDays with readiness under
+ * READINESS.behindBelowPct; the starter has a HIGH early-warning row (pass `earlyWarning`); or they start within
+ * that window with an overdue LM action. Readiness counts gating tasks only, so the other two catch LM work readiness misses.
+ */
+export function buildIntake(journeys: JourneyState[], names: Map<string, string>, meta: Map<string, JourneyMeta>, now: Date, weeks = OUTLOOK_WEEKS, earlyWarning: EarlyWarningRow[] = []): IntakeOutlook {
+  const high = new Map(earlyWarning.filter((r) => r.level === "HIGH").map((r) => [r.journeyId, r]));
   const first = weekStartUtc(now);
   const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   const end = first.getTime() + weeks * 7 * DAY;
@@ -657,6 +665,13 @@ export function buildIntake(journeys: JourneyState[], names: Map<string, string>
     if (s < today.getTime() || s >= end) continue;
     const r = readiness(j.tasks);
     const daysToStart = Math.ceil((s - now.getTime()) / DAY);
+    const soon = daysToStart <= READINESS.behindWithinDays;
+    const behindReasons: string[] = [];
+    if (soon && r.pct < READINESS.behindBelowPct) behindReasons.push(`Readiness ${r.pct}%, under ${READINESS.behindBelowPct}%`);
+    const lmOverdue = j.tasks.filter((t) => t.owner === "LM" && isOverdue(t, now, j.tasks)).length;
+    if (soon && lmOverdue) behindReasons.push(`${lmOverdue} overdue LM action${lmOverdue === 1 ? "" : "s"} before start`);
+    const hi = high.get(j.id);
+    if (hi) behindReasons.push(`Early warning HIGH: ${hi.signals.map((x) => x.detail).join("; ")}`);
     starters.push({
       journeyId: j.id,
       starterName: names.get(j.starterId) ?? "Unknown",
@@ -668,7 +683,8 @@ export function buildIntake(journeys: JourneyState[], names: Map<string, string>
       done: r.done,
       total: r.total,
       readinessPct: r.pct,
-      behind: daysToStart <= READINESS.behindWithinDays && r.pct < READINESS.behindBelowPct,
+      behind: behindReasons.length > 0,
+      behindReasons,
     });
   }
   starters.sort((a, b) => a.startDate.localeCompare(b.startDate) || a.starterName.localeCompare(b.starterName));
