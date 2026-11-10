@@ -3,6 +3,12 @@ import type { Stage } from "./types";
 
 const DAY_MS = 86_400_000;
 
+/** Start of the UTC day containing `d` (ms). Due dates are stored as UTC midnight. */
+export const dayStart = (d: Date): number => Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+
+/** D3: the one overdue rule on a due date: overdue from the day after it (the due day itself is not overdue). */
+export const isPastDue = (due: Date, now: Date): boolean => dayStart(due) < dayStart(now);
+
 /** D31: Day 30 opens this many days after the start date. */
 export const DAY_30_OFFSET_DAYS = 30;
 

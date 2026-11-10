@@ -1,3 +1,5 @@
+import { dayStart, isPastDue } from "@/domain/stage-timing";
+
 const TZ = "UTC"; // due dates are stored as UTC midnight; formatting in UTC keeps the day stable
 
 const fmt = (opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("en-GB", { timeZone: TZ, ...opts });
@@ -14,11 +16,10 @@ export const formatDateTime = (iso: string) =>
     new Date(iso),
   );
 
-const dayStart = (d: Date) => Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
 
 /** Overdue = due date is before today (the due day itself is not overdue). */
 export function isOverdue(dueIso: string, now: Date): boolean {
-  return dayStart(new Date(dueIso)) < dayStart(now);
+  return isPastDue(new Date(dueIso), now);
 }
 
 /**

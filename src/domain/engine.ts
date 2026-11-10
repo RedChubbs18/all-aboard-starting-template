@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { isExitReason } from "./exit-reasons";
-import { isStageTimeReached } from "./stage-timing";
+import { isPastDue, isStageTimeReached } from "./stage-timing";
 import {
   STAGES,
   stageIndex,
@@ -73,7 +73,7 @@ export function isEffectivelyDone(t: TaskState, tasks: TaskState[]): boolean {
 /**
  * D3 clarification: the one definition of "overdue" (progress, LM list, MI issues and chase).
  * An applicable, non-optional task that is not effectively done (a DONE override counts), is not LOCKED
- * (it is waiting on something else) and whose due date is in the past. Pass the journey's tasks so
+ * (it is waiting on something else) and whose due date is before today (UTC day compare: overdue from the day after the due date). Pass the journey's tasks so
  * override satisfaction can be seen; without them only the task's own status is used.
  */
 export function isOverdue(
@@ -83,7 +83,7 @@ export function isOverdue(
 ): boolean {
   if (!t.applicable || t.optional || t.status === "LOCKED") return false;
   if (t.status === "DONE" || (tasks && isEffectivelyDone(t as TaskState, tasks))) return false;
-  return t.dueDate.getTime() < now.getTime();
+  return isPastDue(t.dueDate, now);
 }
 
 const statusOf = (tasks: TaskState[], key: string) => tasks.find((t) => t.key === key)?.status;
