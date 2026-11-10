@@ -9,6 +9,8 @@ import { task } from "../../test-data";
 vi.mock("next/link", () => ({ default: ({ children }: { children: React.ReactNode }) => <a>{children}</a> }));
 const apiFetch = vi.fn();
 vi.mock("@/lib/auth/client", () => ({ useSession: () => ({ apiFetch }) }));
+// No model/WASM in tests: live checks fall back to "unavailable", which allows capture (see CameraLive.test.tsx for the rest).
+vi.mock("@/lib/vision/landmarker", () => ({ loadLandmarker: () => Promise.reject(new Error("no wasm")) }));
 vi.mock("@/components/ui/Toast", () => ({ useToast: () => ({ success: vi.fn(), error: vi.fn() }) }));
 
 function fakeStream() {
@@ -33,6 +35,12 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+/** Waits for Take photo to be enabled (live checks resolve to "unavailable" in these tests). */
+async function takeReady() {
+  const b = await screen.findByRole("button", { name: "Take photo" });
+  await waitFor(() => expect(b).not.toHaveAttribute("aria-disabled"));
+  return b;
+}
 const click = (name: string) => fireEvent.click(screen.getByRole("button", { name }));
 
 describe("CameraCapture", () => {
@@ -68,7 +76,7 @@ describe("CameraCapture", () => {
     const onUse = vi.fn();
     render(<CameraCapture onUse={onUse} />);
     click("Start camera");
-    await screen.findByRole("button", { name: "Take photo" });
+    await takeReady();
     expect(gum).toHaveBeenCalledWith({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 960 } }, audio: false });
     expect(screen.getByLabelText("Live camera preview")).toBeInTheDocument();
     click("Take photo");
@@ -76,7 +84,7 @@ describe("CameraCapture", () => {
     expect(first.track.stop).toHaveBeenCalled();
 
     click("Retake");
-    await screen.findByRole("button", { name: "Take photo" });
+    await takeReady();
     expect(gum).toHaveBeenCalledTimes(2);
 
     click("Take photo");
@@ -109,7 +117,7 @@ describe("CameraCapture", () => {
     setMedia(vi.fn().mockResolvedValue(s.stream));
     const { unmount } = render(<CameraCapture onUse={vi.fn()} />);
     click("Start camera");
-    await screen.findByRole("button", { name: "Take photo" });
+    await takeReady();
     unmount();
     expect(s.track.stop).toHaveBeenCalled();
   });

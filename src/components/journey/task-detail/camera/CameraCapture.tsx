@@ -5,6 +5,9 @@ import { Camera, Check, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
+import { summarise, type LocalCheckSummary } from "@/lib/vision/checks";
+import { LiveChecklist } from "./LiveChecklist";
+import { useLiveChecks } from "./use-live-checks";
 
 export type CameraPhase = "intro" | "starting" | "live" | "captured" | "paused" | "denied" | "nocamera" | "insecure" | "unsupported" | "error";
 
@@ -31,8 +34,8 @@ function classify(err: unknown): CameraPhase {
 }
 
 interface Props {
-  /** The captured JPEG, once the user chooses "Use this photo". */
-  onUse: (file: File) => void;
+  /** The captured JPEG, once the user chooses "Use this photo", with a small summary of the on-device checks. */
+  onUse: (file: File, localChecks?: LocalCheckSummary) => void;
   /** Reports whether a photo has been taken (for the conditions list). */
   onCapturedChange?: (captured: boolean) => void;
   disabled?: boolean;
@@ -43,12 +46,19 @@ interface Props {
 /** Live camera viewfinder (STYLE section 15). The preview is mirrored; the exported JPEG is not. */
 export function CameraCapture({ onUse, onCapturedChange, disabled, focusOnMount }: Props) {
   const [phase, setPhase] = useState<CameraPhase>("intro");
-  const [shot, setShot] = useState<{ file: File; url: string } | null>(null);
+  const [shot, setShot] = useState<{ file: File; url: string; summary: LocalCheckSummary } | null>(null);
+  const [auto, setAuto] = useState(false);
+  const [remaining, setRemaining] = useState<number | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const startId = useRef(0);
   const wantFocus = useRef(!!focusOnMount);
+  const live = useLiveChecks(videoRef, phase === "live");
+  // Capture is allowed once every on-device check has held for 500ms, or when live checks can't run on this
+  // device (the server check still gates the pass).
+  const canTake = live.status === "unavailable" || (live.status === "running" && live.ready);
+  const takeHelp = live.status === "loading" ? "Starting live checks..." : (live.reason ?? "Hold still for a moment...");
 
   const stop = useCallback(() => {
     startId.current++; // invalidates any in-flight getUserMedia
@@ -115,7 +125,8 @@ export function CameraCapture({ onUse, onCapturedChange, disabled, focusOnMount 
 
   async function take() {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || !canTake) return;
+    const summary = summarise(live.results, live.status === "running");
     const w = video.videoWidth || 1280;
     const h = video.videoHeight || 960;
     const canvas = document.createElement("canvas");
@@ -129,9 +140,32 @@ export function CameraCapture({ onUse, onCapturedChange, disabled, focusOnMount 
     stop();
     const file = new File([blob], `camera-${Date.now()}.jpg`, { type: "image/jpeg" });
     wantFocus.current = true;
-    setShot({ file, url: URL.createObjectURL(file) });
+    setShot({ file, url: URL.createObjectURL(file), summary });
     setPhase("captured");
   }
+
+  // Optional auto-capture: a 3-2-1 countdown that starts when every check passes and cancels if one fails.
+  const armed = auto && phase === "live" && live.status === "running" && live.ready;
+  const countdown = armed ? (remaining ?? 3) : null;
+  const takeRef = useRef(take);
+  useEffect(() => {
+    takeRef.current = take;
+  });
+  useEffect(() => {
+    if (!armed) return;
+    let n = 3;
+    const id = setInterval(() => {
+      n -= 1;
+      if (n <= 0) {
+        clearInterval(id);
+        void takeRef.current();
+      } else setRemaining(n);
+    }, 1000);
+    return () => {
+      clearInterval(id);
+      setRemaining(null);
+    };
+  }, [armed]);
 
   function retake() {
     setShot(null);
@@ -175,6 +209,19 @@ export function CameraCapture({ onUse, onCapturedChange, disabled, focusOnMount 
         )}
       </div>
 
+      {phase === "live" && <LiveChecklist live={live} countdown={countdown} />}
+      {phase === "live" && live.status === "running" && (
+        <label className="mt-2 flex min-h-11 cursor-pointer items-center gap-3 text-sm">
+          <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} className="size-6 accent-[var(--color-brand)]" />
+          Take the photo for me when all checks pass
+        </label>
+      )}
+      {countdown !== null && (
+        <p aria-hidden className="mt-1 text-sm font-semibold">
+          Taking your photo in {countdown}...
+        </p>
+      )}
+
       {fallback && (
         <Alert tone="warning" live="alert" className="mt-3">
           <p>{fallback}</p>
@@ -196,7 +243,14 @@ export function CameraCapture({ onUse, onCapturedChange, disabled, focusOnMount 
           </Button>
         )}
         {phase === "live" && (
-          <Button data-step-focus variant="primary" className="flex-1" aria-disabled={disabled || undefined} onClick={() => void take()}>
+          <Button
+            data-step-focus
+            variant="primary"
+            className="flex-1"
+            aria-disabled={disabled || !canTake || undefined}
+            aria-describedby="camera-take-help"
+            onClick={() => void take()}
+          >
             <Camera aria-hidden className="size-5" />
             Take photo
           </Button>
@@ -207,13 +261,21 @@ export function CameraCapture({ onUse, onCapturedChange, disabled, focusOnMount 
               <RotateCcw aria-hidden className="size-5" />
               Retake
             </Button>
-            <Button data-step-focus variant="primary" className="flex-1" aria-disabled={disabled || undefined} onClick={() => onUse(shot.file)}>
+            <Button data-step-focus variant="primary" className="flex-1" aria-disabled={disabled || undefined} onClick={() => onUse(shot.file, shot.summary)}>
               <Check aria-hidden className="size-5" />
               Use this photo
             </Button>
           </>
         )}
       </div>
+      {phase === "live" && (
+        <p id="camera-take-help" className="mt-2 text-sm text-muted">
+          {canTake ? (live.status === "unavailable" ? "Take your photo when you're ready." : "All checks passed. Take your photo.") : takeHelp}
+        </p>
+      )}
+      {(phase === "live" || phase === "starting") && (
+        <p className="mt-2 text-sm text-muted">These checks run on your device. Camera frames never leave it, and nothing is stored. Only the photo you choose to use is sent for checking.</p>
+      )}
     </div>
   );
 }

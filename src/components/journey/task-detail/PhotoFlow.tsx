@@ -12,6 +12,7 @@ import { canSubmitPhoto, initialPhotoState, photoReducer, validatePhotoFile } fr
 import type { Detail } from "../detail-types";
 import type { TaskDto } from "../types";
 import { CameraCapture } from "./camera/CameraCapture";
+import type { LocalCheckSummary } from "@/lib/vision/checks";
 import { usePost } from "./use-post";
 
 type PhotoDetail = Extract<Detail, { kind: "photo" }>;
@@ -58,7 +59,7 @@ export function PhotoFlow({ task, detail, onChanged }: { task: TaskDto; detail: 
   }
   if (task.status === "LOCKED") return null;
 
-  async function choose(file: File | undefined) {
+  async function choose(file: File | undefined, localChecks?: LocalCheckSummary) {
     if (!file) return;
     const invalid = validatePhotoFile(file);
     if (invalid) {
@@ -74,6 +75,8 @@ export function PhotoFlow({ task, detail, onChanged }: { task: TaskDto; detail: 
     const form = new FormData();
     form.set("taskId", task.id);
     form.set("photo", file, file.name); // file name is passed through: the mock decides by name
+    // Optional metadata from the on-device checks (no image data). The route ignores unknown fields today.
+    if (localChecks) form.set("localChecks", JSON.stringify(localChecks));
     const r = await post<{ pass: boolean; issues: string[]; photoRef?: string; token?: string; pendingReview?: boolean }>("/api/starter/photo-check", form);
     if (!r.ok || !r.data) {
       dispatch({ type: "CHECK_FAILED", message: r.error ?? "We couldn't check your photo. Try again or ask P&P." });
@@ -149,7 +152,7 @@ export function PhotoFlow({ task, detail, onChanged }: { task: TaskDto; detail: 
               )}
             </div>
           ) : (
-            <CameraCapture onUse={(f) => void choose(f)} onCapturedChange={setCamCaptured} disabled={pickDisabled} focusOnMount={focusCamera} />
+            <CameraCapture onUse={(f, summary) => void choose(f, summary)} onCapturedChange={setCamCaptured} disabled={pickDisabled} focusOnMount={focusCamera} />
           )}
           <section aria-labelledby="photo-tips" className="mt-3 rounded-md border border-line bg-card">
             <h2 id="photo-tips" className="px-4 pt-3 font-bold">

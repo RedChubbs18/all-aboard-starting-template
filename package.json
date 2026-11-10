@@ -4,13 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "node scripts/copy-vision-assets.mjs && prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "postinstall": "prisma generate",
+    "postinstall": "prisma generate && node scripts/copy-vision-assets.mjs",
     "db:push": "prisma db push --skip-generate",
     "db:seed": "tsx --conditions=react-server prisma/seed.ts",
     "db:reset": "rm -f prisma/dev.db prisma/dev.db-journal && npm run db:push && npm run db:seed",
@@ -20,6 +20,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^1.6.0",
     "@azure/msal-browser": "^5.29.0",
+    "@mediapipe/tasks-vision": "^1.2.2",
     "@prisma/client": "^6.19.3",
     "jose": "^6.2.16",
     "lucide-react": "^1.70.0",
