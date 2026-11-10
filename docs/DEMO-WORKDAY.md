@@ -39,6 +39,7 @@ Body (**no personal email or other PII beyond name**):
   "offerId": "wd-offer-xxxx",
   "candidate": { "firstName": "Jo", "lastName": "Bloggs" },
   "jobTitle": "Software Engineer",
+  "jobFamily": "ENGINEERING",
   "teamKey": "dwe",
   "lineManagerKey": "dana-sample",
   "startDate": "2027-01-11",
@@ -46,6 +47,8 @@ Body (**no personal email or other PII beyond name**):
   "guest": { "objectId": "<guest user object id or null>", "inviteStatus": "invited" }
 }
 ```
+`jobFamily`: one of `ENGINEERING`, `DATA_AND_ANALYTICS`, `OPERATIONS`, `CUSTOMER_SERVICE`, `RISK_AND_COMPLIANCE`, `CORPORATE_FUNCTIONS` (D29: device entitlement). `startDate` defaults to a random Monday within 3 months of offer acceptance (D27).
+
 `inviteStatus`: `invited` | `simulated` | `failed`. It's idempotent on `offerId`: a repeat (or a retry after a failure; everything is created in one transaction) returns the same journey.
 
 Response `200 {"journeyId": "...", "starterId": "..."}`. Errors: `401` bad signature or timestamp, `400` validation, `409` unknown team/LM, or a guest that already has a journey from a different offer (a rehearsal reusing the same email: run `npm run db:reset` or use a different email).
