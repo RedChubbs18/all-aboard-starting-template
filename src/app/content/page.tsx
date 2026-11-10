@@ -14,7 +14,7 @@ export default async function ContentIndex() {
   if (items.length === 0) return <EmptyState title="Nothing here yet">Guides and policies will appear here once they are published.</EmptyState>;
   return (
     <div className="mx-auto max-w-[720px] space-y-6">
-      <h1 className="text-[28px] font-bold leading-tight text-ink">Guides, policies and benefits</h1>
+      <h1 className="text-[1.75rem] font-bold leading-tight text-ink">Guides, policies and benefits</h1>
       {CONTENT_GROUPS.map((g) => {
         const list = items.filter((i) => g.types.includes(i.type));
         if (list.length === 0) return null;

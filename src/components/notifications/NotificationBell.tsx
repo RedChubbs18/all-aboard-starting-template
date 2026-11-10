@@ -101,7 +101,7 @@ export function NotificationBell({ pollMs = POLL_MS, align = "right" }: { pollMs
         aria-expanded={open}
         aria-controls={panelId}
         aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
-        className="relative inline-flex size-11 items-center justify-center rounded-full border-[1.5px] border-ink bg-card text-ink hover:bg-page"
+        className="relative inline-flex size-11 items-center justify-center rounded-full border border-ink bg-card text-ink hover:bg-page"
       >
         <Mail aria-hidden className="size-[22px]" strokeWidth={1.8} />
         {unread > 0 && (
@@ -116,7 +116,7 @@ export function NotificationBell({ pollMs = POLL_MS, align = "right" }: { pollMs
         <section
           id={panelId}
           aria-label="Notifications"
-          className={`absolute ${align === "left" ? "left-0" : "right-0"} z-50 mt-2 max-h-[70dvh] w-[min(22rem,calc(100vw-2rem))] overflow-y-auto rounded-md border border-line bg-card text-ink shadow-card`}
+          className={`fixed inset-x-4 top-[4.5rem] z-50 max-h-[70dvh] md:absolute md:inset-x-auto md:top-auto md:mt-2 md:w-[22rem] ${align === "left" ? "md:left-0" : "md:right-0"} overflow-y-auto rounded-md border border-line bg-card text-ink shadow-card`}
         >
           <h2 className="border-b border-line px-4 py-3 text-base font-semibold">Notifications</h2>
           {failed && <p role="alert" className="px-4 py-2 text-sm text-blocked">Could not refresh. Showing the last list.</p>}

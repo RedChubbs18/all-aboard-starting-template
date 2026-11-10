@@ -18,7 +18,7 @@ function Header({ d, onAdd }: { d: StarterDetail; onAdd: () => void }) {
     <Card className="space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h1 className="text-[28px] font-bold leading-tight text-ink">{d.starter.displayName}</h1>
+          <h1 className="text-[1.75rem] font-bold leading-tight text-ink">{d.starter.displayName}</h1>
           <p className="text-muted">
             {STAGE_LABEL[d.journey.stage]} · Starts {formatDate(d.journey.startDate)}
             {d.journey.status !== "active" && ` · ${d.journey.status}`}
@@ -84,7 +84,7 @@ function StageList({ d, p }: { d: StarterDetail; p: PanelProps }) {
           <details key={s} open={s === d.journey.stage} className="rounded-md border border-line bg-card">
             <summary className="flex min-h-14 cursor-pointer items-center gap-3 px-4 font-semibold">
               <span className="flex-1">
-                <span className="block text-[17px] font-bold">{STAGE_LABEL[s]}</span>
+                <span className="block text-[1.0625rem] font-bold">{STAGE_LABEL[s]}</span>
                 <span className="block text-sm font-normal text-muted">{STAGE_HINT[s]}</span>
               </span>
               <span className="text-sm font-semibold text-muted">

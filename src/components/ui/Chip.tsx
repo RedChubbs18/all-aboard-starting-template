@@ -3,7 +3,7 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { cn } from "./cn";
 
 const chip =
-  "inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full border-[1.5px] px-[18px] py-2 text-[15px] font-semibold " +
+  "inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full border-[1.5px] px-[18px] py-2 text-[0.9375rem] font-semibold " +
   "motion-safe:transition-colors";
 export const chipClass = chip + " border-ink bg-card text-ink hover:bg-page";
 const off = "border-ink bg-card text-ink hover:bg-page";

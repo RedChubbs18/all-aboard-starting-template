@@ -1,31 +1,26 @@
 #!/usr/bin/env node
-// Asserts the WCAG 2.2 contrast pairings from docs/STYLE.md section A. Run: node scripts/contrast-check.mjs
-// Colours mirror the tokens in src/app/globals.css.
+// Asserts the WCAG 2.2 AA contrast pairings (docs/STYLE.md section 0) for every theme.
+// Run: node scripts/contrast-check.mjs
+// Token values are read from src/app/globals.css, so the check cannot drift from the real palette.
+import { readFileSync } from "node:fs";
 
-const C = {
-  page: "#f2f2f2",
-  card: "#ffffff",
-  ink: "#000000",
-  muted: "#5a5f5c",
-  line: "#e6e8e6",
-  lineStrong: "#767d79",
-  brand: "#12a872",
-  brandStrong: "#0b6e4b",
-  brandTint: "#e4f6ee",
-  darkGreen: "#0b3b2b",
-  feature: "#14a870",
-  blocked: "#c0392b",
-  blockedTint: "#fbe9e6",
-  mixed: "#2a64a0",
-  mixedTint: "#e5eef8",
-  automated: "#3d4440",
-  automatedTint: "#eceeed",
-  track: "#dfe6e2",
-  disabled: "#b8c5bf",
-  disabledInk: "#3d4440",
-  focus: "#9fd8c0",
-  sage: "#8fc7a9",
-};
+const css = readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8");
+
+function block(selector) {
+  const start = css.indexOf(selector + " {");
+  if (start < 0) throw new Error(`Missing block: ${selector}`);
+  const end = css.indexOf("}", start);
+  const vars = {};
+  for (const m of css.slice(start, end).matchAll(/--color-([a-z-]+):\s*(#[0-9a-fA-F]{6})/g)) vars[m[1]] = m[2];
+  return vars;
+}
+
+const base = block("@theme");
+const dark = { ...base, ...block('html[data-theme="dark"]') };
+const high = { ...base, ...block('html[data-contrast="high"]') };
+const darkHigh = { ...dark, ...high, ...block('html[data-theme="dark"][data-contrast="high"]') };
+// In dark + high contrast the dark-theme values are the starting point, then the dark high-contrast block wins.
+const themes = { light: base, dark, "high contrast": high, "dark high contrast": darkHigh };
 
 function lum(hex) {
   const n = parseInt(hex.slice(1), 16);
@@ -40,60 +35,88 @@ function ratio(a, b) {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-// [description, foreground, background, minimum]
+// [description, foreground token, background token, minimum]. Tokens resolve per theme; "#rrggbb" literals are allowed.
 const checks = [
   // Text, 4.5:1
-  ["Ink on white", C.ink, C.card, 4.5],
-  ["Ink on page", C.ink, C.page, 4.5],
-  ["Muted on white", C.muted, C.card, 4.5],
-  ["Muted on page", C.muted, C.page, 4.5],
-  ["White on dark green (chips, active nav fill)", C.card, C.darkGreen, 4.5],
-  ["Dark green on white (active nav label)", C.darkGreen, C.card, 4.5],
-  ["White on ink (primary button)", C.card, C.ink, 4.5],
-  ["Deep green on white (small green text, links)", C.brandStrong, C.card, 4.5],
-  ["Deep green on page", C.brandStrong, C.page, 4.5],
-  ["Deep green on green tint ('You' pill)", C.brandStrong, C.brandTint, 4.5],
-  ["Blocked red on white", C.blocked, C.card, 4.5],
-  ["Blocked red on blocked tint ('Your manager' pill)", C.blocked, C.blockedTint, 4.5],
-  ["White on blocked red (error toast)", C.card, C.blocked, 4.5],
-  ["Mixed blue on mixed tint ('Shared' pill)", C.mixed, C.mixedTint, 4.5],
-  ["Automated grey on its tint ('Automated' pill)", C.automated, C.automatedTint, 4.5],
-  ["Ink on feature green (Next step card)", C.ink, C.feature, 4.5],
-  ["Disabled text on disabled fill", C.disabledInk, C.disabled, 4.5],
-  ["Locked stage reason text (automated grey) on the page-grey locked card", C.automated, C.page, 4.5],
-  ["Muted on green tint (highlighted rows, 'Next step' tint)", C.muted, C.brandTint, 4.5],
-  ["Muted on blocked tint", C.muted, C.blockedTint, 4.5],
-  ["Muted on mixed tint", C.muted, C.mixedTint, 4.5],
-  // Large text (at least 24px regular or 18.7px bold), 3:1
-  ["Brand green on white (40px percentage)", C.brand, C.card, 3],
-  ["White on brand green (20px bold logo placeholder)", C.card, C.brand, 3],
+  ["Ink on card", "ink", "card", 4.5],
+  ["Ink on page", "ink", "page", 4.5],
+  ["Muted on card", "muted", "card", 4.5],
+  ["Muted on page", "muted", "page", 4.5],
+  ["Muted on green tint", "muted", "brand-tint", 4.5],
+  ["Muted on blocked tint", "muted", "blocked-tint", 4.5],
+  ["Muted on mixed tint", "muted", "mixed-tint", 4.5],
+  ["Card on ink (primary button)", "card", "ink", 4.5],
+  ["Card on dark green (chips, toast, active fill)", "card", "dark-green", 4.5],
+  ["Card on brand (logo placeholder, white text on brand fills)", "card", "brand", 4.5],
+  ["Dark green on card (active nav label)", "dark-green", "card", 4.5],
+  ["Brand strong on card (small green text, links)", "brand-strong", "card", 4.5],
+  ["Brand strong on page", "brand-strong", "page", 4.5],
+  ["Brand strong on green tint ('You' pill, success alert)", "brand-strong", "brand-tint", 4.5],
+  ["Brand on card (percentage figure, brand text)", "brand", "card", 4.5],
+  ["Blocked on card", "blocked", "card", 4.5],
+  ["Blocked on page", "blocked", "page", 4.5],
+  ["Blocked on blocked tint ('Your manager' pill, error alert)", "blocked", "blocked-tint", 4.5],
+  ["Card on blocked (error toast)", "card", "blocked", 4.5],
+  ["Mixed on mixed tint ('Shared' pill, info alert)", "mixed", "mixed-tint", 4.5],
+  ["Mixed on card", "mixed", "card", 4.5],
+  ["Automated on its tint ('Automated' pill)", "automated", "automated-tint", 4.5],
+  ["Automated on page (locked stage reason)", "automated", "page", 4.5],
+  ["Disabled text on disabled fill", "disabled-ink", "disabled", 4.5],
+  ["Ink on page: text beside an active highlight", "ink", "brand-tint", 4.5],
+  // Fixed pairs that do not change with the theme
+  ["Black on accent #0be248 (accent button)", "accent-ink", "accent", 4.5],
+  ["Focus-state text: white on black", "#ffffff", "#000000", 4.5],
+  // Large text (24px regular or 18.7px bold), 3:1
+  ["Brand on card (large percentage)", "brand", "card", 3],
   // Non-text, 3:1
-  ["Focus indicator: dark green outline on white", C.darkGreen, C.card, 3],
-  ["Focus indicator: dark green outline on page", C.darkGreen, C.page, 3],
-  ["Brand green icon/fill on white", C.brand, C.card, 3],
-  ["Input/select/textarea border on white (--color-line-strong)", C.lineStrong, C.card, 3],
-  ["Input/select/textarea border on page", C.lineStrong, C.page, 3],
+  ["Focus outline on card", "focus", "card", 3],
+  ["Focus outline on page", "focus", "page", 3],
+  ["Focus halo against its outline", "focus", "focus-halo", 3],
+  ["Brand fill/icon on card", "brand", "card", 3],
+  ["Brand fill on page", "brand", "page", 3],
+  ["Now ring on card", "now", "card", 3],
+  ["Form control border on card", "line-strong", "card", 3],
+  ["Form control border on page", "line-strong", "page", 3],
+  ["Info icon on card", "info", "card", 3],
+  ["Brand fill on bar track", "brand", "track", 3],
 ];
 
-// Known and accepted: shown for information only (not asserted).
-const info = [
-  ["Brand green on page (the 40px percentage always sits on a white card, never directly on the page)", C.brand, C.page],
-  ["Focus halo #9fd8c0 on white (decorative; outline carries the 3:1)", C.focus, C.card],
-  ["Brand fill on bar track (value is always also written as text)", C.brand, C.track],
-  ["Sage chart bar on white (value is always also written as text)", C.sage, C.card],
-];
+// Theme-specific extras
+const featureOn = {
+  light: ["ink", "feature"],
+  dark: ["ink", "feature"],
+  "high contrast": ["ink", "feature"],
+  "dark high contrast": ["ink", "feature"],
+};
 
 let failed = 0;
-for (const [name, fg, bg, min] of checks) {
-  const r = ratio(fg, bg);
-  const ok = r >= min;
-  if (!ok) failed++;
-  console.log(`${ok ? "PASS" : "FAIL"}  ${r.toFixed(2).padStart(5)}:1  (min ${min})  ${name}`);
+let total = 0;
+for (const [theme, t] of Object.entries(themes)) {
+  const get = (k) => (k.startsWith("#") ? k : t[k]);
+  const all = [...checks, ["Text on feature card ('Next step')", ...featureOn[theme], 4.5]];
+  console.log(`\n== ${theme} ==`);
+  for (const [name, fg, bg, min] of all) {
+    const fgHex = get(fg);
+    const bgHex = get(bg);
+    if (!fgHex || !bgHex) throw new Error(`Unknown token in "${name}" (${fg} / ${bg})`);
+    const r = ratio(fgHex, bgHex);
+    const ok = r >= min;
+    total++;
+    if (!ok) failed++;
+    if (!ok || process.env.VERBOSE !== "0") console.log(`${ok ? "PASS" : "FAIL"}  ${r.toFixed(2).padStart(5)}:1  (min ${min})  ${name}`);
+  }
 }
-for (const [name, fg, bg] of info) console.log(`INFO  ${ratio(fg, bg).toFixed(2).padStart(5)}:1  ${name}`);
+
+// Known and accepted: information only.
+const info = [
+  ["Sage chart bar on card (value is always also written as text)", "sage", "card"],
+  ["Brand fill on bar track (value is always also written as text)", "brand", "track"],
+];
+console.log("\n== information (not asserted, light theme) ==");
+for (const [name, fg, bg] of info) console.log(`INFO  ${ratio(base[fg], base[bg]).toFixed(2).padStart(5)}:1  ${name}`);
 
 if (failed) {
-  console.error(`\n${failed} pairing(s) below the minimum.`);
+  console.error(`\n${failed} of ${total} pairing(s) below the minimum.`);
   process.exit(1);
 }
-console.log(`\nAll ${checks.length} asserted pairings pass.`);
+console.log(`\nAll ${total} asserted pairings pass across ${Object.keys(themes).length} themes.`);

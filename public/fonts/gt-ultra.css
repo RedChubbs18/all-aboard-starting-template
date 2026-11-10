@@ -1,9 +1,11 @@
 /*
  * GT Ultra (licensed). Loaded only when NEXT_PUBLIC_BRAND_FONTS=local (see src/app/layout.tsx).
  * The .woff2 files are local only and git-ignored: the licence forbids redistribution.
- * Median: body and UI text. Standard: headings, large figures and the header greeting.
+ * Matches how lloydsbankinggroup.com uses the family: Standard for body text, links, buttons and strong text;
+ * Median for headings (Bold h1, h2, h5, h6; Regular h3, h4) and table headers.
+ * "Brand" = Standard, "Brand Display" = Median.
  */
-@font-face { font-family: "Brand"; src: url("/fonts/GT-Ultra-Median-Regular.woff2") format("woff2"); font-weight: 400 600; font-style: normal; font-display: swap; }
-@font-face { font-family: "Brand"; src: url("/fonts/GT-Ultra-Median-Bold.woff2") format("woff2"); font-weight: 700 900; font-style: normal; font-display: swap; }
-@font-face { font-family: "Brand Display"; src: url("/fonts/GT-Ultra-Standard-Regular.woff2") format("woff2"); font-weight: 400 600; font-style: normal; font-display: swap; }
-@font-face { font-family: "Brand Display"; src: url("/fonts/GT-Ultra-Standard-Bold.woff2") format("woff2"); font-weight: 700 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Brand"; src: url("/fonts/GT-Ultra-Standard-Regular.woff2") format("woff2"); font-weight: 400 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Brand"; src: url("/fonts/GT-Ultra-Standard-Bold.woff2") format("woff2"); font-weight: 700 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Brand Display"; src: url("/fonts/GT-Ultra-Median-Regular.woff2") format("woff2"); font-weight: 400 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Brand Display"; src: url("/fonts/GT-Ultra-Median-Bold.woff2") format("woff2"); font-weight: 700 900; font-style: normal; font-display: swap; }

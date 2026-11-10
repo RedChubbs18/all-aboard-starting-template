@@ -18,7 +18,7 @@ export function Tick({ status, current, size = 22, className }: { status: TaskSt
         done && "bg-brand text-card",
         blocked && "bg-blocked text-card",
         !done && !blocked && (current || status === "IN_PROGRESS")
-          ? "border-2 border-now bg-card shadow-[0_0_0_4px_rgba(0,163,108,0.18)]"
+          ? "border-2 border-now bg-card shadow-[0_0_0_4px_color-mix(in_srgb,var(--color-now)_20%,transparent)]"
           : !done && !blocked && "border-2 border-disabled bg-card",
         className,
       )}

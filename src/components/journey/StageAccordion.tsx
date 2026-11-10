@@ -47,7 +47,7 @@ export function StageAccordion({ stages, journey, readOnly, highlightOwner, open
 
   useEffect(() => {
     if (!openRequest) return;
-    requestAnimationFrame(() => document.getElementById(`stage-${openRequest.stage}-btn`)?.scrollIntoView?.({ block: "start", behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }));
+    requestAnimationFrame(() => document.getElementById(`stage-${openRequest.stage}-btn`)?.scrollIntoView?.({ block: "start", behavior: document.documentElement.getAttribute("data-motion") === "reduce" || (document.documentElement.getAttribute("data-motion") !== "full" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) ? "auto" : "smooth" }));
   }, [openRequest]);
 
   const toggle = (k: Stage) => !isLocked(k) && setOverrides((o) => ({ ...o, [k]: !(o[k] ?? k === current) }));

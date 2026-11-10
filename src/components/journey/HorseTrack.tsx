@@ -44,15 +44,25 @@ const currentNumber = (stages: TrackStage[], completed: boolean) => {
   return i === -1 ? stages.length : i + 1;
 };
 
+/** Follows the user's "Accessibility and display" setting (data-motion on <html>), falling back to the OS preference. */
 export function useReducedMotion(override?: boolean): boolean {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setReduced(mq.matches);
+    const root = document.documentElement;
+    const update = () => {
+      const pref = root.getAttribute("data-motion");
+      setReduced(pref === "reduce" ? true : pref === "full" ? false : mq.matches);
+    };
     update();
     mq.addEventListener?.("change", update);
-    return () => mq.removeEventListener?.("change", update);
+    const obs = typeof MutationObserver === "function" ? new MutationObserver(update) : null;
+    obs?.observe(root, { attributes: true, attributeFilter: ["data-motion"] });
+    return () => {
+      mq.removeEventListener?.("change", update);
+      obs?.disconnect();
+    };
   }, []);
   return override ?? reduced;
 }
@@ -202,7 +212,7 @@ export function HorseTrack(props: HorseTrackProps) {
       <p className="mt-1 text-sm text-muted">
         <span className="font-semibold text-ink">{stage?.label}</span> stage, step {stageNumber} of 5
       </p>
-      <p aria-hidden className="font-display tabular mt-2 text-[40px] font-extrabold leading-none tracking-[-0.02em] text-brand">
+      <p aria-hidden className="font-display tabular mt-2 text-[2.5rem] font-extrabold leading-none tracking-[-0.02em] text-brand">
         {percent}%
       </p>
       <div className="relative mt-4 h-10">
@@ -215,7 +225,7 @@ export function HorseTrack(props: HorseTrackProps) {
           className="pointer-events-none absolute top-0 flex size-10 items-center justify-center rounded-full border-2 border-brand bg-card shadow-marker motion-safe:transition-[left] motion-safe:duration-500"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={BRAND.horse.src} alt="" width={BRAND.horse.width} height={BRAND.horse.height} className="h-auto w-7" />
+          <img src={BRAND.horse.src} alt="" width={BRAND.horse.width} height={BRAND.horse.height} className="brand-mono h-auto w-7" />
         </span>
       </div>
       <p className="tabular mt-2 text-sm text-muted">

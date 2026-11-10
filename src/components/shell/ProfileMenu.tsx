@@ -4,7 +4,9 @@ import Link from "next/link";
 import { UserRound } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { useSession } from "@/lib/auth/client";
-import type { ShellNavItem } from "./nav";
+import { ACCESSIBILITY_ITEM, type ShellNavItem } from "./nav";
+
+const A11yIcon = ACCESSIBILITY_ITEM.Icon;
 
 /** Right-hand profile circle: opens the persona switch / sign out menu, plus any nav items that don't fit the bottom bar. */
 export function ProfileMenu({ more }: { more: ShellNavItem[] }) {
@@ -33,7 +35,7 @@ export function ProfileMenu({ more }: { more: ShellNavItem[] }) {
     };
   }, [open]);
 
-  const item = "flex min-h-11 w-full items-center gap-2 rounded-sm px-3 text-left text-[15px] font-semibold hover:bg-page";
+  const item = "flex min-h-11 w-full items-center gap-2 rounded-sm px-3 text-left text-[0.9375rem] font-semibold hover:bg-page";
 
   return (
     <div ref={root} className="relative">
@@ -44,7 +46,7 @@ export function ProfileMenu({ more }: { more: ShellNavItem[] }) {
         aria-controls={panelId}
         aria-label="Profile and account"
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex size-11 items-center justify-center rounded-full border-[1.5px] border-ink bg-card text-ink"
+        className="inline-flex size-11 items-center justify-center rounded-full border border-ink bg-card text-ink hover:bg-page"
       >
         <UserRound aria-hidden className="size-[22px]" strokeWidth={1.8} />
       </button>
@@ -56,18 +58,23 @@ export function ProfileMenu({ more }: { more: ShellNavItem[] }) {
               <p className="text-sm text-muted">{user.roles.join(", ")}</p>
             </div>
           )}
-          {more.length > 0 && (
-            <ul className="border-b border-line py-1">
-              {more.map(({ href, label, Icon }) => (
-                <li key={href}>
-                  <Link href={href} onClick={() => setOpen(false)} className={item}>
-                    <Icon aria-hidden className="size-5" strokeWidth={1.8} />
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
+          <ul className="border-b border-line py-1">
+            {/* Items that did not fit the phone bottom bar. From 768px the side navigation lists every item. */}
+            {more.map(({ href, label, Icon }) => (
+              <li key={href} className="md:hidden">
+                <Link href={href} onClick={() => setOpen(false)} className={item}>
+                  <Icon aria-hidden className="size-5" strokeWidth={1.8} />
+                  {label}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <Link href={ACCESSIBILITY_ITEM.href} onClick={() => setOpen(false)} className={item}>
+                <A11yIcon aria-hidden className="size-5" strokeWidth={1.8} />
+                {ACCESSIBILITY_ITEM.label}
+              </Link>
+            </li>
+          </ul>
           <button type="button" onClick={() => void signOut()} className={`${item} mt-1`}>
             {mode === "demo" ? "Switch persona" : "Sign out"}
           </button>
