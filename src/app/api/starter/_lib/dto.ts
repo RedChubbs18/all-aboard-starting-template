@@ -8,6 +8,7 @@ import type { FirstAdvantageSummary, JourneyDto, PersonDto, TaskDto, ViewerRelat
 import { canActOnTask, taskVisibleInScope, viewScope, type ViewScope } from "@/lib/auth/access";
 import { hasAnyRole, parseRoles, type SessionUser } from "@/lib/auth/roles";
 import { prisma } from "@/server/db";
+import { getWorkAccountStatus } from "@/server/identity-conversion";
 import { STAGES } from "@/domain/types";
 
 type UserRow = Awaited<ReturnType<typeof prisma.user.findMany>>[number];
@@ -109,6 +110,16 @@ export async function firstAdvantageSummary(journeyId: string): Promise<FirstAdv
   }
 }
 
+/** D39: only a converted account is shown to the starter (never an error or a simulation). */
+async function starterWorkAccount(journeyId: string): Promise<{ upn: string; emailSent: boolean } | null> {
+  try {
+    const w = await getWorkAccountStatus(journeyId);
+    return w.state === "converted" && w.upn ? { upn: w.upn, emailSent: w.emailSent === true } : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function buildJourneyDto(j: JourneyState, user: SessionUser): Promise<JourneyDto> {
   const ids = [j.starterId, j.lmId, ...(j.buddyId ? [j.buddyId] : [])];
   const people = await prisma.user.findMany({ where: { id: { in: ids } } });
@@ -140,5 +151,6 @@ export async function buildJourneyDto(j: JourneyState, user: SessionUser): Promi
     overall: tallyStages(j.tasks),
     vettingFailed: vettingBlocked,
     pnpPhone: PNP_PHONE,
+    workAccount: j.starterId === user.id ? await starterWorkAccount(j.id) : null,
   };
 }

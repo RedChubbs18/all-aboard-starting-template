@@ -113,7 +113,7 @@ export const SYSTEM_RULES: SystemRule[] = [
   {
     taskKey: "guest-invite-sent",
     label: "Guest invite",
-    satisfied: async (j) => ["invited", "guest_active", "internal_created"].includes((await (await getAdapter("identity")).getStatus(j)).status),
+    satisfied: async (j) => ["invited", "guest_active", "internal_created", "converted"].includes((await (await getAdapter("identity")).getStatus(j)).status),
   },
   {
     // A "cleared" result can arrive while the vetting task is still locked (it is no longer forced); it completes on unlock.
@@ -131,13 +131,13 @@ export const SYSTEM_RULES: SystemRule[] = [
   {
     taskKey: "internal-account-created",
     label: "Internal account",
-    satisfied: async (j) => (await (await getAdapter("identity")).getStatus(j)).status === "internal_created",
+    satisfied: async (j) => ["internal_created", "converted"].includes((await (await getAdapter("identity")).getStatus(j)).status),
   },
   {
     // Eptura Engage has no adapter: access is provisioned with the internal account, so the same state completes it.
     taskKey: "eptura-engage-access",
     label: "Eptura Engage access",
-    satisfied: async (j) => (await (await getAdapter("identity")).getStatus(j)).status === "internal_created",
+    satisfied: async (j) => ["internal_created", "converted"].includes((await (await getAdapter("identity")).getStatus(j)).status),
   },
   {
     // An LM can propose Day 0 before the task unlocks; the proposal exists, so the task completes once it is open.

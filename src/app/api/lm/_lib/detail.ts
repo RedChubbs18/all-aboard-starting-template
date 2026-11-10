@@ -5,6 +5,7 @@ import { PHOTO_OVERRIDE_TASK_KEY, canActOnTask } from "@/lib/auth/access";
 import type { SessionUser } from "@/lib/auth/roles";
 import { chatLink } from "@/lib/teams";
 import { prisma } from "@/server/db";
+import { getWorkAccountStatus } from "@/server/identity-conversion";
 import { computeProgress, loadJourney } from "@/server/journey-service";
 import type { FirstAdvantageState, Person, StarterDetail, StarterSummary, TaskDto } from "@/components/lm/types";
 import { HttpError } from "./guard";
@@ -169,6 +170,7 @@ export async function buildDetail(journeyId: string, user: SessionUser, now = ne
     photoReview,
     checkIns: checkIns.map((c) => ({ id: c.id, cadence: c.cadence, scheduledAt: iso(c.scheduledAt), meetingLink: c.meetingLink })),
     goals: goals.map((g) => ({ id: g.id, horizon: g.horizon as StarterDetail["goals"][number]["horizon"], text: g.text, done: g.done })),
+    workAccount: await getWorkAccountStatus(journeyId),
     day0: day0 ? { where: day0.where, whenAt: iso(day0.whenAt), who: day0.who, confirmedAt: day0.confirmedAt ? iso(day0.confirmedAt) : null } : null,
   };
 }

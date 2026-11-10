@@ -5,6 +5,7 @@
  */
 import type { Prisma, PrismaClient } from "@prisma/client";
 import { prisma as defaultPrisma } from "./db";
+import { enqueueConversion } from "./conversion-hook";
 import {
   addBespokeTask as engAddBespoke,
   applyIntegrationStatus as engApplyIntegration,
@@ -190,6 +191,8 @@ export async function persistEngineResult(tx: Db, before: JourneyState | null, r
   }
   const events = [...result.events, ...extraEvents];
   if (events.length) await tx.event.createMany({ data: events.map(eventData) });
+  // D39: reaching UNCONDITIONAL_OFFER converts the guest account (async, never blocks or throws).
+  if (events.some((e) => e.type === "STAGE_CHANGED" && e.to === "UNCONDITIONAL_OFFER")) enqueueConversion(j.id);
   if (before) await replayDeferredVettingSignal(tx, before, result.journey);
 }
 

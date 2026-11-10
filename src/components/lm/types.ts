@@ -105,6 +105,17 @@ export interface StarterDetail {
   checkIns: CheckInDto[];
   goals: GoalDto[];
   day0: Day0Dto | null;
+  /** D39: guest-to-member conversion status. */
+  workAccount: WorkAccountDto;
+}
+
+/** D39: mirrors WorkAccountStatus in src/server/identity-conversion.ts (no secrets, no personal email). */
+export interface WorkAccountDto {
+  state: "none" | "pending" | "simulated" | "converted" | "failed";
+  upn: string | null;
+  at: string | null;
+  emailSent: boolean | null;
+  error: string | null;
 }
 
 export interface ApiErrorBody {

@@ -75,6 +75,8 @@ export interface JourneyDto {
   vettingFailed?: boolean;
   /** F7: P&P phone placeholder. */
   pnpPhone?: string;
+  /** D39: set for the starter once their guest account has become a work account. */
+  workAccount?: { upn: string; emailSent: boolean } | null;
 }
 
 export interface StageTally {

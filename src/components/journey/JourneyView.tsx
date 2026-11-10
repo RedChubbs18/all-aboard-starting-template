@@ -106,6 +106,11 @@ export function JourneyView({ data, onComplete, pendingId, lastCompletedTitle, r
 
   return (
     <div className="space-y-4">
+      {viewerIsStarter && journey.workAccount && (
+        <Alert tone="success" title="Your work account is ready">
+          Sign in with <strong>{journey.workAccount.upn}</strong>. {journey.workAccount.emailSent ? "We've emailed your temporary password to your personal email." : "We couldn't email your temporary password, so please contact People & Places."} You&apos;ll be asked to change it and set up the Microsoft Authenticator app. Your current guest sign-in may stop working; choose your work account when asked.
+        </Alert>
+      )}
       {/* D26: until the offer is unconditional the colleague uses a personal account as a B2B guest. */}
       {viewerIsStarter && journey.status === "active" && (journey.currentStage === "CONDITIONAL_OFFER" || journey.currentStage === "PEV") && (
         <p className="flex items-center gap-2 text-sm text-muted">

@@ -9,6 +9,7 @@ import { BespokeTaskSheet, BuddyPanel, TeamItemSheet, CheckInPanel, Day0Panel, G
 import { TaskRow, TeamChecklist, type PanelProps } from "./tasks";
 import { LINK_TASK_KEYS } from "./schemas";
 import { StarterSwitcher } from "./StarterSwitcher";
+import { WorkAccountNote } from "./WorkAccountNote";
 import type { StarterDetail } from "./types";
 import { Alert, Button, Card, ExternalLink, Icon, ProgressBar, RedFlagBadge, Skeleton, STAGE_HINT, STAGE_LABEL, formatDate } from "./ui";
 
@@ -162,6 +163,11 @@ function StarterDetailBody({ journeyId }: { journeyId: string }) {
         <div className="lg:col-span-3">
           <Header d={d} onAdd={() => setSheet(true)} />
         </div>
+        {d.workAccount.state !== "none" && (
+          <div className="lg:col-span-3">
+            <WorkAccountNote journeyId={journeyId} workAccount={d.workAccount} onChanged={reload} />
+          </div>
+        )}
         {d.journey.redFlag && (
           <div className="lg:col-span-3">
             <Alert tone="danger" title={d.journey.firstadvantage === "FAILED" ? "First Advantage vetting has failed" : "First Advantage vetting needs action"} role="alert">
