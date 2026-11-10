@@ -144,7 +144,7 @@ export function TaskDetailView({ data, onChanged, onComplete, completing }: Prop
       )}
 
       {showGeneric && (
-        <div className="sticky bottom-[88px]">
+        <div className="sticky bottom-[88px] md:bottom-4">
           <Button size="lg" className="w-full" loading={completing} onClick={() => void onComplete()}>
             <CheckCircle2 aria-hidden className="size-5" />
             {detail.kind === "collect" ? "Mark as collected" : "Mark complete"}
