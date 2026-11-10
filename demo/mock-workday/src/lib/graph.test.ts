@@ -59,3 +59,15 @@ describe("runInvite", () => {
     expect((await runInvite({ ...base, fetch: fnet as unknown as typeof fetch, getToken: async () => "t", approved: true })).status).toBe("failed");
   });
 });
+
+describe("graphErrorDetail", () => {
+  it("returns Graph's code and message with emails redacted", async () => {
+    const { graphErrorDetail } = await import("./graph");
+    const res = { json: async () => ({ error: { code: "BadRequest", message: "The invited user jo@gmail.com already exists" } }) };
+    expect(await graphErrorDetail(res)).toBe(" (BadRequest: The invited user [email] already exists)");
+  });
+  it("returns an empty string when the body is not JSON", async () => {
+    const { graphErrorDetail } = await import("./graph");
+    expect(await graphErrorDetail({ json: async () => { throw new Error("no"); } })).toBe("");
+  });
+});

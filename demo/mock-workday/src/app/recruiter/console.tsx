@@ -333,7 +333,12 @@ function CreateOffer({
   const [teamKey, setTeamKey] = useState("");
   const [lmKey, setLmKey] = useState("");
   const [jobFamily, setJobFamily] = useState<JobFamily>("ENGINEERING");
-  const [startDate, setStartDate] = useState(() => randomMonday());
+  // Random date chosen after mount: computing it during render made the server and client HTML differ (hydration error).
+  const [startDate, setStartDate] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setStartDate((d) => d || randomMonday()), 0);
+    return () => clearTimeout(t);
+  }, []);
   const [conds, setConds] = useState<Set<string>>(new Set(DEFAULT_CONDITIONS));
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);

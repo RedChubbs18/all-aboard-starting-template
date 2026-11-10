@@ -58,6 +58,22 @@ export interface InviteInput {
   sleep?: (ms: number) => Promise<void>;
 }
 
+/**
+ * Graph's own error code and message (e.g. "BadRequest: The invited user already exists"), so the recruiter
+ * can see why an invite was refused. Email addresses are redacted (the store must not hold personal email).
+ */
+export async function graphErrorDetail(res: { json(): Promise<unknown> }): Promise<string> {
+  try {
+    const j = (await res.json()) as { error?: { code?: unknown; message?: unknown } };
+    const code = typeof j.error?.code === "string" ? j.error.code : "";
+    const msg = typeof j.error?.message === "string" ? j.error.message : "";
+    const text = `${code}${code && msg ? ": " : ""}${msg}`.replace(/[^\s@]+@[^\s@]+/g, "[email]").slice(0, 300);
+    return text ? ` (${text})` : "";
+  } catch {
+    return "";
+  }
+}
+
 /** Never throws. Not approved: no token request and no Graph call, returns the simulated email preview. */
 export async function runInvite(i: InviteInput): Promise<InviteOutcome> {
   const body = buildInvitationBody({ email: i.email, firstName: i.firstName, lastName: i.lastName, redirectUrl: i.redirectUrl });
@@ -77,7 +93,7 @@ export async function runInvite(i: InviteInput): Promise<InviteOutcome> {
       });
       if (res.status === 401 || res.status === 403) return { status: "failed", error: "Not permitted to invite guests (the User.Invite.All application permission or its admin consent is missing)." };
       if ([429, 503, 504].includes(res.status) && n < attempts - 1) continue;
-      if (!res.ok) return { status: "failed", error: `Microsoft Graph returned ${res.status}.` };
+      if (!res.ok) return { status: "failed", error: `Microsoft Graph returned ${res.status}${await graphErrorDetail(res)}.` };
       const j = (await res.json()) as { invitedUser?: { id?: string }; inviteRedeemUrl?: string };
       const id = j.invitedUser?.id;
       return id ? { status: "invited", guestObjectId: id, inviteRedeemUrl: typeof j.inviteRedeemUrl === "string" ? j.inviteRedeemUrl : undefined } : { status: "failed", error: "Graph response had no guest id." };
