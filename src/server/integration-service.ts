@@ -101,6 +101,8 @@ interface SystemRule {
   label: string;
   /** True when the external system already holds the state that completes the task. */
   satisfied(journeyId: string): Promise<boolean>;
+  /** D38: completed by the system (no actor) with this audit event and reason, instead of the caller's actor. */
+  autoEvent?: { type: string; reason: string };
 }
 
 /**
@@ -118,6 +120,13 @@ export const SYSTEM_RULES: SystemRule[] = [
     taskKey: "firstadvantage-vetting-status",
     label: "First Advantage vetting",
     satisfied: async (j) => (await (await getAdapter("firstadvantage")).getVettingStatus(j)).status === "cleared",
+  },
+  {
+    // D38: a cleared vetting result is the offer condition; P&P no longer ticks it by hand. Waits while the task is locked.
+    taskKey: "offer-conditions-met",
+    label: "Offer conditions",
+    satisfied: async (j) => (await (await getAdapter("firstadvantage")).getVettingStatus(j)).status === "cleared",
+    autoEvent: { type: "OFFER_CONDITIONS_AUTO_MET", reason: "Vetting cleared" },
   },
   {
     taskKey: "internal-account-created",
@@ -185,7 +194,13 @@ export async function reconcileSystemTasks(journeyId: string, ctx: ActorCtx = {}
         if (!(e instanceof Error && e.name === "AdapterNotConfiguredError")) throw e;
       }
       if (!ok) continue;
-      await js.completeTask(journeyId, task.key, { actorId: ctx.actorId ?? null, now: ctx.now });
+      await js.completeTask(journeyId, task.key, { actorId: rule.autoEvent ? null : ctx.actorId ?? null, now: ctx.now });
+      if (rule.autoEvent) {
+        await js.recordEvent({
+          journeyId, actorId: null, type: rule.autoEvent.type, entity: "Task", entityId: task.id,
+          to: "DONE", data: { key: task.key, actor: "SYSTEM", reason: rule.autoEvent.reason }, createdAt: ctx.now ?? new Date(),
+        });
+      }
       changes.push(`${rule.label} task completed`);
       progressed = true;
       break; // reload: completing a task unlocks others
@@ -234,7 +249,7 @@ const STATE_ONLY: ReadonlySet<AdapterKey> = new Set(["identity", "sailpoint", "w
 const STARTER_COPY: Partial<Record<string, { subject: string; body: string; kind: NotificationInput["kind"] }>> = {
   "identity:internal_created": { kind: "UPDATE", subject: "Your internal account is ready", body: "Your LBG account has been created with the pre-start access policy." },
   "sailpoint:file_id_created": { kind: "UPDATE", subject: "Your Colleague File ID is ready", body: "You can now raise your IT requests." },
-  "firstadvantage:cleared": { kind: "UPDATE", subject: "Your vetting is cleared", body: "First Advantage has cleared your vetting. People & Places will confirm your offer conditions." },
+  "firstadvantage:cleared": { kind: "UPDATE", subject: "Your vetting is cleared", body: "First Advantage has cleared your vetting. Your offer becomes unconditional once your other pre-start steps are done." },
 };
 
 /**
@@ -553,7 +568,7 @@ export async function runDemoStep(step: DemoStep, ctx: ActorCtx = {}, journeyId?
     case "firstadvantage_cleared": {
       const pre = await ensureGuestSignedIn(id, ctx);
       const r = await simulate("firstadvantage", id, "cleared", undefined, ctx);
-      return done("First Advantage cleared. The vetting task is complete; the stage moves on once P&P confirm the other offer conditions.", [...pre, ...r.changes]);
+      return done("First Advantage cleared. The vetting task is complete; offer conditions are marked met automatically (D38) and the stage moves on once the starter's PEV steps are done.", [...pre, ...r.changes]);
     }
     case "offer_conditions_met": {
       const pre = await ensureGuestSignedIn(id, ctx);
@@ -561,7 +576,7 @@ export async function runDemoStep(step: DemoStep, ctx: ActorCtx = {}, journeyId?
       const j = await loadOrThrow(id);
       const t = j.tasks.find((x) => x.key === "offer-conditions-met" && x.applicable);
       if (!t) return done("No offer-conditions task in these templates; nothing to do.", []);
-      if (TERMINAL.has(t.status)) return done("Offer conditions were already met.", []);
+      if (TERMINAL.has(t.status)) return done("Offer conditions were already met.", pre);
       if (!OPEN.has(t.status)) return done(`Offer conditions are still locked (the journey is at ${j.currentStage}).`, pre);
       const after = await js.completeTask(id, t.key, { actorId: ctx.actorId ?? null, now: ctx.now });
       const reconciled = await reconcileSystemTasks(id, ctx);

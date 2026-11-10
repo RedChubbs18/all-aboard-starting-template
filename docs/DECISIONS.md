@@ -39,8 +39,8 @@
 | D36 | MI focus | MI focuses on what this app's data shows for People & Places: LM accountability (overdue or unactioned LM tasks by LM and team), onboarding attrition (exits by stage, reason and timing), bottlenecks and time-in-stage, vetting delays and early-warning flags. | 2026-11-10 |
 | D37 | Tenant lifetime | The tenant is deleted automatically after the hackathon. Only the fork survives; no tenant clean-up is needed. | 2026-11-10 |
 | D7 | Horse graphics | Original placeholder SVGs until the team supplies official assets. | 2026-11-09 |
+| D38 | Auto-tick offer conditions | Team decision, amends D10. When First Advantage vetting becomes `cleared`, the system completes the P&P task `offer-conditions-met` (if open and applicable) with an `OFFER_CONDITIONS_AUTO_MET` audit event (actor SYSTEM, reason "Vetting cleared"). If the task is still locked when `cleared` arrives, system-task reconcile does it once it unlocks. Unconditional offer therefore opens once vetting is cleared and the starter's PEV gating steps are done. The demo step "P&P: offer conditions met" remains and is a no-op when already met. `meet-your-team`, `say-hello-on-teams` and `buddy-say-hello` moved from Conditional offer to Unconditional offer (non-gating). | 2026-11-10 |
 
 ## Still open
 
 - Official logo and horse artwork files (placeholders are in use).
-

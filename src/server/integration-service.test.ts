@@ -51,15 +51,39 @@ describe("simulate: First Advantage (firstadvantage adapter)", () => {
     expect(types).toEqual(expect.arrayContaining(["INTEGRATION_STATUS", "JOURNEY_FLAGGED", "REMINDER_SENT"]));
   });
 
-  it("cleared completes the vetting task and unflags, but does not force the stage (D10)", async () => {
+  it("cleared completes the vetting task, auto-meets the offer conditions (D38) and advances the stage", async () => {
     await toPev(ALEX);
     await simulate("firstadvantage", ALEX, "action_needed");
     await simulate("firstadvantage", ALEX, "cleared");
     expect((await task(ALEX, "firstadvantage-vetting-status"))!.status).toBe("DONE");
+    expect((await task(ALEX, "offer-conditions-met"))!.status).toBe("DONE");
     const j = (await js.loadJourney(ALEX))!;
     expect(j.flagged).toBe(false);
-    expect(j.currentStage).not.toBe("UNCONDITIONAL_OFFER");
+    expect(j.currentStage).toBe("UNCONDITIONAL_OFFER");
+    const ev = (await js.listEvents(ALEX)).find((e) => e.type === "OFFER_CONDITIONS_AUTO_MET");
+    expect(ev).toBeTruthy();
+    expect(ev!.actorId).toBeNull();
+    expect(ev!.data).toMatchObject({ key: "offer-conditions-met", actor: "SYSTEM", reason: "Vetting cleared" });
+  });
+
+  it("cleared arriving while still in Conditional offer is caught up by reconcile once the vetting task unlocks", async () => {
+    await simulate("firstadvantage", ALEX, "cleared");
     expect((await task(ALEX, "offer-conditions-met"))!.status).not.toBe("DONE");
+    for (const key of ["guest-sign-in", "device-choice-submitted"]) await js.completeTask(ALEX, key, { actorId: "test" });
+    await (await import("./integration-service")).reconcileSystemTasks(ALEX);
+    expect((await task(ALEX, "firstadvantage-vetting-status"))!.status).toBe("DONE");
+    expect((await task(ALEX, "offer-conditions-met"))!.status).toBe("DONE");
+    expect((await js.loadJourney(ALEX))!.currentStage).toBe("UNCONDITIONAL_OFFER");
+    expect((await js.listEvents(ALEX)).filter((e) => e.type === "OFFER_CONDITIONS_AUTO_MET")).toHaveLength(1);
+  });
+
+  it("meet-your-team and the hello tasks are non-gating Unconditional offer tasks", async () => {
+    await toPev(ALEX);
+    for (const key of ["meet-your-team", "say-hello-on-teams"]) {
+      const t = (await task(ALEX, key))!;
+      expect(t.stage).toBe("UNCONDITIONAL_OFFER");
+      expect(t.gating).toBe(false);
+    }
   });
 
   it("offer_conditions_met completes the guest sign-in prerequisite (with an event) and then advances the stage", async () => {
@@ -78,9 +102,10 @@ describe("simulate: First Advantage (firstadvantage adapter)", () => {
     expect(flagged.changes.join(" ")).toMatch(/flagged/);
     await runDemoStep("firstadvantage_cleared", {}, ALEX);
     expect((await js.loadJourney(ALEX))!.flagged).toBe(false);
-    expect((await js.loadJourney(ALEX))!.currentStage).toBe("PEV");
+    // D38: cleared auto-meets the offer conditions, so the stage has already advanced; the demo step is a no-op.
+    expect((await js.loadJourney(ALEX))!.currentStage).toBe("UNCONDITIONAL_OFFER");
     const oc = await runDemoStep("offer_conditions_met", {}, ALEX);
-    expect(oc.changes.join(" ")).toMatch(/Stage moved from PEV to UNCONDITIONAL_OFFER/);
+    expect(oc.message).toMatch(/already met/);
     const sys = await runDemoStep("system_tasks", {}, ALEX);
     expect(sys.message).toMatch(/IT request task/);
     await runDemoStep("jump_day0", {}, ALEX);
