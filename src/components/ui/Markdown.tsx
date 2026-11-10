@@ -1,6 +1,6 @@
 import { ImageIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { parseMarkdown, safeHref, type Block, type Inline } from "@/lib/markdown";
+import { isSameOriginImage, parseMarkdown, safeHref, type Block, type Inline } from "@/lib/markdown";
 
 type Vars = Record<string, ReactNode>;
 
@@ -46,7 +46,13 @@ function Inlines({ nodes, vars }: { nodes: Inline[]; vars: Vars }) {
             );
           }
           case "image": {
-            // Images from content are external placeholders; show alt text and a link, never auto-load third-party URLs.
+            // Same-origin images (/media/, /brand/) render inline. Anything else stays a placeholder with a link, never auto-loading third-party URLs.
+            if (isSameOriginImage(n.src)) {
+              return (
+                // eslint-disable-next-line @next/next/no-img-element -- bundled static SVG, no optimisation needed
+                <img key={i} src={n.src.trim()} alt={n.alt || "illustration"} loading="lazy" className="my-3 block h-auto w-full max-w-2xl rounded-md border border-line bg-page" />
+              );
+            }
             const href = safeHref(n.src);
             return (
               <span key={i} className="my-2 flex items-center gap-2 rounded-md border border-dashed border-line bg-page p-3 text-muted">

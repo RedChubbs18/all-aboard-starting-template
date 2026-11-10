@@ -1,10 +1,12 @@
 # Demo runbook: accounts and order
 
+**Short pitch version:** the tight six-minute, four-segment demo is in [DEMO-SCRIPT.md](DEMO-SCRIPT.md) (run `npm run demo:prepare` first). This runbook is the longer, 15 to 18 minute walkthrough.
+
 All MyJourney accounts are `team05-<name>@<tenant domain>`, with the passwords from the import CSVs (or whatever they were changed to at first sign-in). Run everything on the **demo laptop**: MyJourney at `http://localhost:3000`, mock Workday at `http://localhost:3001`.
 
 ## Before the session (15 minutes)
 
-1. **Reset data.** In mock Workday, use **Reset demo data** in the recruiter console, or run `npm run reset` in `demo/mock-workday`. In MyJourney, run `npm run db:seed` while the app is running (it keeps the persona mapping).
+1. **Reset data.** In mock Workday, use **Reset demo data** in the recruiter console, or run `npm run reset` in `demo/mock-workday`. In MyJourney, run `npm run db:seed` while the app is running (it keeps the persona mapping). For the short pitch demo, `npm run demo:prepare` does both (and stages Alex at Day 0).
 2. **Use a fresh Gmail for the live candidate.** Don't reuse the rehearsal address. Once a guest has been converted to a member, that address can't be invited as a guest again.
 3. **One browser profile (or private window) per persona.** Sign each one in now, so MFA prompts are already done: Dana, Kai, Imogen, Ada and Alex.
 4. **Smoke-test the AI:** `npx tsx --conditions=react-server --env-file=.env scripts/try-ai.mts "How much holiday do I get?"`

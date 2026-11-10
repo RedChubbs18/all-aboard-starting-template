@@ -35,6 +35,9 @@ const CONDITION_OPTIONS = [
   "Right to work in the UK",
   "Satisfactory completion of a health declaration",
 ];
+/** "Fill demo offer" targets (Team 05 pitch): the team and line manager the demo journey lands with. */
+const DEMO_TEAM_NAME = "Digital Workplace Engineering";
+const DEMO_LM_NAME = "Dana Sample";
 const DEFAULT_CONDITIONS = new Set(CONDITION_OPTIONS.slice(0, 2));
 
 const STATUS_STYLE: Record<OfferRow["status"], string> = {
@@ -367,7 +370,26 @@ function CreateOffer({
         setBusy(false);
       }}
     >
-      <h2 className="text-lg font-semibold">Create conditional offer</h2>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-lg font-semibold">Create conditional offer</h2>
+        <button
+          type="button"
+          onClick={() => {
+            const t = directory?.teams.find((x) => x.name === DEMO_TEAM_NAME);
+            if (t) {
+              setTeamKey(t.key);
+              setLmKey(t.lineManagers.find((m) => m.name === DEMO_LM_NAME)?.key ?? "");
+            }
+            setJobTitle("Software Engineer");
+            setJobFamily("ENGINEERING");
+            setStartDate((d) => d || randomMonday());
+            setConds(new Set(DEFAULT_CONDITIONS));
+          }}
+          className="rounded border border-blue-300 bg-white px-3 py-1 text-sm font-medium text-blue-900 hover:bg-blue-50"
+        >
+          Fill demo offer
+        </button>
+      </div>
       {dirError && (
         <p role="alert" className="mt-2 text-red-800">
           {dirError}

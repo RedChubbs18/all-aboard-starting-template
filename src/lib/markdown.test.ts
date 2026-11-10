@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyVars, extractSteps, findLabelledUrl, formatDays, parseMarkdown, safeHref } from "./markdown";
+import { applyVars, extractSteps, findLabelledUrl, formatDays, isSameOriginImage, parseMarkdown, safeHref } from "./markdown";
 
 describe("anchor-days substitution", () => {
   it("formats days from the Workday adapter in plain English", () => {
@@ -46,5 +46,16 @@ describe("safe markdown", () => {
   });
   it("finds a labelled video url", () => {
     expect(findLabelledUrl("**Video URL:** `https://example.test/v.mp4`\nmore", "Video URL")).toBe("https://example.test/v.mp4");
+  });
+});
+
+describe("same-origin images", () => {
+  it("allows only bundled /media/ and /brand/ files", () => {
+    expect(isSameOriginImage("/media/example-house-floor-3.svg")).toBe(true);
+    expect(isSameOriginImage("/brand/horse.svg")).toBe(true);
+    for (const bad of [
+      "https://example.test/images/a.png", "//evil.test/a.png", "/\\evil.test/a.png", "/media/../secret.png", "/media/a.png?x=1",
+      "/other/a.png", "javascript:alert(1)", "data:image/svg+xml,<svg/>", "media/a.png", "/media/",
+    ]) expect(isSameOriginImage(bad), bad).toBe(false);
   });
 });

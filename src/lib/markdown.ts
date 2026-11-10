@@ -35,6 +35,17 @@ export function safeHref(raw: string): string | null {
   return null;
 }
 
+/**
+ * Images that may be loaded inline: bundled, same-origin files under /media/ or /brand/ only (no query, no "..",
+ * no scheme, no protocol-relative or backslash tricks). Every other image stays a link, so content can never make the
+ * browser fetch a third-party URL.
+ */
+export function isSameOriginImage(raw: string): boolean {
+  const u = raw.trim();
+  if (!/^\/(media|brand)\/[A-Za-z0-9._\-/]+$/.test(u)) return false;
+  return !u.split("/").some((seg) => seg === ".." || seg === ".");
+}
+
 const INLINE_RE =
   /(`[^`]+`)|(!\[[^\]]*\]\([^)\s]+\))|(\[[^\]]+\]\([^)\s]+\))|(\*\*[^*]+\*\*)|(\*[^*\s][^*]*\*)|(\{\{\s*[A-Za-z][\w]*\s*\}\})|(https?:\/\/[^\s)<>]+)/g;
 

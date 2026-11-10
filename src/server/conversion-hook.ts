@@ -8,6 +8,8 @@ const DELAY_MS = 750; // lets the advancing transaction commit before the job re
 export function enqueueConversion(journeyId: string): void {
   // Tests opt in explicitly; otherwise stray timers would touch the database after a test file finishes.
   if (process.env.VITEST && !process.env.CONVERSION_ENQUEUE_IN_TESTS) return;
+  // Demo staging (npm run demo:prepare) writes with its own member test accounts and must never start a conversion.
+  if (process.env.CONVERSION_ENQUEUE_DISABLED === "1") return;
   try {
     const t = setTimeout(() => {
       void import("./identity-conversion")

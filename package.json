@@ -14,6 +14,7 @@
     "db:push": "prisma db push --skip-generate",
     "db:seed": "tsx --conditions=react-server prisma/seed.ts",
     "db:reset": "rm -f prisma/dev.db prisma/dev.db-journal && npm run db:push && npm run db:seed",
+    "demo:prepare": "tsx --conditions=react-server --env-file=.env scripts/demo-prepare.mts",
     "dev:lan": "next dev -H 0.0.0.0",
     "dev:lan:https": "next dev -H 0.0.0.0 --experimental-https"
   },

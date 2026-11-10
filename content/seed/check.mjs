@@ -4,7 +4,7 @@
 // dependency rules from docs/PLAN.md, FR coverage from docs/REQUIREMENTS.md §5,
 // demo-scenario coverage, and a safety scan (example.test only, no GUIDs).
 
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -370,6 +370,14 @@ for (const m of allText.matchAll(/https?:\/\/[^\s"'`)\]\\]+/g)) {
   if (host !== 'example.test' && !host.endsWith('.example.test')) fail(`safety: URL must be on example.test, found '${m[0]}'`);
 }
 if (/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/.test(allText)) fail('safety: GUID-like value found');
+// Images may also be same-origin bundled files (/media/ or /brand/); anything else must be an example.test link.
+for (const m of allText.matchAll(/!\[[^\]]*\]\(([^)\s]+)\)/g)) {
+  const src = m[1];
+  if (src.startsWith('/')) {
+    if (!/^\/(media|brand)\/[A-Za-z0-9._\-\/]+$/.test(src) || src.includes('..')) fail(`safety: same-origin image must be under /media/ or /brand/, found '${src}'`);
+    else if (!existsSync(join(dir, '..', '..', 'public', src))) fail(`image '${src}' does not exist in public/`);
+  }
+}
 const tokens = [...new Set(allText.match(/\{\{[A-Za-z]+\}\}/g) ?? [])];
 notes.push(`placeholder tokens: ${tokens.join(', ') || 'none'}`);
 
