@@ -106,7 +106,7 @@ const lookupOffer = async (offerId: string) => {
 };
 
 const OFFER_ROW = "workday-offer";
-const GUEST_HAS_JOURNEY = "This guest already has a journey; run npm run db:reset or use a different email";
+const GUEST_HAS_JOURNEY = "This guest already has a journey; run npm run db:seed or use a different email";
 
 /** Writes the per-offer idempotency record, ignoring a concurrent delivery that already wrote it. */
 async function writeIdempotency(offerId: string, ids: { journeyId: string; starterId: string }, status: string) {

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { useAuth } from "@/lib/msal";
+import { isLocalUrl } from "@/lib/publicUrl";
 import { runInvite } from "@/lib/graph";
 import type { Directory } from "@/lib/webhook";
 import { JOB_FAMILIES, JOB_FAMILY_LABELS, type JobFamily } from "@/lib/jobFamily";
@@ -251,7 +252,7 @@ export default function Console() {
               setCreated(null);
               setPreviews({});
               setRedeem({});
-              say("Demo data reset. To remove the created journey from MyJourney, run `npm run db:reset` in MyJourney.");
+              say("Demo data reset. To remove the created journey from MyJourney, run `npm run db:seed` in MyJourney (it works while the dev server is running).");
               setResetNote(true);
             }}
             className="rounded border border-red-300 bg-white px-3 py-1 text-red-900 hover:bg-red-50"
@@ -264,9 +265,15 @@ export default function Console() {
         </div>
       </div>
 
+      {approved() && isLocalUrl(publicUrl()) && (
+        <p role="alert" className="rounded border border-amber-400 bg-amber-50 p-3 text-sm text-amber-950">
+          Real invites are on, but the public MyJourney URL is {publicUrl()}. Candidates on another device can&apos;t open localhost; set NEXT_PUBLIC_MYJOURNEY_PUBLIC_URL to a tunnel URL.
+        </p>
+      )}
+
       {resetNote && (
         <p role="status" className="rounded border border-amber-400 bg-amber-50 p-3 text-sm text-amber-950">
-          Mock HR data cleared. MyJourney keeps the journey it created: run <code className="font-mono">npm run db:reset</code> in MyJourney to remove it before the next rehearsal.
+          Mock HR data cleared. MyJourney keeps the journey it created: run <code className="font-mono">npm run db:seed</code> in MyJourney to remove it (safe while the dev server runs) before the next rehearsal.
         </p>
       )}
 

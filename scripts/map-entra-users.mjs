@@ -7,7 +7,7 @@
  * Export the users from Entra admin centre → Users → Download users (CSV). Rows whose
  * userPrincipalName starts with "team05-<persona-key>@" are matched to the persona with
  * that key in content/seed/people.json. The script writes prisma/seed.local.json, which is
- * git-ignored and must never be committed. Then run `npm run db:reset` to apply it.
+ * git-ignored and must never be committed. Then run `npm run db:seed` to apply it.
  * It prints only persona keys and match counts, never IDs.
  */
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -76,4 +76,4 @@ for (const r of rows.slice(headerIndex + 1)) {
 
 writeFileSync(localPath, JSON.stringify(local, null, 2) + "\n", { mode: 0o600 });
 console.log(`Mapped ${matched.length} persona(s): ${matched.sort().join(", ") || "none"}`);
-console.log("Wrote prisma/seed.local.json (git-ignored). Now run: npm run db:reset");
+console.log("Wrote prisma/seed.local.json (git-ignored). Now run: npm run db:seed");

@@ -192,7 +192,7 @@ describe("idempotency across retries and rehearsals", () => {
     expect(res.status).toBe(409);
     const body = await res.json();
     expect(body.error).toBe("starter_has_journey");
-    expect(body.message).toBe("This guest already has a journey; run npm run db:reset or use a different email");
+    expect(body.message).toBe("This guest already has a journey; run npm run db:seed or use a different email");
     expect(await prisma.integrationState.findUnique({ where: { journeyId_adapterKey: { journeyId: idemKey("wd-offer-rehearsal"), adapterKey: "workday" } } })).toBeNull();
   });
 });

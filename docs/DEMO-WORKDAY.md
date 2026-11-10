@@ -19,7 +19,7 @@ The product is now called **MyJourney** (D23).
 2. **Candidate** opens the link (no sign-in), enters first name, last name and personal email, reviews the plain-language conditional offer, ticks "I accept the conditions" and clicks **Accept offer**.
 3. **Mock Workday server** marks the offer `accepted_pending_invite`.
 4. **Recruiter console** (left open and signed in) polls every ~3s, and for each accepted offer, from the recruiter's browser with a delegated `User.Invite.All` token:
-   - `POST https://graph.microsoft.com/v1.0/invitations` with `invitedUserEmailAddress` = candidate personal email, `invitedUserDisplayName` = `team05-<first>-<last>`, `inviteRedirectUrl` = `MYJOURNEY_PUBLIC_URL`, `sendInvitationMessage: true`, `invitedUserMessageInfo.customizedMessageBody` = MyJourney access instructions (accept the invitation → sign in with this email → open MyJourney at `MYJOURNEY_PUBLIC_URL`). Only when `NEXT_PUBLIC_GRAPH_INVITE_EXTERNAL_APPROVED=yes`. Otherwise **simulate** it: no Graph call, `inviteStatus: "simulated"`, and the console shows the email that would have been sent.
+   - `POST https://graph.microsoft.com/v1.0/invitations` with `invitedUserEmailAddress` = candidate personal email, `invitedUserDisplayName` = `team05-<first>-<last>`, `inviteRedirectUrl` = `NEXT_PUBLIC_MYJOURNEY_PUBLIC_URL`, `sendInvitationMessage: true`, `invitedUserMessageInfo.customizedMessageBody` = MyJourney access instructions (accept the invitation → sign in with this email → open MyJourney at `NEXT_PUBLIC_MYJOURNEY_PUBLIC_URL`). Only when `NEXT_PUBLIC_GRAPH_INVITE_EXTERNAL_APPROVED=yes`. Otherwise **simulate** it: no Graph call, `inviteStatus: "simulated"`, and the console shows the email that would have been sent.
    - It reports the result to its own server, which then calls the MyJourney webhook below. Retry with backoff, and mark the offer `onboarded` on success.
 5. The **candidate's offer page** updates to "Offer accepted. Check your email for an invitation from Microsoft to access MyJourney" and shows the same instructions.
 6. **MyJourney** creates the starter (STARTER role, display name, `entraOid` = guest object id), the journey (CONDITIONAL_OFFER, team, LM, start date), completes `guest-invite-sent`, and audits everything. When the guest first signs in to MyJourney, `guest-sign-in` completes automatically.
@@ -51,7 +51,7 @@ Body (**no personal email or other PII beyond name**):
 
 `inviteStatus`: `invited` | `simulated` | `failed`. It's idempotent on `offerId`: a repeat (or a retry after a failure; everything is created in one transaction) returns the same journey.
 
-Response `200 {"journeyId": "...", "starterId": "..."}`. Errors: `401` bad signature or timestamp, `400` validation, `409` unknown team/LM, or a guest that already has a journey from a different offer (a rehearsal reusing the same email: run `npm run db:reset` or use a different email).
+Response `200 {"journeyId": "...", "starterId": "..."}`. Errors: `401` bad signature or timestamp, `400` validation, `409` unknown team/LM, or a guest that already has a journey from a different offer (a rehearsal reusing the same email: run `npm run db:seed` or use a different email).
 
 `GET {MYJOURNEY_INTERNAL_URL}/api/integrations/workday/directory`: the same signature scheme over `"<timestamp>."` (empty body). Returns `{ "teams": [{ "key", "name", "businessArea", "lineManagers": [{ "key", "name" }] }] }` for the recruiter form.
 
@@ -60,7 +60,7 @@ The integration endpoints are enabled only when `WORKDAY_WEBHOOK_SECRET` is set 
 ## Env
 
 MyJourney `.env`: `WORKDAY_WEBHOOK_SECRET`.
-Mock Workday `demo/mock-workday/.env`: `WORKDAY_WEBHOOK_SECRET` (same value), `MYJOURNEY_INTERNAL_URL=http://localhost:3000`, `MYJOURNEY_PUBLIC_URL=http://localhost:3000`, `NEXT_PUBLIC_ENTRA_CLIENT_ID`, `NEXT_PUBLIC_ENTRA_TENANT_ID`, `NEXT_PUBLIC_ENTRA_REDIRECT_URI=http://localhost:3001`, `NEXT_PUBLIC_GRAPH_INVITE_EXTERNAL_APPROVED`.
+Mock Workday `demo/mock-workday/.env`: `WORKDAY_WEBHOOK_SECRET` (same value), `MYJOURNEY_INTERNAL_URL=http://localhost:3000`, `NEXT_PUBLIC_MYJOURNEY_PUBLIC_URL=http://localhost:3000` (used for both the invite redirect and the "Open MyJourney at" line; candidates on another device cannot open `localhost`, so set it to a tunnel URL for real invites), `NEXT_PUBLIC_ENTRA_CLIENT_ID`, `NEXT_PUBLIC_ENTRA_TENANT_ID`, `NEXT_PUBLIC_ENTRA_REDIRECT_URI=http://localhost:3001`, `NEXT_PUBLIC_GRAPH_INVITE_EXTERNAL_APPROVED`.
 
 ## Rules
 

@@ -35,7 +35,7 @@ export const POST = withRole(["ADMIN"], async (req, ctx: { params: Promise<{ jou
     const owner = await prisma.user.findUnique({ where: { entraOid: body.guestObjectId } });
     if (owner && owner.id !== journey.starterId) {
       return Response.json(
-        { error: "conflict", message: "That guest account is already linked to another user, so it cannot sign in as this starter. The invite was not recorded; run npm run db:reset or invite a different email." },
+        { error: "conflict", message: "That guest account is already linked to another user, so it cannot sign in as this starter. The invite was not recorded; run npm run db:seed or invite a different email." },
         { status: 409 },
       );
     }

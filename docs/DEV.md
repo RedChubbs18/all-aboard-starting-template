@@ -5,7 +5,7 @@
 ```bash
 npm install
 cp .env.example .env        # placeholders only; .env is gitignored
-npm run db:reset            # recreate prisma/dev.db and seed it
+npm run db:reset            # fresh clone: create prisma/dev.db and seed it (stop the dev server first)
 npm run dev                 # http://localhost:3000
 ```
 
@@ -18,8 +18,8 @@ Before pushing: `npm run build && npm run lint && npm run typecheck && npm test`
 | `dev` / `build` / `start` | Next.js. `build` runs `prisma generate` first. |
 | `lint`, `typecheck`, `test` | ESLint, `tsc --noEmit`, Vitest (uses its own `prisma/test.db`, recreated per run). |
 | `db:push` | Apply `prisma/schema.prisma` to the SQLite file. |
-| `db:seed` | Load seed data (see below). Safe to re-run: it wipes and reloads. |
-| `db:reset` | Delete `prisma/dev.db`, then push and seed. |
+| `db:seed` | Load seed data (see below). Safe to re-run, and safe while the dev server runs: it wipes the tables in place and reloads, keeping the `prisma/seed.local.json` persona mappings. Use this to get clean demo data. |
+| `db:reset` | For a fresh clone or a schema change: delete `prisma/dev.db`, then push and seed. **Stop the dev server first**: a running server keeps the deleted file open and shows stale data. |
 
 Prisma refuses `--force-reset` when invoked by an AI agent, which is why `db:reset` deletes the file instead.
 
@@ -116,7 +116,7 @@ Until consent exists, Graph returns 403 or a consent prompt. The app then shows 
 1. Ask Claude to generate the bulk-create CSV, or reuse the one in your Documents folder. It's never committed, because it holds initial passwords.
 2. In the Entra admin centre, go to **Users → Bulk operations → Bulk create**. Replace `TENANT-DOMAIN` in the CSV with the tenant domain from your team sheet, upload it, and wait for the job to finish.
 3. Go to **Users → Download users** and export a CSV.
-4. Run `node scripts/map-entra-users.mjs <export.csv>`, then `npm run db:reset`. This writes the git-ignored `prisma/seed.local.json`, which maps `team05-<persona>` users onto the seed personas by object ID.
+4. Run `node scripts/map-entra-users.mjs <export.csv>`, then `npm run db:seed`. This writes the git-ignored `prisma/seed.local.json`, which maps `team05-<persona>` users onto the seed personas by object ID.
 5. Set `AUTH_MODE=entra` in `.env`, restart, and sign in as `team05-<persona>@<tenant-domain>`.
 6. Delete the CSVs afterwards, and delete the `team05-*` users before 13 November.
 

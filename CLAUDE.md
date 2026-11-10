@@ -14,7 +14,7 @@ Next.js (App Router, `src/`), TypeScript strict, Tailwind v4, Prisma 6 + SQLite,
 - `npm run dev` runs the app on http://localhost:3000
 - `npm run build`, `npm run lint`, `npm run typecheck`
 - `npm test` runs all Vitest tests (engine, adapters contract, auth, service, seed). `npx vitest run src/domain` runs one folder.
-- `npm run db:push` applies the schema, `npm run db:seed` loads `content/seed/*.json` (fixtures in `prisma/fixtures/` if a file is missing), `npm run db:reset` deletes `prisma/dev.db` then push + seed.
+- `npm run db:push` applies the schema, `npm run db:seed` loads `content/seed/*.json` (fixtures in `prisma/fixtures/` if a file is missing), `npm run db:seed` wipes and reseeds in place (safe while the dev server runs); `npm run db:reset` deletes `prisma/dev.db` then push + seed (fresh clone only: stop the dev server first).
 
 ## Architecture
 

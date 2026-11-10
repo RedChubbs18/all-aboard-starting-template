@@ -71,7 +71,7 @@ In §12 as written, "cleared → stage advances" skips the P&P offer-conditions 
 7. **MI (2 min):** funnel, a starter with an overdue LM task and "Chase LM", the exit report with a colleague-supplied reason.
 8. *Optional:* the failed-vetting full-page warning on a throwaway starter.
 
-**Pre-show checklist:** `npm run db:reset` (persona mappings are kept), `npm run reset` in `demo/mock-workday`, start both apps, one full dry run, a Claude smoke test (`npx tsx --conditions=react-server --env-file=.env scripts/try-ai.mts "test"`), one browser profile per persona, and the two photos ready. If anything breaks, switch to `AUTH_MODE=demo` with `DEMO_PIN`.
+**Pre-show checklist:** `npm run db:seed` (persona mappings are kept; it works while the dev server runs), `npm run reset` in `demo/mock-workday`, start both apps, one full dry run, a Claude smoke test (`npx tsx --conditions=react-server --env-file=.env scripts/try-ai.mts "test"`), one browser profile per persona, and the two photos ready. If anything breaks, switch to `AUTH_MODE=demo` with `DEMO_PIN`.
 
 ## 4. Suggested improvements, ranked by judge impact ÷ effort
 

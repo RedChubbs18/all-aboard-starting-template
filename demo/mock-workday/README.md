@@ -38,7 +38,7 @@ Scripts: `dev`, `build`, `start`, `lint`, `typecheck`, `test`, `reset` (purges `
 
 Real invites to personal (for example Gmail) addresses: the candidate opens the email from Microsoft on behalf of Lloyds Banking Group (MyJourney), selects Accept invitation and signs in with the same personal email (a one-time passcode may be emailed). If the email does not arrive, the recruiter console shows the `inviteRedeemUrl` with a Copy button (recruiter only, kept in browser memory, never shown to the candidate).
 
-**Rehearsal reset**: the console's **Reset demo data** button (with confirm) purges `.data/`, same as `npm run reset`. It does not touch MyJourney: run `npm run db:reset` in MyJourney to remove the created journey.
+**Rehearsal reset**: the console's **Reset demo data** button (with confirm) purges `.data/`, same as `npm run reset`. It does not touch MyJourney: run `npm run db:seed` in MyJourney to remove the created journey (it wipes and reseeds in place, so it is safe while the dev server runs; do not use `db:reset` then).
 
 If a step fails, the chip shows `failed` with the reason and a **Retry** button.
 
