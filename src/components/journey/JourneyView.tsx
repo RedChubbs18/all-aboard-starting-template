@@ -28,7 +28,7 @@ export interface JourneyViewProps {
   onWithdrawn?: () => void;
   reducedMotion?: boolean;
   now?: Date;
-  /** "column" (default) is the 430px phone column; "split" puts forecast and contacts beside the stages on wide screens. */
+  /** "column" (default) stacks everything; "split" puts the next step, forecast and contacts in a side column from 1024px. */
   layout?: "column" | "split";
 }
 
@@ -122,7 +122,7 @@ export function JourneyView({ data, onComplete, pendingId, lastCompletedTitle, r
         </Alert>
       )}
 
-      <div className={split ? "grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]" : "space-y-4"}>
+      <div className={split ? "grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(15rem,18rem)] xl:grid-cols-[minmax(0,1fr)_20rem]" : "space-y-4"}>
         <div className="min-w-0 space-y-4">
           <HorseTrack
             title={viewerIsStarter ? "Your onboarding journey" : `${first}'s onboarding journey`}
@@ -153,7 +153,7 @@ export function JourneyView({ data, onComplete, pendingId, lastCompletedTitle, r
           />
         </div>
 
-        <aside aria-label="Forecast and contacts" className={cn("min-w-0 space-y-4", split && "lg:sticky lg:top-4 lg:self-start")}>
+        <aside aria-label="Forecast and contacts" className={cn("min-w-0 space-y-4", split && "lg:sticky lg:top-24 lg:self-start")}>
           {split && (
             <div className="hidden lg:block">
               <Forecast view={view} viewerIsStarter={viewerIsStarter} />

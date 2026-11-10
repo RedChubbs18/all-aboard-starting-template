@@ -18,7 +18,7 @@ function Body<T>({ title, path, toItems, listTitle }: Omit<Props<T>, "roles">) {
   const { data, error, loading } = useApi<T>(path);
   return (
     <div>
-      <h1 className="text-[28px] font-bold leading-tight text-ink">{title}</h1>
+      <h1 className="text-[1.75rem] font-bold leading-tight text-ink">{title}</h1>
       {loading && <p role="status" className="mt-2 text-muted">Loading…</p>}
       {error && <p role="alert" className="mt-2 text-blocked">{error}</p>}
       {data && <DataList title={listTitle} items={toItems(data)} />}

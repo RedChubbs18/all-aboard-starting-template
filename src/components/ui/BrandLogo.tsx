@@ -7,7 +7,7 @@ export function BrandLogo({ className, height = 44 }: { className?: string; heig
   const logo = BRAND.logo;
   if (logo) {
     const width = Math.round((logo.width / logo.height) * height);
-    return <img src={logo.src} alt={logo.alt} width={width} height={height} style={{ height, width }} className={cn("shrink-0", className)} />;
+    return <img src={logo.src} alt={logo.alt} width={width} height={height} style={{ height, width }} className={cn("brand-mono shrink-0", className)} />;
   }
   return (
     <span

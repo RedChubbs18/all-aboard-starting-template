@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useSession } from "@/lib/auth/client";
 import { BrandLogo } from "@/components/ui/BrandLogo";
@@ -11,9 +12,10 @@ export function SignIn() {
   const { mode, personas, switchPersona, signIn, error, demoPinRequired } = useSession();
   const [pin, setPin] = useState("");
   return (
-    <section aria-labelledby="signin-h" className="mx-auto w-full max-w-[420px] rounded-lg border border-line bg-card px-7 py-9">
+    <section aria-labelledby="signin-h" className="mx-auto w-full max-w-[420px] overflow-hidden rounded-lg border border-line bg-card px-7 pb-7 pt-9">
+      <span aria-hidden className="-mx-7 -mt-9 mb-8 block h-1.5 bg-accent" />
       <BrandLogo className="mb-7" />
-      <h1 id="signin-h" className="text-[30px] font-bold leading-tight">
+      <h1 id="signin-h" className="text-[1.875rem] font-bold leading-tight">
         Welcome to MyJourney
       </h1>
       {error && (
@@ -55,6 +57,9 @@ export function SignIn() {
           </Button>
         </>
       )}
+      <Link href="/settings/accessibility" className="mt-6 inline-flex min-h-11 items-center font-semibold text-brand-strong underline underline-offset-2">
+        Accessibility and display
+      </Link>
     </section>
   );
 }

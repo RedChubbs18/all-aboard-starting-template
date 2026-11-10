@@ -25,7 +25,7 @@ function GoalsPage() {
       <Link href={journeyId ? `/journey?journeyId=${encodeURIComponent(journeyId)}` : "/journey"} className="inline-flex min-h-11 items-center text-brand-strong underline underline-offset-2">
         Back to journey
       </Link>
-      <h1 className="text-[28px] font-bold leading-tight text-ink">30-60-90 day goals</h1>
+      <h1 className="text-[1.75rem] font-bold leading-tight text-ink">30-60-90 day goals</h1>
       <p className="text-muted">Agree a few simple goals with your line manager. Use plain language and keep personal details out.</p>
       {loading && (
         <div aria-busy="true" className="space-y-3">

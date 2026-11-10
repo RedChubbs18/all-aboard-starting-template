@@ -1,4 +1,4 @@
-import { BarChart3, ClipboardCheck, CircleHelp, House, Settings, UserRoundCheck, Users, Wrench, LogOut, type LucideIcon } from "lucide-react";
+import { Accessibility, BarChart3, ClipboardCheck, CircleHelp, House, Settings, UserRoundCheck, Users, Wrench, LogOut, type LucideIcon } from "lucide-react";
 import { hasAnyRole, navFor, type SessionUser } from "@/lib/auth/roles";
 
 /** Presentation of the navigation (icon and short label); which roles see what stays in lib/auth/roles.ts. */
@@ -20,8 +20,15 @@ const META: Record<string, { label: string; Icon: LucideIcon; rank: number }> = 
   "/admin/simulate": { label: "Simulate", Icon: Wrench, rank: 70 },
 };
 
-/** Routes that use the wide container instead of the 430px phone column. */
-export const isWidePath = (path: string) => ["/lm", "/mi", "/admin"].some((p) => path === p || path.startsWith(`${p}/`));
+/** Settings page for text size, theme, motion and the other display preferences (D35). Shown in the side nav and the profile menu. */
+export const ACCESSIBILITY_ITEM: ShellNavItem = { href: "/settings/accessibility", label: "Accessibility and display", Icon: Accessibility };
+
+/**
+ * Pages with their own multi-column desktop layout use the full ~1280px container; reading pages (task detail, goals,
+ * content, settings) keep a readable ~768px column. Below 768px every page is full width.
+ */
+export const isFullWidthPath = (path: string) =>
+  ["/lm", "/mi", "/admin", "/team", "/faq"].some((p) => path === p || path.startsWith(`${p}/`)) || path === "/journey";
 
 /**
  * The bar shows the four most important items for the role; the rest go in the profile menu.

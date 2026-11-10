@@ -42,6 +42,7 @@ export function FaqHelp() {
   const [chatOpen, setChatOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const askRef = useRef<HTMLButtonElement>(null);
+  const askDesktopRef = useRef<HTMLButtonElement>(null);
   /** Where focus goes when the sheet closes (default: back to the trigger). */
   const afterClose = useRef<(() => void) | null>(null);
   const hashHandled = useRef(false);
@@ -68,7 +69,8 @@ export function FaqHelp() {
 
   const handleClose = () => {
     setChatOpen(false);
-    const next = afterClose.current ?? (() => askRef.current?.focus());
+    // Two triggers exist (sticky on phones, in the side column from 1024px): return focus to the visible one.
+    const next = afterClose.current ?? (() => (askDesktopRef.current?.offsetParent ? askDesktopRef.current : askRef.current)?.focus());
     afterClose.current = null;
     next();
   };
@@ -92,10 +94,12 @@ export function FaqHelp() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-[28px] font-bold leading-tight text-ink">Help and FAQs</h1>
+        <h1 className="text-[1.75rem] font-bold leading-tight text-ink">Help and FAQs</h1>
         <p className="mt-1 text-muted">Search common questions, or ask the assistant. Demo content for illustration only.</p>
       </div>
 
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-8">
+      <div className="flex min-w-0 flex-col gap-4">
       <div role="search">
         <label htmlFor={searchId} className="block text-sm font-semibold">
           Search FAQs
@@ -110,7 +114,7 @@ export function FaqHelp() {
             onChange={(e) => setQuery(e.target.value)}
             autoComplete="off"
             placeholder="Search questions"
-            className="min-h-12 w-full rounded-full border border-line-strong bg-card py-3 pl-11 pr-4 text-base placeholder:text-muted"
+            className="min-h-12 w-full rounded-md border border-line-strong bg-card py-3 pl-11 pr-4 text-base placeholder:text-muted"
           />
         </div>
         <ChipRow label="Filter by topic" className="mt-3">
@@ -182,7 +186,23 @@ export function FaqHelp() {
         </ul>
       )}
 
-      <div className="rounded-md border border-line bg-card px-[22px] py-5">
+      </div>
+
+      <aside aria-label="Get more help" className="flex flex-col gap-4 lg:sticky lg:top-24">
+        <div className="hidden lg:block">
+          <button
+            ref={askDesktopRef}
+            type="button"
+            aria-haspopup="dialog"
+            onClick={() => setChatOpen(true)}
+            className={buttonClass("primary", "lg", "w-full")}
+          >
+            <MessageCircle aria-hidden className="size-5" strokeWidth={1.8} />
+            Ask the assistant
+          </button>
+          <p className="mt-2 text-sm text-muted">Answers come from onboarding content. The assistant opens in a panel beside this page.</p>
+        </div>
+        <div className="rounded-md border border-line bg-card px-[22px] py-5">
         <h2 className="text-lg font-bold">Still stuck?</h2>
         <p className="mt-1 text-sm text-muted">People &amp; Places (P&amp;P) can help with anything not covered here.</p>
         <div className="mt-2">
@@ -190,7 +210,10 @@ export function FaqHelp() {
         </div>
       </div>
 
-      <div className="sticky bottom-[88px] z-30">
+      </aside>
+      </div>
+
+      <div className="sticky bottom-[88px] z-30 md:bottom-4 lg:hidden">
         <button
           ref={askRef}
           type="button"

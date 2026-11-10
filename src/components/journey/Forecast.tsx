@@ -79,7 +79,7 @@ export function Forecast({ view, loading, error, onRetry, viewerIsStarter = true
       {anyOverdue && <p className="text-sm">Some tasks are overdue, so the finish date may move.</p>}
       {first && (
         <div className="mt-3">
-          <p className="text-[17px] font-bold leading-snug">{first.title}</p>
+          <p className="text-[1.0625rem] font-bold leading-snug">{first.title}</p>
           <p className="mt-1 flex flex-wrap items-center gap-1.5 text-sm">
             Due {formatShortDate(first.dueDate)}
             {first.overdue && <OverdueBadge />}

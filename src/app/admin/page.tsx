@@ -42,7 +42,7 @@ export default function Page() {
         {cards.map((c) => (
           <li key={c.label}>
             <Link href={c.href} className="block min-h-11 rounded-md border border-line bg-card px-[22px] py-4 hover:bg-page">
-              <span className="block text-[28px] font-extrabold leading-tight tracking-[-0.02em] text-ink">{c.value}</span>
+              <span className="block text-[1.75rem] font-extrabold leading-tight tracking-[-0.02em] text-ink">{c.value}</span>
               <span className="text-muted">{c.label}</span>
             </Link>
           </li>

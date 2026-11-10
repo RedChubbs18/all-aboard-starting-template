@@ -4,27 +4,28 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { cn } from "./cn";
 
 /**
- * primary: black pill. secondary: ghost (white, 1.5px ink border). ghost: text link (deep green).
+ * LBG website buttons (12px radius, bold, underline on hover). primary: black. accent: #0be248 with black text. secondary: transparent with a 1px ink border. ghost: text link (deep green).
  * danger: stuck/alert (white, 2px blocked border). Disabled: sage grey with readable ink (STYLE A.4).
  */
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+export type ButtonVariant = "primary" | "accent" | "secondary" | "ghost" | "danger";
 export type ButtonSize = "md" | "lg" | "icon";
 
 const base =
-  "inline-flex items-center justify-center gap-2 min-h-11 rounded-full text-[15px] font-bold leading-tight select-none " +
+  "inline-flex items-center justify-center gap-2 min-h-11 rounded-md text-[0.9375rem] font-bold leading-tight select-none " +
   "motion-safe:transition-[transform,background-color,opacity] motion-safe:duration-150 active:translate-y-px " +
   "disabled:cursor-default disabled:border-transparent disabled:bg-disabled disabled:text-disabled-ink " +
   "aria-disabled:cursor-default aria-disabled:border-transparent aria-disabled:bg-disabled aria-disabled:text-disabled-ink";
 
 const variants: Record<ButtonVariant, string> = {
-  primary: "bg-ink text-card hover:bg-dark-green",
-  secondary: "border-[1.5px] border-ink bg-card text-ink hover:bg-page",
-  ghost: "text-brand-strong font-semibold hover:bg-brand-tint",
+  primary: "bg-ink text-card hover:underline",
+  accent: "bg-accent text-accent-ink hover:underline",
+  secondary: "border border-ink bg-transparent text-ink hover:bg-page hover:underline",
+  ghost: "text-brand-strong font-semibold hover:bg-brand-tint hover:underline",
   danger: "border-2 border-blocked bg-card text-sm text-blocked hover:bg-blocked-tint",
 };
 
 const sizes: Record<ButtonSize, string> = {
-  md: "px-5 py-3",
+  md: "px-6 py-3",
   lg: "min-h-14 px-6 py-3",
   icon: "min-w-11 px-0",
 };

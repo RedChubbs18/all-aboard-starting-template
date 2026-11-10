@@ -81,7 +81,7 @@ function StarterJourney({ journeyId }: { journeyId: string | null }) {
       <h1 className="sr-only">
         {journey.viewerIsStarter ? "Your journey" : `${journey.starter.name}'s journey`}
       </h1>
-      <JourneyView data={data} onComplete={onComplete} pendingId={pendingId} lastCompletedTitle={lastCompletedTitle} onWithdrawn={() => void reload()} />
+      <JourneyView layout="split" data={data} onComplete={onComplete} pendingId={pendingId} lastCompletedTitle={lastCompletedTitle} onWithdrawn={() => void reload()} />
     </div>
   );
 }

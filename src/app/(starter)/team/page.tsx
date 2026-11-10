@@ -58,10 +58,12 @@ function TeamPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-[28px] font-bold leading-tight text-ink">Welcome to the team</h1>
+        <h1 className="text-[1.75rem] font-bold leading-tight text-ink">Welcome to the team</h1>
         <p className="text-muted">{data.team.name}</p>
       </header>
 
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:items-start">
+      <div className="min-w-0 space-y-6">
       <section aria-labelledby="line-h" className="rounded-md border border-line bg-card px-[22px] py-5">
         <h2 id="line-h" className="font-semibold">
           Reporting line
@@ -78,7 +80,6 @@ function TeamPage() {
         {!lm && <p className="text-muted">Your line manager will appear here once confirmed.</p>}
       </section>
 
-      <div className="space-y-6">
         <section aria-labelledby="pinned-h" className="space-y-3">
           <h2 id="pinned-h" className="text-lg font-bold">
             Your first contacts
@@ -88,12 +89,13 @@ function TeamPage() {
           ))}
           {!buddy && <p className="rounded-md bg-card p-3 text-sm text-muted border border-line">Your buddy hasn&apos;t been allocated yet.</p>}
         </section>
+      </div>
 
-        <section aria-labelledby="members-h" className="space-y-3">
+        <section aria-labelledby="members-h" className="min-w-0 space-y-3">
           <h2 id="members-h" className="text-lg font-bold">
             The team ({data.members.length})
           </h2>
-          <ul className="grid gap-3.5">
+          <ul className="grid gap-3.5 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
             {rest.map((m) => (
               <li key={m.id}>
                 <ContactCard name={m.name} role={roleLine(m)} subtitle={[m.jobTitle, m.reportsToName ? `Reports to ${m.reportsToName}` : null].filter(Boolean).join(" · ")} upn={m.upn} photoUrl={m.photoUrl} bio={m.bio} />

@@ -1,8 +1,58 @@
 # Visual style guide
 
-The team supplied this guide on 2026-11-09. Section A records the accessibility adjustments and scoping decisions made when applying it, and it takes precedence where the two conflict. Section B is the team's guide as supplied.
+The team supplied this guide on 2026-11-09. Section 0 (D33 to D35) is the newest and supersedes the palette, shapes, focus colours and phone-column rules below. Section A records the accessibility adjustments and scoping decisions made when applying it, and it takes precedence where the two conflict. Section B is the team's guide as supplied.
 
-## A. Adjustments and decisions (apply these first)
+## 0. LBG website palette, layout and preferences (D33, D34, D35; apply first)
+
+This section follows the official Lloyds Banking Group website (colours, buttons, focus, radii, fonts), with permission. It **supersedes** the palette and shape rules in sections A and B wherever they differ: A.1 and A.3 (greens, focus ring colours), A.5 (page, card, chip, feature colours), A.6 and A.7 (430px column, bottom navigation on every screen size), A.8 and A.9 (placeholder logo and horse are used only when `NEXT_PUBLIC_BRAND_ASSETS` is not `official`), A.12 (border value) and B sections 2 to 4 (colour table, type, pill buttons). WCAG 2.2 AA still applies and the rules in A about what must stay accessible still hold: non-colour conditions (A.4), locked stages with no opacity fade (A.11), 44px targets, and form borders at 3:1 (A.12).
+
+Tokens live in `src/app/globals.css` (`@theme`) and keep their semantic names (`bg-page`, `text-brand-strong`, `bg-dark-green`, ...). Components never use hex values. `scripts/contrast-check.mjs` reads the CSS and asserts every pairing in all four themes (light, dark, high contrast, dark high contrast): 156 checks.
+
+### Light theme
+
+| Token | Value | LBG source | Use |
+|---|---|---|---|
+| `page` | #f1f1f1 | light grey theme | Page and section background |
+| `card` | #ffffff | white | Cards, header, side and bottom navigation, menus |
+| `ink` | #000000 | black | Text, primary buttons, outlines |
+| `muted` | #595959 | derived | Secondary text (7.0:1 on white, 6.2:1 on page) |
+| `line` | #dcdcdc | derived | Decorative borders and dividers |
+| `line-strong` | #767676 | LBG disabled grey | Form control borders (4.5:1 on white, 4.0:1 on page) |
+| `brand` and `brand-strong` | #006a4d | heritage green | Fills, bars, rings, logo box, green text and links (6.6:1 on white) |
+| `dark-green` | #024731 | racing green | Selected chip, toast, hover emphasis (10.8:1 with white text) |
+| `now` | #00864f | dark green | "Current" ring (4.6:1 on white) |
+| `feature` | #11b67a | everyday green | "Next step" card, black text (8.0:1) |
+| `accent` and `accent-ink` | #0be248 and #000 | accent | Accent button and highlights, black text only (12.0:1) |
+| `sage` | #62b34f | bright green | Chart fills (decorative, value always in text) |
+| `mint` | #c7ffc6 | calm green | Announcement banners |
+| `brand-tint` | #e5f5ec | derived from heritage | Highlighted rows, "You" pill, success alert |
+| `blocked` | #bb0000 | error #b00 | Errors, stuck items (6.8:1 on white, 5.8:1 on its tint #fbeaea) |
+| `mixed` and `info` | #2a63b5 and #3373cb | info blue | "Shared" pill text (5.2:1 on #e8f0fb), info icons (4.7:1) |
+| `automated` | #323233 | charcoal | "Automated" pill, locked stage reason |
+| `disabled` and `disabled-ink` | #cfcfcf and #323233 | derived | Disabled controls (8.2:1) |
+| `focus` and `focus-halo` | #000 and #fff | LBG focus | See below |
+
+Radii: 8px (`rounded-sm`), 12px (`rounded-md`, cards and buttons), 16px (`rounded-lg`, large panels, sign-in). Chips stay pills.
+
+Typeface: GT Ultra, as the website uses it (`public/fonts/gt-ultra.css`): **Standard** (Regular and Bold) for body text, links, buttons and strong text (token `--font-brand`), **Median** (Bold for h1, h2, h5, h6; Regular for h3, h4) for headings (token `--font-display`). Without the local font files the stack falls back to Arial or Helvetica.
+
+Buttons follow `.btn`: 12px radius, 12px 24px padding, bold. Primary is black with white text, secondary is transparent with a 1px black border, ghost is a text link, accent is #0be248 with black text. Hover underlines the label.
+
+Focus: the website's black-background state (black fill and white text on links, buttons and summaries that hold only text) plus a two-tone ring on every focusable element: `outline: 2px solid var(--color-focus)` with a 2px offset, and a white `box-shadow` halo either side of it. The outline is 21:1 against the halo and at least 3:1 on every surface; in the dark themes the two colours swap.
+
+### Dark theme and high contrast
+
+Dark swaps the surfaces and lightens the "strong" colours so that `text-card` on a strong fill (primary button, chip, toast) stays readable: page #141414, card #1f1f20, ink #f5f5f5, muted #b8b8b8 (9.3:1 on page), brand-strong #5fd9a4, blocked #ff7b7b, mixed #86b6f7, feature #0b5a41. High contrast uses white (or black in dark) surfaces with solid black (or white) borders, near-black or white text, deeper greens and reds, and always underlines links. The official logo and horse are black artwork, so `.brand-mono` inverts them on dark.
+
+### Layout (D34)
+
+Below 768px (`md`): sticky header with logo, greeting, notifications and profile, and a fixed bottom navigation of the role's four main items; other items are in the profile menu. From 768px: a fixed 15rem side navigation (logo, every role item, Accessibility and display) and a top bar (greeting, notifications, profile); no bottom bar is rendered for assistive technology. Content is in a fluid container: 1280px for pages with their own columns (journey, team, FAQ, LM, MI, admin), a 768px reading column for task detail, goals, content and settings.
+
+### Accessibility and display preferences (D35)
+
+Page `/settings/accessibility`, linked from the side navigation, the profile menu and the sign-in card. Stored in `localStorage` (`myjourney.preferences.v1`) and applied as `data-theme`, `data-contrast`, `data-motion`, `data-text`, `data-font`, `data-links` and `data-spacing` on `<html>` by an inline script before first paint. Theme, contrast and motion default to the operating system (`prefers-color-scheme`, `prefers-contrast`, `prefers-reduced-motion`) and the user's choice overrides it both ways, including Tailwind's `motion-safe` and `motion-reduce` variants. Text size sets the root font size (100, 115, 130, 150%); sizes are in `rem` so everything scales. "Increase spacing" raises Tailwind's `--spacing` unit by 25% and the line, letter and word spacing. The easy-to-read font is a Verdana stack with wider spacing.
+
+## A. Adjustments and decisions (apply after section 0)
 
 Contrast was measured with the WCAG 2.2 formula. The guide's own section 18 requires AA, so the following adjustments keep the look while passing.
 

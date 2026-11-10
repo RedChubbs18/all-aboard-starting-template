@@ -10,7 +10,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <RoleGate roles={isPnpAdminPath(path) ? ["ADMIN", "PNP"] : ["ADMIN"]}>
       <div className="mx-auto max-w-[1200px]">
-        <h1 className="text-[28px] font-bold leading-tight text-ink">Admin</h1>
+        <h1 className="text-[1.75rem] font-bold leading-tight text-ink">Admin</h1>
         <div className="mt-3">
           <AdminTabs />
         </div>

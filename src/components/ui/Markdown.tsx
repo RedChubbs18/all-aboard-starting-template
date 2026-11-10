@@ -75,7 +75,7 @@ function BlockView({ b, vars }: { b: Block; vars: Vars }) {
   switch (b.t) {
     case "heading": {
       const cls = {
-        1: "mt-6 text-[28px] font-bold leading-tight text-ink",
+        1: "mt-6 text-[1.75rem] font-bold leading-tight text-ink",
         2: "mt-6 text-xl font-bold text-ink",
         3: "mt-5 text-lg font-bold",
         4: "mt-4 text-base font-semibold",

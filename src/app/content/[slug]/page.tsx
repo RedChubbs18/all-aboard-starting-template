@@ -34,7 +34,7 @@ export default async function ContentPage({ params }: Params) {
       </Link>
       <header>
         <Badge>{CONTENT_TYPE_LABEL[c.type] ?? "Guide"}</Badge>
-        <h1 className="mt-2 text-[28px] font-bold leading-tight text-ink">{c.title}</h1>
+        <h1 className="mt-2 text-[1.75rem] font-bold leading-tight text-ink">{c.title}</h1>
         {c.summary && <p className="mt-1 text-muted">{c.summary}</p>}
       </header>
       <div className="rounded-lg bg-card p-4 border border-line">

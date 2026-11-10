@@ -83,7 +83,7 @@ function SimulateBody() {
   return (
     <div className="space-y-4">
       <header>
-        <h1 className="text-[28px] font-bold leading-tight text-ink">Simulate integrations</h1>
+        <h1 className="text-[1.75rem] font-bold leading-tight text-ink">Simulate integrations</h1>
         <Alert tone="info" className="mt-2 text-sm">
           Demo tools. Changes mock adapters only.
         </Alert>

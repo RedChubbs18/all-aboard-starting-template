@@ -6,7 +6,7 @@ export type StageState = "done" | "current" | "locked";
 
 const icon: Record<StageState, { Icon: LucideIcon; cls: string; word: string }> = {
   done: { Icon: Check, cls: "bg-brand text-card", word: "Complete" },
-  current: { Icon: Flag, cls: "border-2 border-now bg-card text-brand-strong shadow-[0_0_0_4px_rgba(0,163,108,0.18)]", word: "Current" },
+  current: { Icon: Flag, cls: "border-2 border-now bg-card text-brand-strong shadow-[0_0_0_4px_color-mix(in_srgb,var(--color-now)_20%,transparent)]", word: "Current" },
   locked: { Icon: Lock, cls: "border-2 border-disabled bg-card text-automated", word: "Locked" },
 };
 
@@ -55,7 +55,7 @@ export function StageHeader({ number, total = 5, label, state, doneCount, totalC
           <Icon className="size-4" strokeWidth={2} />
         </span>
         <span aria-hidden className="min-w-0 flex-1">
-          <span className="block text-[17px] font-bold leading-tight">{label}</span>
+          <span className="block text-[1.0625rem] font-bold leading-tight">{label}</span>
           {locked ? (
             unlockHint && <span className="mt-0.5 block text-sm text-automated">{unlockHint}</span>
           ) : (
