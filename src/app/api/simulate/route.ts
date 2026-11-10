@@ -3,7 +3,7 @@ import { withRole } from "@/lib/auth/server";
 import { canViewJourney, journeyScopeWhere } from "@/lib/auth/access";
 import { ADAPTER_KEYS } from "@/domain/types";
 import { loadJourney, listJourneys } from "@/server/journey-service";
-import { simulate, DEMO_STARTER_ID } from "@/server/integration-service";
+import { simulate, isDemoJourney, DEMO_STARTER_ID } from "@/server/integration-service";
 import { prisma } from "@/server/db";
 import { guarded, readJson } from "./http";
 
@@ -11,9 +11,12 @@ import { guarded, readJson } from "./http";
 export const GET = withRole(["ADMIN", "PNP"], async (_req, _ctx, user) => {
   const journeys = await listJourneys({ AND: [journeyScopeWhere(user), { status: "active" }] });
   const people = await prisma.user.findMany({ where: { id: { in: journeys.map((j) => j.starterId) } } });
+  const demo = new Set<string>();
+  for (const j of journeys) if (await isDemoJourney(j.id)) demo.add(j.id);
   return Response.json({
     demoStarterId: DEMO_STARTER_ID,
     journeys: journeys.map((j) => ({
+      demo: demo.has(j.id),
       id: j.id,
       starterId: j.starterId,
       starter: people.find((p) => p.id === j.starterId)?.displayName ?? j.starterId,

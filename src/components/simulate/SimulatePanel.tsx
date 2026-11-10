@@ -11,7 +11,7 @@ import { Alert } from "@/components/ui/Alert";
 import { SelectField, TextField } from "@/components/ui/Field";
 import { ToastProvider, useToast } from "@/components/ui/Toast";
 
-interface JourneyOption { id: string; starter: string; stage: string; flagged: boolean }
+interface JourneyOption { id: string; starter: string; stage: string; flagged: boolean; demo: boolean }
 interface ListData { demoStarterId: string; journeys: JourneyOption[] }
 interface StateData {
   journey: { id: string; stage: string; flagged: boolean; flagReason: string | null };
@@ -73,7 +73,16 @@ function SimulateBody() {
     call(`${adapterKey}:${status}`, "/api/simulate", { adapterKey, journeyId: selected, status, ...(detail.trim() ? { detail: detail.trim() } : {}) }, () =>
       `${ADAPTER_LABELS[adapterKey] ?? adapterKey}: ${status.replace(/_/g, " ")}`,
     );
-  const demo = (step: DemoStepId) => call(step, "/api/simulate/demo", { step }, (r) => String(r.message ?? "Done"));
+  // The destructive steps only run on demo journeys (the API enforces it); say so up front rather than failing with a 403.
+  const selectedIsDemo = !selected || (journeys.find((j) => j.id === selected)?.demo ?? true);
+  const demo = (step: DemoStepId) => {
+    if (!selected) return;
+    if (!selectedIsDemo && (step === "jump_day0" || step === "reset")) {
+      toast.error("Not a demo journey", ["Jump to Day 0 and Reset only work on a demo journey (the demo starter's, or one created by mock Workday). Pick one of those, or use the adapter buttons for this starter."]);
+      return;
+    }
+    return call(step, "/api/simulate/demo", { step, journeyId: selected }, (r) => String(r.message ?? "Done"));
+  };
   const tick = () =>
     call("tick", "/api/simulate/tick", { force }, (r) => {
       const sent = Array.isArray(r.sent) ? r.sent.length : 0;
@@ -103,6 +112,11 @@ function SimulateBody() {
                 ))}
               </SelectField>
             </div>
+            {!selectedIsDemo && (
+              <Alert tone="info" className="mt-2 text-sm">
+                This is not a demo journey, so &quot;Jump to Day 0&quot; and &quot;Reset&quot; are unavailable for it. The other demo steps run on this starter.
+              </Alert>
+            )}
             {state.data && (
               <p className="mt-2 text-sm" aria-live="polite">
                 Stage: <strong>{human(state.data.journey.stage)}</strong>.{" "}
@@ -130,7 +144,7 @@ function SimulateBody() {
         </div>
 
         <div className="space-y-4">
-          <DemoScript busy={busy} onRun={demo} />
+          <DemoScript busy={busy} onRun={demo} starter={journeys.find((j) => j.id === selected)?.starter ?? null} />
 
           <Card as="section" aria-labelledby="remind-h" className="p-4">
             <h2 id="remind-h" className="text-lg font-bold">Reminders</h2>

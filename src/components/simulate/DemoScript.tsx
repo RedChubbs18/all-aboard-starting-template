@@ -11,7 +11,7 @@ export type DemoStepId =
   | "jump_day0"
   | "reset";
 
-/** One-click steps for REQUIREMENTS section 12 (steps 4 to 7). They always act on the demo starter (alex-morgan). */
+/** One-click steps for REQUIREMENTS section 12 (steps 4 to 7). They act on the journey selected on the Simulate page (the demo starter, alex-morgan, by default). */
 export const DEMO_SCRIPT: { step: DemoStepId; label: string; hint: string }[] = [
   { step: "firstadvantage_action_needed", label: "First Advantage: action needed", hint: "Blocks the vetting task, flags the journey and sends a reminder." },
   { step: "firstadvantage_cleared", label: "First Advantage: cleared", hint: "Completes the vetting task and clears the flag." },
@@ -24,13 +24,15 @@ export const DEMO_SCRIPT: { step: DemoStepId; label: string; hint: string }[] = 
 interface Props {
   busy: string | null;
   onRun: (step: DemoStepId) => void;
+  /** Display name of the selected journey's starter. */
+  starter?: string | null;
 }
 
-export function DemoScript({ busy, onRun }: Props) {
+export function DemoScript({ busy, onRun, starter }: Props) {
   return (
     <Card as="section" aria-labelledby="demo-script-h" className="p-4">
       <h2 id="demo-script-h" className="text-lg font-bold">Demo script</h2>
-      <p className="mt-1 text-sm text-muted">Runs against the demo starter, Alex Morgan. Follow the steps in order.</p>
+      <p className="mt-1 text-sm text-muted">Runs against {starter ? <strong>{starter}</strong> : "the selected starter"} (change it under Starter). Follow the steps in order.</p>
       <ol className="mt-3 space-y-3">
         {DEMO_SCRIPT.map((s, i) => (
           <li key={s.step} className="flex flex-col gap-1">
