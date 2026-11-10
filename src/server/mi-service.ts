@@ -12,8 +12,15 @@ import type { MiFilters } from "@/components/mi/filters";
 import { isEffectivelyDone, isOverdue } from "@/domain/engine";
 import { STAGES, type JourneyState, type Stage, type TaskState } from "@/domain/types";
 
-const DAY = 86_400_000;
-export const CHASE_COOLDOWN_MS = DAY;
+import {
+  CHASE_COOLDOWN_MS, DAY, buildAttrition, buildEarlyWarning, buildIntake, buildLmLeague, buildLmRollup, buildMajorFlags, buildTaskBottlenecks, buildVetting,
+  chaseSuppressed, daysBetween, lmTaskFacts, median, percentile,
+  type AttritionReport, type ChaseStat, type EarlyWarningRow, type ExitFact, type IntakeOutlook, type JourneyMeta, type LmLeagueRow, type LmRollupRow,
+  type MajorFlag, type StageEvent, type TaskBottleneck, type VettingReport,
+} from "./mi-metrics";
+
+export { CHASE_COOLDOWN_MS, chaseSuppressed, daysBetween };
+export type { StageEvent };
 /** Offer to start can be up to 3 months, so "starting soon" looks 13 weeks ahead. */
 export const UPCOMING_DAYS = 91;
 export const CHASE_EVENT_TYPE = "NUDGE_SENT";
@@ -106,8 +113,6 @@ export interface Issue {
   routeLabel: string;
 }
 
-export const daysBetween = (later: Date, earlier: Date): number => Math.floor((later.getTime() - earlier.getTime()) / DAY);
-
 /** D3 clarification: one shared definition of "overdue" (src/domain/engine.ts). */
 export { isOverdue };
 
@@ -170,10 +175,6 @@ export interface ChaseRow {
   blockedUntil: string | null;
 }
 
-/** True when a chase was sent less than 24h ago. */
-export const chaseSuppressed = (lastChasedAt: Date | null, now: Date): boolean =>
-  !!lastChasedAt && now.getTime() - lastChasedAt.getTime() < CHASE_COOLDOWN_MS;
-
 /** D3: one row per LM that owns any past-due, not-DONE task. `lastChased` maps lmId to the latest chase time. */
 export function buildChaseRows(journeys: JourneyState[], names: Map<string, string>, lastChased: Map<string, Date>, now: Date): ChaseRow[] {
   const byLm = new Map<string, ChaseRow["overdue"]>();
@@ -204,14 +205,6 @@ export function buildChaseRows(journeys: JourneyState[], names: Map<string, stri
 
 // ------------------------------------------- funnel and time-in-stage (events)
 
-export interface StageEvent {
-  journeyId: string | null;
-  type: string;
-  from: string | null;
-  to: string | null;
-  createdAt: Date;
-}
-
 export interface FunnelRow {
   stage: Stage;
   reached: number;
@@ -220,18 +213,16 @@ export interface FunnelRow {
   /** Completed stays only (journeys that left the stage). */
   stays: number;
   medianDays: number | null;
+  /** 90th percentile of completed stays (linear interpolation). */
+  p90Days: number | null;
   avgDays: number | null;
 }
 
-const median = (xs: number[]): number | null => {
-  if (!xs.length) return null;
-  const s = [...xs].sort((a, b) => a - b);
-  const m = Math.floor(s.length / 2);
-  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
-};
 const round1 = (n: number) => Math.round(n * 10) / 10;
 const isStage = (s: string | null): s is Stage => !!s && (STAGES as readonly string[]).includes(s);
 const FUNNEL_EVENTS = ["JOURNEY_CREATED", "STAGE_CHANGED", "JOURNEY_EXITED", "JOURNEY_COMPLETED"];
+/** Funnel events plus the First Advantage status changes needed for vetting duration. */
+const LOADED_EVENTS = [...FUNNEL_EVENTS, "INTEGRATION_STATUS"];
 
 /**
  * Funnel and time-in-stage from the event log. A journey enters the first stage at
@@ -276,12 +267,14 @@ export function computeFunnel(events: StageEvent[], journeyIds: Iterable<string>
   return STAGES.map((stage) => {
     const d = durations.get(stage)!;
     const m = median(d);
+    const p90 = percentile(d, 90);
     return {
       stage,
       reached: reached.get(stage) ?? 0,
       pct: first ? Math.round(((reached.get(stage) ?? 0) / first) * 100) : 0,
       stays: d.length,
       medianDays: m === null ? null : round1(m),
+      p90Days: p90 === null ? null : round1(p90),
       avgDays: d.length ? round1(d.reduce((a, b) => a + b, 0) / d.length) : null,
     };
   });
@@ -300,6 +293,9 @@ export interface ExitRow {
   /** Short free-text comment. May contain personal data: excluded from CSV unless asked for. */
   comment: string | null;
   exitedAt: string | null;
+  startDate?: string | null;
+  teamName?: string | null;
+  area?: string | null;
 }
 
 export interface ExitReport {
@@ -377,17 +373,26 @@ export interface JourneyRow {
   totalTasks: number;
 }
 
+export interface OverviewKpis extends Kpis {
+  overdueLmActions: number;
+  majorFlags: number;
+}
+
 export interface Overview {
   generatedAt: string;
   filters: MiFilters;
   options: { areas: string[]; teams: { id: string; name: string; area: string | null }[] };
-  kpis: Kpis;
+  kpis: OverviewKpis;
   byStage: { stage: Stage; count: number }[];
   funnel: FunnelRow[];
   journeys: JourneyRow[];
   issues: Issue[];
-  chase: ChaseRow[];
   exits: ExitReport;
+  /** D36 sections. These ignore the status filter (rates need every starter as the denominator). */
+  lm: { league: LmLeagueRow[]; byTeam: LmRollupRow[]; byArea: LmRollupRow[]; flags: MajorFlag[] };
+  attrition: AttritionReport & { earlyWarning: EarlyWarningRow[] };
+  flow: { tasks: TaskBottleneck[]; vetting: VettingReport };
+  intake: IntakeOutlook;
 }
 
 type Loaded = {
@@ -395,7 +400,9 @@ type Loaded = {
   rows: JourneyRow[];
   names: Map<string, string>;
   emails: Map<string, string>;
-  events: (StageEvent & { data?: unknown })[];
+  events: StageEvent[];
+  meta: Map<string, JourneyMeta>;
+  updatedAt: Map<string, Date>;
   exitedAt: Map<string, Date>;
   exitData: Map<string, { reasonSource?: unknown; comment?: unknown }>;
 };
@@ -412,8 +419,8 @@ async function loadFiltered(f: MiFilters, opts: { ignoreStatus?: boolean } = {})
   const names = new Map(users.map((u) => [u.id, u.displayName]));
   const emails = new Map(users.map((u) => [u.id, u.upn]));
   const events = await prisma.event.findMany({
-    where: { journeyId: { in: journeys.map((j) => j.id) }, type: { in: FUNNEL_EVENTS } },
-    select: { journeyId: true, type: true, from: true, to: true, createdAt: true, data: true },
+    where: { journeyId: { in: journeys.map((j) => j.id) }, type: { in: LOADED_EVENTS } },
+    select: { journeyId: true, type: true, entityId: true, from: true, to: true, createdAt: true, data: true },
   });
   const exitedAt = new Map<string, Date>();
   const exitData = new Map<string, { reasonSource?: unknown; comment?: unknown }>();
@@ -423,6 +430,12 @@ async function loadFiltered(f: MiFilters, opts: { ignoreStatus?: boolean } = {})
       exitData.set(e.journeyId, (e.data ?? {}) as { reasonSource?: unknown; comment?: unknown });
     }
   }
+  const created = new Map<string, Date>();
+  for (const e of events) if (e.type === "JOURNEY_CREATED" && e.journeyId) created.set(e.journeyId, e.createdAt);
+  const meta = new Map<string, JourneyMeta>(
+    rows.map((r) => [r.id, { teamId: r.teamId, teamName: r.team.name, area: r.team.area, createdAt: created.get(r.id) ?? r.createdAt }]),
+  );
+  const updatedAt = new Map(rows.map((r) => [r.id, r.updatedAt]));
   const table: JourneyRow[] = rows.map((r, i) => ({
     id: r.id,
     starterName: names.get(r.starterId) ?? "Unknown",
@@ -438,12 +451,75 @@ async function loadFiltered(f: MiFilters, opts: { ignoreStatus?: boolean } = {})
     doneTasks: journeys[i].tasks.filter((t) => t.applicable && t.status === "DONE").length,
     totalTasks: journeys[i].tasks.filter((t) => t.applicable).length,
   }));
-  return { journeys, rows: table, names, emails, events, exitedAt, exitData };
+  return { journeys, rows: table, names, emails, events, meta, updatedAt, exitedAt, exitData };
 }
 
 async function integrationMap(journeyIds: string[]): Promise<Map<string, string>> {
   const rows = await prisma.integrationState.findMany({ where: { journeyId: { in: journeyIds } }, select: { journeyId: true, adapterKey: true, status: true } });
   return new Map(rows.map((r) => [`${r.journeyId}|${r.adapterKey}`, r.status]));
+}
+
+/** Integration status and when it last changed, per journey and adapter. */
+async function integrationDetail(journeyIds: string[]): Promise<Map<string, { status: string; updatedAt: Date }>> {
+  const rows = await prisma.integrationState.findMany({ where: { journeyId: { in: journeyIds } }, select: { journeyId: true, adapterKey: true, status: true, updatedAt: true } });
+  return new Map(rows.map((r) => [`${r.journeyId}|${r.adapterKey}`, { status: r.status, updatedAt: r.updatedAt }]));
+}
+
+/**
+ * When First Advantage began waiting on the starter, for journeys whose status is "action needed":
+ * the latest ACTION_NEEDED event, else the state's last change.
+ */
+export function vettingActionSince(
+  journeys: Pick<JourneyState, "id" | "status">[],
+  integration: Map<string, { status: string; updatedAt: Date }>,
+  events: StageEvent[],
+): Map<string, Date> {
+  const out = new Map<string, Date>();
+  for (const j of journeys) {
+    if (j.status !== "active") continue;
+    const st = integration.get(`${j.id}|firstadvantage`);
+    if (st?.status.toLowerCase() !== "action_needed") continue;
+    const evs = events
+      .filter((e) => e.journeyId === j.id && e.type === "INTEGRATION_STATUS" && e.entityId === "firstadvantage")
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    let since: Date | null = null;
+    for (const e of evs) {
+      const n = (e.data as { normalized?: string } | null)?.normalized;
+      if (n === "ACTION_NEEDED") since ??= e.createdAt;
+      else since = null;
+    }
+    out.set(j.id, since ?? st.updatedAt);
+  }
+  return out;
+}
+
+/** Latest task completion by the starter themself, per journey. */
+async function starterActivityMap(journeys: { id: string; starterId: string }[]): Promise<Map<string, Date>> {
+  const rows = await prisma.event.groupBy({
+    by: ["journeyId", "actorId"],
+    where: { journeyId: { in: journeys.map((j) => j.id) }, actorId: { in: journeys.map((j) => j.starterId) } },
+    _max: { createdAt: true },
+  });
+  const starterOf = new Map(journeys.map((j) => [j.id, j.starterId]));
+  const m = new Map<string, Date>();
+  for (const r of rows) if (r.journeyId && r.actorId === starterOf.get(r.journeyId) && r._max.createdAt) m.set(r.journeyId, r._max.createdAt);
+  return m;
+}
+
+/** Chase count and latest time per LM, from the audit log. */
+export async function chaseStatsByLm(lmIds: string[]): Promise<Map<string, ChaseStat>> {
+  const evs = await prisma.event.findMany({
+    where: { type: CHASE_EVENT_TYPE, entity: "User", entityId: { in: lmIds } },
+    orderBy: { createdAt: "asc" },
+    select: { entityId: true, createdAt: true, data: true },
+  });
+  const m = new Map<string, ChaseStat>();
+  for (const e of evs) {
+    if (!e.entityId || (e.data as { kind?: string } | null)?.kind !== "CHASE_LM") continue;
+    const c = m.get(e.entityId) ?? { last: null, count: 0 };
+    m.set(e.entityId, { last: e.createdAt, count: c.count + 1 });
+  }
+  return m;
 }
 
 /** Latest chase time per LM, from the audit log. */
@@ -467,7 +543,8 @@ export async function getIssues(f: MiFilters, now = new Date()): Promise<Issue[]
   return buildIssues(l.journeys, l.names, await integrationMap(l.journeys.map((j) => j.id)), now);
 }
 
-function exitReportFrom(l: Loaded, updatedAt: Map<string, Date>): ExitReport {
+function exitReportFrom(l: Loaded): ExitReport {
+  const updatedAt = l.updatedAt;
   return buildExitReport(
     l.journeys
       .filter((j) => j.status === "exited")
@@ -480,14 +557,15 @@ function exitReportFrom(l: Loaded, updatedAt: Map<string, Date>): ExitReport {
         reasonSource: resolveReasonSource(j.exitReason, l.exitData.get(j.id)?.reasonSource),
         comment: typeof l.exitData.get(j.id)?.comment === "string" ? String(l.exitData.get(j.id)!.comment).slice(0, 300) : null,
         exitedAt: (l.exitedAt.get(j.id) ?? updatedAt.get(j.id) ?? null)?.toISOString() ?? null,
+        startDate: j.startDate.toISOString(),
+        teamName: l.meta.get(j.id)?.teamName ?? null,
+        area: l.meta.get(j.id)?.area ?? null,
       })),
   );
 }
 
 export async function getExitReport(f: MiFilters): Promise<ExitReport> {
-  const l = await loadFiltered({ ...f, status: "exited" });
-  const meta = await prisma.journey.findMany({ where: { id: { in: l.journeys.map((j) => j.id) } }, select: { id: true, updatedAt: true } });
-  return exitReportFrom(l, new Map(meta.map((m) => [m.id, m.updatedAt])));
+  return exitReportFrom(await loadFiltered({ ...f, status: "exited" }));
 }
 
 export async function getFunnel(f: MiFilters): Promise<FunnelRow[]> {
@@ -495,16 +573,58 @@ export async function getFunnel(f: MiFilters): Promise<FunnelRow[]> {
   return computeFunnel(l.events, l.journeys.map((j) => j.id));
 }
 
+function exitFacts(l: Loaded): ExitFact[] {
+  return l.journeys
+    .filter((j) => j.status === "exited")
+    .map((j) => {
+      const m = l.meta.get(j.id);
+      return {
+        journeyId: j.id,
+        starterName: l.names.get(j.starterId) ?? "Unknown",
+        stage: j.exitStage,
+        reason: j.exitReason,
+        reasonSource: resolveReasonSource(j.exitReason, l.exitData.get(j.id)?.reasonSource),
+        exitedAt: l.exitedAt.get(j.id) ?? l.updatedAt.get(j.id) ?? null,
+        startDate: j.startDate,
+        teamId: m?.teamId ?? j.teamId,
+        teamName: m?.teamName ?? j.teamId,
+        area: m?.area ?? null,
+      };
+    });
+}
+
 export async function getOverview(f: MiFilters, now = new Date()): Promise<Overview> {
   const main = await loadFiltered(f);
-  // KPI tiles ignore the status filter so they stay a stable summary of the other filters.
-  const kpiSet = f.status ? await loadFiltered(f, { ignoreStatus: true }) : main;
-  const [integration, teams, exits] = await Promise.all([
+  // Key figures and the D36 sections ignore the status filter: rates need every starter as the denominator.
+  const all = f.status ? await loadFiltered(f, { ignoreStatus: true }) : main;
+  const allIds = all.journeys.map((j) => j.id);
+  const [integration, integrationFull, teams, starterActivity] = await Promise.all([
     integrationMap(main.journeys.map((j) => j.id)),
+    integrationDetail(allIds),
     prisma.team.findMany({ orderBy: { name: "asc" } }),
-    getExitReport(f),
+    starterActivityMap(all.journeys),
   ]);
-  const lmIds = [...new Set(main.journeys.map((j) => j.lmId))];
+  const lmIds = [...new Set(all.journeys.map((j) => j.lmId))];
+  const lmNames = new Map(lmIds.map((id) => [id, all.names.get(id) ?? "Unknown"]));
+  const chases = await chaseStatsByLm(lmIds);
+
+  const facts = lmTaskFacts(all.journeys, all.names, all.meta, now);
+  const flags = buildMajorFlags(facts, lmNames, now);
+  const league = buildLmLeague(facts, all.journeys, lmNames, flags, chases, now);
+
+  const funnel = computeFunnel(all.events, allIds);
+  const allFunnel = funnel;
+  const reached = new Map<Stage, number>(allFunnel.map((r) => [r.stage, r.reached]));
+  const attrition = buildAttrition(all.journeys, all.meta, exitFacts(all), reached, now);
+  const earlyWarning = buildEarlyWarning({
+    journeys: all.journeys,
+    names: all.names,
+    meta: all.meta,
+    vettingActionSince: vettingActionSince(all.journeys, integrationFull, all.events),
+    starterActivity,
+    now,
+  });
+
   return {
     generatedAt: now.toISOString(),
     filters: f,
@@ -512,13 +632,16 @@ export async function getOverview(f: MiFilters, now = new Date()): Promise<Overv
       areas: [...new Set(teams.map((t) => t.area).filter((a): a is string => !!a))].sort(),
       teams: teams.map((t) => ({ id: t.id, name: t.name, area: t.area })),
     },
-    kpis: computeKpis(kpiSet.journeys, now),
+    kpis: { ...computeKpis(all.journeys, now), overdueLmActions: facts.filter((x) => x.overdue).length, majorFlags: flags.length },
     byStage: countByStage(main.journeys),
-    funnel: computeFunnel(main.events, main.journeys.map((j) => j.id)),
+    funnel,
     journeys: main.rows,
     issues: buildIssues(main.journeys, main.names, integration, now),
-    chase: buildChaseRows(main.journeys, main.names, await lastChasedByLm(lmIds), now),
-    exits,
+    exits: exitReportFrom(all),
+    lm: { league, byTeam: buildLmRollup(facts, flags, "team"), byArea: buildLmRollup(facts, flags, "area"), flags },
+    attrition: { ...attrition, earlyWarning },
+    flow: { tasks: buildTaskBottlenecks(all.journeys, now), vetting: buildVetting(all.events, all.journeys, all.names, all.meta, now) },
+    intake: buildIntake(all.journeys, all.names, all.meta, now),
   };
 }
 

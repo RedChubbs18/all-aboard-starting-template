@@ -100,6 +100,22 @@ export const FIRSTADVANTAGE_SEED_STATUSES = ["NOT_STARTED", "IN_PROGRESS", "ACTI
 
 const dateString = z.string().min(1).refine((v) => !Number.isNaN(Date.parse(v)), "invalid date");
 
+/** Optional synthetic history for MI (dates are YYYY-MM-DD). Read by src/server/seed-history.ts only. */
+export const journeyHistorySchema = z.object({
+  /** When the journey was created (offer accepted). */
+  offerAcceptedAt: dateString,
+  /** Entry date per later stage; missing stages fall back to 4-day steps. */
+  stageEnteredAt: z.record(z.string(), dateString).default({}),
+  /** First Advantage timeline: an action-needed spell and the clearance date. */
+  vetting: z.object({ actionNeededAt: dateString.nullish(), actionResolvedAt: dateString.nullish(), clearedAt: dateString.nullish() }).nullish(),
+  /** Exit data carried on the JOURNEY_EXITED event (D14). */
+  exit: z.object({ reasonSource: z.enum(["COLLEAGUE", "PNP"]), comment: z.string().nullish() }).nullish(),
+  /** Starter-owned tasks are never completed after this date (simulates a quiet starter). */
+  lastStarterActivityAt: dateString.nullish(),
+  /** LM tasks are completed 0..N days after their due date (deterministic per task). */
+  lmDelayDays: z.number().int().min(0).max(30).default(0),
+});
+
 export const journeySeedSchema = z.object({
   key: z.string().min(1),
   starterKey: z.string().min(1),
@@ -115,6 +131,7 @@ export const journeySeedSchema = z.object({
   firstAdvantageStatus: z.enum(FIRSTADVANTAGE_SEED_STATUSES).nullish(),
   /** Partial overrides applied after engine instantiation. Tasks in stages before currentStage are DONE; completed journeys are all DONE. */
   taskStates: z.array(taskStateSchema).default([]),
+  history: journeyHistorySchema.nullish(),
 });
 
 export const peopleFileSchema = z.object({

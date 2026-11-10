@@ -1,8 +1,10 @@
 import { withRole } from "@/lib/auth/server";
-import { EXPORT_TYPES, exitsCsv, funnelCsv, issuesCsv, journeysCsv, type ExportType } from "@/server/mi-csv";
-import { getExitReport, getFunnel, getIssues, getJourneyRows, parseFilters } from "@/server/mi-service";
+import {
+  EXPORT_TYPES, attritionCsv, bottlenecksCsv, earlyWarningCsv, exitsCsv, funnelCsv, intakeCsv, issuesCsv, journeysCsv, lmFlagsCsv, lmLeagueCsv, vettingCsv, type ExportType,
+} from "@/server/mi-csv";
+import { getExitReport, getFunnel, getIssues, getJourneyRows, getOverview, parseFilters } from "@/server/mi-service";
 
-/** CSV export honouring the dashboard filters: ?type=journeys|issues|exits|funnel&stage=... */
+/** CSV export honouring the dashboard filters: ?type=<EXPORT_TYPES>&stage=... */
 export const GET = withRole(["PNP", "ADMIN"], async (req) => {
   const url = new URL(req.url);
   const type = url.searchParams.get("type") as ExportType | null;
@@ -10,8 +12,13 @@ export const GET = withRole(["PNP", "ADMIN"], async (req) => {
     return Response.json({ error: "bad_request", message: `type must be one of ${EXPORT_TYPES.join(", ")}` }, { status: 400 });
   }
   const f = parseFilters(url.searchParams);
+  // D36 sections come from the overview so the CSV always matches what the page shows.
+  const section: Partial<Record<ExportType, (o: Awaited<ReturnType<typeof getOverview>>) => string>> = {
+    "lm-league": lmLeagueCsv, "lm-flags": lmFlagsCsv, attrition: attritionCsv, "early-warning": earlyWarningCsv, bottlenecks: bottlenecksCsv, vetting: vettingCsv, intake: intakeCsv,
+  };
   const body =
-    type === "journeys" ? journeysCsv(await getJourneyRows(f))
+    section[type] ? section[type]!(await getOverview(f))
+    : type === "journeys" ? journeysCsv(await getJourneyRows(f))
     : type === "issues" ? issuesCsv(await getIssues(f))
     : type === "exits" ? exitsCsv((await getExitReport(f)).rows, { includeComments: url.searchParams.get("includeComments") === "1" })
     : funnelCsv(await getFunnel(f));

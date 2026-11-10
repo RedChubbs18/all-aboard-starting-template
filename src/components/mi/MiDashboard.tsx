@@ -3,17 +3,19 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "@/lib/auth/client";
 import { useApi } from "@/lib/auth/use-api";
-import type { ChaseRow, Issue, Overview } from "@/server/mi-service";
+import type { Issue, Overview } from "@/server/mi-service";
+import type { LmLeagueRow } from "@/server/mi-metrics";
 import { FilterBar } from "./FilterBar";
 import { filtersToQuery, parseFilters, type MiFilters } from "./filters";
-import { ISSUE_KIND_LABEL, OWNER_LABEL, STAGE_LABEL, STATUS_LABEL, reasonLabel, sourceLabel, stageLabel } from "./labels";
+import { ISSUE_KIND_LABEL, OWNER_LABEL, STAGE_LABEL, STATUS_LABEL, stageLabel } from "./labels";
+import { AttritionSection } from "./AttritionSection";
+import { Explain } from "./Explain";
+import { FlowSection } from "./FlowSection";
+import { fmtDate, plural } from "./format";
+import { IntakeSection } from "./IntakeSection";
+import { LmSection } from "./LmSection";
 import { ChipRow, chipClass as chipLinkClass } from "@/components/ui/Chip";
-import { Badge, ChartCard, Icon, Modal, ResponsiveTable, Section, Skeleton, btnPrimary, btnSecondary, fieldClass } from "./primitives";
-
-const fmtDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) : "Not recorded");
-const fmtTime = (iso: string) => new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-const days = (n: number | null) => (n === null ? "No data" : `${n} d`);
-const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
+import { Badge, Icon, Modal, ResponsiveTable, Section, Skeleton, btnPrimary, btnSecondary, fieldClass } from "./primitives";
 
 type Notice = { kind: "success" | "error"; text: string } | null;
 
@@ -77,7 +79,7 @@ export function MiDashboard() {
 
   return (
     <div className="mx-auto max-w-[1200px] space-y-4 pb-20 md:pb-4">
-      <h1 className="text-[28px] font-bold leading-tight text-ink">Intake overview</h1>
+      <h1 className="text-[28px] font-bold leading-tight text-ink">MI: onboarding insight</h1>
 
       {/* Two always-mounted live regions (polite and assertive) so announcements are reliable; the role never swaps. */}
       <div className="pointer-events-none fixed inset-x-3 top-3 z-50 md:inset-x-auto md:right-4 md:top-auto md:bottom-4 md:w-96">
@@ -102,7 +104,7 @@ export function MiDashboard() {
       {loading && !view && (
         <div aria-busy="true" role="status" className="space-y-4">
           <span className="sr-only">Loading MI</span>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-5"><Skeleton /><Skeleton /><Skeleton /><Skeleton /><Skeleton /></div>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4"><Skeleton /><Skeleton /><Skeleton /><Skeleton /></div>
           <Skeleton className="h-64" />
         </div>
       )}
@@ -124,11 +126,13 @@ function Body({ data, onClear, post, reload, setNotice, exportBtn }: {
   const kpis: { label: string; value: number }[] = [
     { label: "Active", value: data.kpis.active },
     { label: "Starting in next 13 weeks", value: data.kpis.startingSoon },
-    { label: "Flagged", value: data.kpis.flagged },
+    { label: "Overdue LM actions", value: data.kpis.overdueLmActions },
+    { label: "Major flags", value: data.kpis.majorFlags },
+    { label: "Blocked journeys", value: data.kpis.flagged },
     { label: "Exited", value: data.kpis.exited },
     { label: "Completed", value: data.kpis.completed },
   ];
-  const [chasing, setChasing] = useState<ChaseRow | null>(null);
+  const [chasing, setChasing] = useState<LmLeagueRow | null>(null);
   const [support, setSupport] = useState<Issue | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
@@ -166,78 +170,29 @@ function Body({ data, onClear, post, reload, setNotice, exportBtn }: {
   return (
     <>
       <section aria-label="Key figures">
-        <ul className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-          {kpis.map((k, i) => (
-            <li key={k.label} className={`rounded-md border border-line bg-card px-[22px] py-4 ${i === 4 ? "col-span-2 lg:col-span-1" : ""}`}>
+        <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-7">
+          {kpis.map((k) => (
+            <li key={k.label} className="rounded-md border border-line bg-card px-[22px] py-4">
               <p className="text-[32px] font-extrabold leading-tight tracking-[-0.02em] text-ink">{k.value}</p>
               <p className="text-sm text-muted">{k.label}</p>
             </li>
           ))}
         </ul>
-        {data.filters.status && <p className="mt-2 text-sm text-muted">Key figures ignore the status filter.</p>}
+        <p className="mt-2 text-sm text-muted">Key figures and the sections down to the intake outlook ignore the status filter, so every rate has a full denominator.</p>
       </section>
 
       <nav aria-label="Dashboard sections">
         <ChipRow label="Jump to section">
-          {[["#charts", "Charts"], ["#chase", "Chase"], ["#issues", "Issues"], ["#starters", "Starters"], ["#exits", "Exits"]].map(([href, label]) => (
+          {[["#lm", "Line managers"], ["#attrition", "Attrition"], ["#flow", "Flow"], ["#intake", "Intake"], ["#issues", "Issues"], ["#starters", "Starters"]].map(([href, label]) => (
             <a key={href} href={href} className={chipLinkClass}>{label}</a>
           ))}
         </ChipRow>
       </nav>
 
-      {total === 0 ? (
-        <Section title="Starters">{empty}</Section>
-      ) : (
-        <div id="charts" className="grid scroll-mt-2 gap-4 lg:grid-cols-2">
-          <ChartCard
-            title="Starters by current stage"
-            summary={`${plural(total, "starter")} in this view`}
-            headers={["Stage", "Starters", "Share"]}
-            items={data.byStage.map((s) => ({ key: s.stage, label: STAGE_LABEL[s.stage], value: s.count, valueText: `${s.count} (${Math.round((s.count / total) * 100)}%)` }))}
-            table={data.byStage.map((s) => [STAGE_LABEL[s.stage], s.count, `${Math.round((s.count / total) * 100)}%`])}
-          />
-          <ChartCard
-            title="Funnel and time in stage"
-            summary="Starters who reached each stage, with median days spent there (from the event log)."
-            headers={["Stage", "Reached", "% of first stage", "Median days", "Average days", "Completed stays"]}
-            items={data.funnel.map((r) => ({
-              key: r.stage,
-              label: STAGE_LABEL[r.stage],
-              value: r.reached,
-              valueText: `${r.reached} (${r.pct}%)`,
-              detail: `Median ${days(r.medianDays)}, average ${days(r.avgDays)}`,
-            }))}
-            table={data.funnel.map((r) => [STAGE_LABEL[r.stage], r.reached, `${r.pct}%`, days(r.medianDays), days(r.avgDays), r.stays])}
-          />
-        </div>
-      )}
-
-      <Section id="chase" title="Chase line managers" actions={null}>
-        <p className="text-sm text-muted">Shown when a line manager has a task that is past due and not done. A line manager can be chased once every 24 hours.</p>
-        {data.chase.length === 0 ? (
-          <p className="mt-3">No line manager has overdue tasks in this view.</p>
-        ) : (
-          <ul className="mt-3 space-y-3">
-            {data.chase.map((c) => (
-              <li key={c.lmId} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-line bg-page p-3">
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold">{c.lmName}</p>
-                  <p className="text-sm">{plural(c.overdue.length, "overdue task")}: {c.overdue.slice(0, 3).map((t) => `${t.title} (${t.starterName}, ${t.daysOverdue}d)`).join("; ")}{c.overdue.length > 3 ? `; and ${c.overdue.length - 3} more` : ""}</p>
-                  <p className="text-sm text-muted">{c.lastChasedAt ? `Last chased ${fmtTime(c.lastChasedAt)}` : "Never chased"}</p>
-                </div>
-                <div>
-                  <button type="button" disabled={!c.canChase} aria-describedby={c.canChase ? undefined : `why-${c.lmId}`} onClick={() => setChasing(c)} className={btnPrimary}>
-                    {c.canChase ? "Chase LM" : `Chased ${new Date(c.lastChasedAt!).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`}
-                  </button>
-                  {!c.canChase && c.blockedUntil && (
-                    <p id={`why-${c.lmId}`} className="mt-1 max-w-48 text-sm text-muted">Chased in the last 24 hours. Available again {fmtTime(c.blockedUntil)}.</p>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Section>
+      <LmSection lm={data.lm} exportBtn={exportBtn} onChase={setChasing} />
+      <AttritionSection attrition={data.attrition} exits={data.exits} exportBtn={exportBtn} />
+      <FlowSection data={data} exportBtn={exportBtn} empty={empty} />
+      <IntakeSection intake={data.intake} exportBtn={exportBtn} />
 
       <Section id="issues" title={`Issues (${data.issues.length})`} actions={exportBtn("issues", "Export issues CSV")}>
         <p className="text-sm text-muted">Blocked, overdue and failed steps across active journeys.</p>
@@ -257,6 +212,9 @@ function Body({ data, onClear, post, reload, setNotice, exportBtn }: {
             ]}
           />
         </div>
+        <Explain>
+          <p>Failed and action-needed integration steps first, then blocked, then overdue (D3: not done, not locked, due date passed). Raise support routes to the line manager, the P&amp;P queue or the owning system team. This list follows the status filter.</p>
+        </Explain>
       </Section>
 
       <Section id="starters" title={`Starters (${total})`} actions={exportBtn("journeys", "Export starters CSV")}>
@@ -277,47 +235,12 @@ function Body({ data, onClear, post, reload, setNotice, exportBtn }: {
         />
       </Section>
 
-      <Section id="exits" title={`Exit report (${data.exits.rows.length})`} actions={exportBtn("exits", "Export exits CSV")}>
-        {data.exits.rows.length === 0 ? (
-          <p>No exits in this view.</p>
-        ) : (
-          <>
-            <p className="mb-3">
-              <span className="font-semibold">{data.exits.colleagueSupplied.pct}% colleague-supplied</span>{" "}
-              <span className="text-muted">({data.exits.colleagueSupplied.count} of {data.exits.colleagueSupplied.total} exits; the rest were recorded by P&amp;P or have no source)</span>
-            </p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <CountList title="By reason" rows={data.exits.byReason.map((r) => [reasonLabel(r.key), r.count])} />
-              <CountList title="By stage reached" rows={data.exits.byStage.map((r) => [stageLabel(r.key), r.count])} />
-            </div>
-            <div className="mt-4">
-              <ResponsiveTable
-                caption="Exited starters"
-                rows={data.exits.rows}
-                rowKey={(r) => r.journeyId}
-                empty={null}
-                columns={[
-                  { key: "name", header: "Starter", primary: true, sort: (r) => r.starterName, cell: (r) => r.starterName },
-                  { key: "stage", header: "Stage reached", sort: (r) => r.stage ?? "", cell: (r) => stageLabel(r.stage) },
-                  { key: "reason", header: "Reason", sort: (r) => r.reason ?? "", cell: (r) => reasonLabel(r.reason) },
-                  { key: "source", header: "Reason from", sort: (r) => r.reasonSource ?? "", cell: (r) => sourceLabel(r.reasonSource) },
-                  { key: "comment", header: "Comment", cell: (r) => r.comment ?? "None" },
-                  { key: "date", header: "Exit date", sort: (r) => r.exitedAt ?? "", cell: (r) => fmtDate(r.exitedAt) },
-                ]}
-              />
-            </div>
-          </>
-        )}
-      </Section>
-
-      <div className="flex justify-end">{exportBtn("funnel", "Export funnel CSV")}</div>
-
       <Modal open={!!chasing} onClose={() => setChasing(null)} title="Chase line manager">
         {chasing && (
           <>
-            <p>Send a nudge to {chasing.lmName} about {plural(chasing.overdue.length, "overdue task")}?</p>
+            <p>Send a nudge to {chasing.lmName} about {plural(chasing.overdueItems.length, "overdue action")}?</p>
             <ul className="mt-2 list-disc pl-5 text-sm">
-              {chasing.overdue.map((t) => <li key={`${t.journeyId}|${t.taskKey}`}>{t.title} for {t.starterName}, {t.daysOverdue} d overdue</li>)}
+              {chasing.overdueItems.map((t) => <li key={`${t.journeyId}|${t.taskKey}`}>{t.title} for {t.starterName}, {t.days} d overdue</li>)}
             </ul>
             <div className="mt-4 flex flex-wrap gap-3">
               <button type="button" onClick={() => setChasing(null)} className={btnSecondary}>Cancel</button>
@@ -343,24 +266,5 @@ function Body({ data, onClear, post, reload, setNotice, exportBtn }: {
         )}
       </Modal>
     </>
-  );
-}
-
-function CountList({ title, rows }: { title: string; rows: (string | number)[][] }) {
-  return (
-    <div>
-      <h3 className="font-semibold">{title}</h3>
-      <table className="mt-1 w-full text-left">
-        <caption className="sr-only">Exits {title.toLowerCase()}</caption>
-        <tbody>
-          {rows.map(([k, v]) => (
-            <tr key={String(k)} className="border-b border-line">
-              <th scope="row" className="py-1.5 pr-3 font-normal">{k}</th>
-              <td className="py-1.5 text-right font-semibold">{v}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
   );
 }
