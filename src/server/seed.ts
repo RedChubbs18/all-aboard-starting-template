@@ -111,7 +111,7 @@ export async function seedDatabase(prisma: PrismaClient, log: (m: string) => voi
     await prisma.user.create({
       data: {
         id: u.key, upn: o?.upn ?? u.email, entraOid: o?.entraOid ?? null, displayName: u.name, roles: u.roles,
-        teamId: u.teamKey ?? null, teamRole: u.teamRole ?? null, jobTitle: u.jobTitle ?? null,
+        teamId: u.teamKey ?? null, teamRole: u.teamRole ?? null, jobTitle: u.jobTitle ?? null, jobFamily: u.jobFamily ?? null,
         photoUrl: u.photo ?? null, bio: u.bio ?? null, buddyEligible: u.buddyEligible,
       },
     });

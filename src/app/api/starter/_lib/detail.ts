@@ -1,3 +1,4 @@
+import { entitledModels } from "@/adapters/equipment/catalogue";
 import { getAdapter } from "@/adapters/registry";
 import { ADAPTER_KEYS, type AdapterKey, type JourneyState, type TaskState } from "@/domain/types";
 import { applyVars, extractSteps, findLabelledUrl, formatDays } from "@/lib/markdown";
@@ -26,6 +27,7 @@ const LINKS: Record<string, { label: string; href: string }[]> = {
   "complete-vetting-steps": [{ label: "Open First Advantage", href: "https://firstadvantage.example.test/candidate" }],
   "firstadvantage-vetting-status": [{ label: "Open First Advantage", href: "https://firstadvantage.example.test/candidate" }],
   "review-flex-benefits": [{ label: "Open flex benefits", href: "https://benefits.example.test/flex" }],
+  "team-gcp-fundamentals-training": [{ label: "Open the learning hub", href: "https://example.test/learning" }],
   "view-mandatory-training": [{ label: "Open Workday learning", href: "https://workday.example.test/learning" }],
   "mandatory-training-checklist": [{ label: "Open Workday learning", href: "https://workday.example.test/learning" }],
   "read-contract-recap": [{ label: "Open Workday", href: "https://workday.example.test/" }],
@@ -50,7 +52,7 @@ async function detailFor(journey: JourneyState, t: TaskState, bodyMd: string): P
 
   if (k === "choose-peripherals" && t.adapterKey === "equipment") {
     const eq = await getAdapter("equipment");
-    return { kind: "order", mode: "peripherals", choice: await eq.getChoice(jid) };
+    return { kind: "order", mode: "peripherals", choice: await eq.getChoice(jid), models: [] };
   }
   if (k === "upload-pass-photo") {
     const pass = await getAdapter("pass");
@@ -79,7 +81,9 @@ async function detailFor(journey: JourneyState, t: TaskState, bodyMd: string): P
     case "ORDER": {
       if (t.adapterKey === "equipment") {
         const eq = await getAdapter("equipment");
-        return { kind: "order", mode: k === "order-home-working-items" ? "home" : "device", choice: await eq.getChoice(jid) };
+        const starter = await prisma.user.findUnique({ where: { id: journey.starterId }, select: { jobFamily: true } });
+        const models = entitledModels(starter?.jobFamily).map(({ id, label, device }) => ({ id, label, device }));
+        return { kind: "order", mode: k === "order-home-working-items" ? "home" : "device", choice: await eq.getChoice(jid), models };
       }
       break;
     }

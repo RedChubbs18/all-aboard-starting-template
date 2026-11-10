@@ -60,8 +60,8 @@
   },
   {
     "id": "faq-05",
-    "question": "What is the difference between a Mac and a Windows laptop?",
-    "answer": "Both work for the same job. A Mac suits people who already use macOS or prefer it. A Windows laptop suits people who already use Windows, or whose team's tools are mainly Windows-based (example). You pick one in the \"Choose your primary device\" task before the deadline.",
+    "question": "What is the difference between a Mac and a Windows laptop, and which models can I choose?",
+    "answer": "Both types work for the same job. A Mac suits people who already use macOS or prefer it. A Windows laptop suits people who already use Windows, or whose team's tools are mainly Windows-based (example). Your choice depends on your job family: Engineering colleagues choose between the MacBook Pro M5 Pro and the HP EliteBook U7 (high spec). Everyone else chooses between the MacBook Air M5 and the HP EliteBook U5 (standard spec). You pick one in the \"Choose your primary device\" task before the deadline.",
     "tags": [
       "mac",
       "windows",
@@ -69,14 +69,18 @@
       "difference",
       "device",
       "choose",
-      "macos"
+      "macos",
+      "macbook",
+      "elitebook",
+      "engineering",
+      "job family"
     ],
     "sourceSlug": "device-choice-mac-or-windows"
   },
   {
     "id": "faq-06",
     "question": "Can I choose a Mac?",
-    "answer": "Yes. Choose Mac in the \"Choose your primary device\" task before the deadline shown on that task. If you need to change your choice after the deadline, ask your LM.",
+    "answer": "Yes. Choose the Mac model offered to you in the \"Choose your primary device\" task before the deadline shown on that task: the MacBook Pro M5 Pro for Engineering, or the MacBook Air M5 for other job families. If you need to change your choice after the deadline, ask your LM.",
     "tags": [
       "mac",
       "choose",
@@ -200,7 +204,7 @@
   {
     "id": "faq-13",
     "question": "What do I need to do before my first day?",
-    "answer": "Choose your Mac or Windows laptop, set up your password and Microsoft Authenticator, book your induction, upload your pass photo and confirm your Day 0 arrangements. Your line manager raises your IT requests. Your journey lists your tasks in order and shows which are due soon.",
+    "answer": "Choose your laptop (a Mac or a Windows model offered for your job family), set up your password and Microsoft Authenticator, book your induction, upload your pass photo and confirm your Day 0 arrangements. Your line manager raises your IT requests. Your journey lists your tasks in order and shows which are due soon.",
     "tags": [
       "before day one",
       "before start",
@@ -582,5 +586,40 @@
       "download",
       "mobile"
     ]
+  },
+  {
+    "id": "faq-39",
+    "question": "Why am I only offered two laptop models?",
+    "answer": "Laptops are matched to your job family, which comes from your offer. Engineering colleagues get the high-spec tier: MacBook Pro M5 Pro or HP EliteBook U7. All other job families get the standard tier: MacBook Air M5 or HP EliteBook U5. Within your tier, pick the Mac or the Windows model you prefer. If you think your job family is wrong, ask your LM.",
+    "tags": [
+      "laptop",
+      "tier",
+      "entitlement",
+      "job family",
+      "engineering",
+      "macbook",
+      "elitebook",
+      "models",
+      "why",
+      "spec"
+    ],
+    "sourceSlug": "device-choice-mac-or-windows"
+  },
+  {
+    "id": "faq-40",
+    "question": "What do I need to do as a new joiner in Cloud Platform Engineering?",
+    "answer": "On top of the standard steps, Cloud Platform Engineering joiners have three team steps: your line manager requests your GCP project access, you complete the Google Cloud Platform fundamentals training, and you join the cloud on-call rota briefing. They appear in your journey only if you join this team.",
+    "tags": [
+      "cloud",
+      "gcp",
+      "google cloud",
+      "on-call",
+      "rota",
+      "training",
+      "team",
+      "platform",
+      "project access"
+    ],
+    "sourceSlug": "cloud-platform-team-guide"
   }
 ]

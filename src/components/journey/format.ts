@@ -20,3 +20,12 @@ const dayStart = (d: Date) => Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.ge
 export function isOverdue(dueIso: string, now: Date): boolean {
   return dayStart(new Date(dueIso)) < dayStart(now);
 }
+
+/**
+ * D32 timing for the vetting task before the colleague has been invited: "Due soon" (within a week, or already due)
+ * or "Due Fri 20 Nov". Deliberately says nothing about First Advantage's status.
+ */
+export function vettingTiming(dueIso: string, now: Date): string {
+  const days = (dayStart(new Date(dueIso)) - dayStart(now)) / 86_400_000;
+  return days <= 7 ? "Due soon" : `Due ${formatShortDate(dueIso)}`;
+}

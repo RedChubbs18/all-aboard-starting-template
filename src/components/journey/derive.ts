@@ -3,6 +3,7 @@
  * completion and screen-reader announcements. No React, so it is unit tested directly.
  * (design/journey-track.md sections 2, 4 and 6.)
  */
+import { stageUnlockDate } from "@/domain/stage-timing";
 import { STAGES, stageIndex, type Stage } from "@/domain/types";
 import { formatDayMonth, formatLongDate, isOverdue } from "./format";
 import type { StageTally, TaskDto } from "./types";
@@ -65,6 +66,8 @@ export interface ViewInput {
   viewerIsStarter?: boolean;
   currentStage: Stage;
   status: "active" | "completed" | "exited";
+  /** ISO start date. D31: Day 0 and Day 30 explain that they wait for their date. */
+  startDate?: string;
 }
 
 /** Tasks the starter should see: `applicable=false` tasks never appear (FR-4.5). */
@@ -117,6 +120,17 @@ export const displayPercent = (progress: number, completed: boolean) => {
   return completed ? p : Math.min(99, p);
 };
 
+/** D31: "Unlocks on <date>." once the earlier tasks are done, otherwise the tasks plus the earliest date. */
+function unlockHint(input: ViewInput, key: Stage, i: number, at: number, prev: string, now: Date): string {
+  const tasksHint = `Unlocks when ${prev} tasks are done.`;
+  const unlock = input.startDate ? stageUnlockDate(new Date(input.startDate), key) : null;
+  if (!unlock || unlock.getTime() <= now.getTime()) return tasksHint;
+  const on = formatLongDate(unlock.toISOString());
+  const cur = input.overall?.[STAGES[at]];
+  const currentDone = cur ? cur.gatingTotal > 0 && cur.gatingDone === cur.gatingTotal : false;
+  return i === at + 1 && currentDone ? `Unlocks on ${on}.` : `Unlocks when ${prev} tasks are done, and not before ${on}.`;
+}
+
 export function deriveView(input: ViewInput, now: Date = new Date()): JourneyView {
   const all = visibleTasks(input.tasks);
   // Optional tasks never count; a starter's forecast only counts the starter's own tasks (D20).
@@ -138,7 +152,7 @@ export function deriveView(input: ViewInput, now: Date = new Date()): JourneyVie
       totalCount: st.length,
       gatingDone: ov ? ov.gatingDone : gating.filter((t) => t.status === "DONE").length,
       gatingTotal: ov ? ov.gatingTotal : gating.length,
-      unlockHint: state === "locked" && prev ? `Unlocks when ${prev} tasks are done.` : undefined,
+      unlockHint: state === "locked" && prev ? unlockHint(input, key, i, at, prev, now) : undefined,
     };
   });
 

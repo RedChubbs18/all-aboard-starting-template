@@ -118,6 +118,8 @@ export function classifyTask(t: TaskState, integrationStatus: string | undefined
   if (t.adapterKey && s === "failed") return "FAILED";
   if (t.adapterKey && s === "action_needed") return "ACTION_NEEDED";
   if (t.status === "BLOCKED") return "BLOCKED";
+  // D32: until the colleague has been invited to complete vetting (no First Advantage status, or not started) it is not an issue.
+  if (t.adapterKey === "firstadvantage" && (!s || s === "not_started")) return null;
   if (isOverdue(t, now, tasks)) return "OVERDUE";
   return null;
 }

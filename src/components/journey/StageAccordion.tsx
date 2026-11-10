@@ -8,6 +8,7 @@ import { cn } from "@/components/ui/cn";
 import { StageHeader } from "@/components/ui/StageHeader";
 import { Alert } from "@/components/ui/Alert";
 import { ContactCard } from "@/components/ui/ContactCard";
+import { vettingTiming } from "./format";
 import { TaskList } from "./TaskList";
 import type { TrackStage } from "./derive";
 import type { JourneyDto, TaskDto } from "./types";
@@ -77,12 +78,22 @@ export function StageAccordion({ stages, journey, readOnly, highlightOwner, open
             />
             <div id={id} role="region" aria-labelledby={`${id}-btn`} hidden={!expanded} className="space-y-3 border-t border-line pt-3">
               <p className="px-4 text-sm text-muted">{s.description}</p>
-              {faTask && journey.firstadvantage && s.state !== "locked" && (
+              {faTask && s.state !== "locked" && (
                 <Link href={`/journey/task/${faTask.id}`} className="mx-4 flex min-h-14 items-center gap-3 rounded-md border border-line bg-page p-3">
                   <ShieldCheck aria-hidden className="size-6 shrink-0 text-brand-strong" strokeWidth={1.8} />
                   <span className="min-w-0 flex-1">
-                    <span className="block text-xs font-bold text-muted">First Advantage status</span>
-                    <span className="block font-semibold">{FA_LABEL[journey.firstadvantage.status]}</span>
+                    {/* D32: until the colleague has been invited to complete vetting there is no status chip, only timing. */}
+                    {journey.firstadvantage && journey.firstadvantage.status !== "not_started" ? (
+                      <>
+                        <span className="block text-xs font-bold text-muted">First Advantage status</span>
+                        <span className="block font-semibold">{FA_LABEL[journey.firstadvantage.status]}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="block text-xs font-bold text-muted">Vetting</span>
+                        <span className="block font-semibold">{faTask.status === "DONE" ? "Done" : vettingTiming(faTask.dueDate, now ?? new Date())}</span>
+                      </>
+                    )}
                   </span>
                 </Link>
               )}

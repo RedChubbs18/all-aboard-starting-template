@@ -24,7 +24,7 @@ export type Detail =
   | { kind: "none" }
   | { kind: "checklist"; steps: string[] }
   | { kind: "booking"; sessions: InductionSession[]; booking: Booking | null }
-  | { kind: "order"; mode: "device" | "peripherals" | "home"; choice: EquipmentChoice | null }
+  | { kind: "order"; mode: "device" | "peripherals" | "home"; choice: EquipmentChoice | null; /** D29: the models this starter may choose (their job-family tier). */ models: { id: string; label: string; device: "MAC" | "WINDOWS" }[] }
   | { kind: "collect"; choice: EquipmentChoice | null }
   | { kind: "firstadvantage"; status: FirstAdvantageSummary }
   | { kind: "system"; provider: string; statusText: string; updatedAt: string | null }

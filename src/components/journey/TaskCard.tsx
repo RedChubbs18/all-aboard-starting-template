@@ -7,6 +7,7 @@ import { Tick } from "@/components/ui/Tick";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/components/ui/cn";
 import { formatShortDate, isOverdue } from "./format";
+import { useCompletionGate } from "./CompletionPrompt";
 import { canQuickComplete } from "./task-rules";
 import type { TaskDto } from "./types";
 
@@ -37,6 +38,12 @@ const TYPE_LABEL: Record<TaskDto["type"], string> = {
 /** Task row (STYLE section 13): tick left, timing label, title, note, owner pill right. The row is one link (44px+ target); a separate button completes plain tasks. */
 export function TaskCard({ task, readOnly, highlightOwner, viewerIsStarter = true, now = new Date(), onComplete, pending }: TaskCardProps) {
   const rowRef = useRef<HTMLAnchorElement>(null);
+  // D30: tasks that need action ask "Is this task complete?" before they are marked done.
+  const gate = useCompletionGate(task, () => {
+    // The button unmounts once the task is DONE, so move focus to the row first (WCAG 2.4.3).
+    rowRef.current?.focus();
+    onComplete?.(task);
+  });
   const overdue = task.status !== "DONE" && task.status !== "LOCKED" && isOverdue(task.dueDate, now);
   const highlight = !!highlightOwner && task.owner === highlightOwner;
   const waiting = task.status === "LOCKED" && task.lockedReason;
@@ -84,16 +91,13 @@ export function TaskCard({ task, readOnly, highlightOwner, viewerIsStarter = tru
       {quick && (
         <div className="px-4 pb-3 pl-[50px]">
           <Button variant="secondary" loading={pending} 
-            onClick={() => {
-              // The button unmounts once the task is DONE, so move focus to the row first (WCAG 2.4.3).
-              rowRef.current?.focus();
-              onComplete?.(task);
-            }}
+            onClick={gate.trigger}
             aria-label={`Mark done: ${task.title}`}
           >
             <Check aria-hidden className="size-5" strokeWidth={1.8} />
             Mark done
           </Button>
+          {gate.dialog}
         </div>
       )}
     </li>

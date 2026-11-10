@@ -1,9 +1,13 @@
 import type { BaseAdapter } from "../types";
+import type { DeviceModel } from "./catalogue";
 
 export type CollectionPoint = "TECH_BAR" | "MAILROOM";
 
 export interface EquipmentChoice {
   device: "MAC" | "WINDOWS";
+  /** D29: catalogue id and label of the exact model (absent on choices stored before models existed). */
+  modelId?: string;
+  model?: string;
   peripherals: string[];
   collectionPoint: string;
   ref: string;
@@ -15,7 +19,7 @@ export interface CatalogueItem {
 }
 
 export interface EquipmentCatalogue {
-  devices: (CatalogueItem & { device: "MAC" | "WINDOWS" })[];
+  devices: DeviceModel[];
   peripherals: CatalogueItem[];
   homeWorking: CatalogueItem[];
   collectionPoints: (CatalogueItem & { id: CollectionPoint })[];
@@ -33,7 +37,7 @@ export interface EquipmentAdapter extends BaseAdapter {
   key: "equipment";
   submitChoice(
     journeyId: string,
-    choice: { device: "MAC" | "WINDOWS"; peripherals: string[]; collectionPoint?: CollectionPoint },
+    choice: { device: "MAC" | "WINDOWS"; /** D29: catalogue model id; when set it must match `device`. */ modelId?: string; peripherals: string[]; collectionPoint?: CollectionPoint },
   ): Promise<EquipmentChoice>;
   getChoice(journeyId: string): Promise<EquipmentChoice | null>;
   /** Additive. Catalogue of devices, Day 0 peripherals, home-working items and collection points. */

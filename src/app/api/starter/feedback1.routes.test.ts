@@ -128,11 +128,15 @@ describe("F12 device and peripherals are separate tasks", () => {
     expect(periph).toMatchObject({ optional: true, gating: false });
     // Peripherals need the device first.
     expect((await call(postEquipment, ALEX, "/x", { method: "POST", body: { taskId: periph.id, peripherals: ["Headset"] } })).status).toBe(409);
-    const dev = await call<{ choice: { device: string } }>(postEquipment, ALEX, "/x", { method: "POST", body: { taskId: await taskId("device-choice-submitted"), device: "WINDOWS" } });
+    // D29: Alex is an engineer, so only the high-spec models are on offer.
+    const devId = await taskId("device-choice-submitted");
+    expect((await call(postEquipment, ALEX, "/x", { method: "POST", body: { taskId: devId, modelId: "hp-elitebook-u5" } })).status).toBe(422);
+    expect((await call(postEquipment, ALEX, "/x", { method: "POST", body: { taskId: devId, device: "WINDOWS" } })).status).toBe(422); // a bare device is no longer enough
+    const dev = await call<{ choice: { device: string; model: string } }>(postEquipment, ALEX, "/x", { method: "POST", body: { taskId: devId, modelId: "hp-elitebook-u7" } });
     expect(dev.status).toBe(200);
-    expect(dev.body.choice.device).toBe("WINDOWS");
+    expect(dev.body.choice).toMatchObject({ device: "WINDOWS", model: "HP EliteBook U7" });
     const per = await call<{ choice: { device: string; peripherals: string[] } }>(postEquipment, ALEX, "/x", { method: "POST", body: { taskId: periph.id, peripherals: ["Headset", "Keyboard"] } });
-    expect(per.body.choice).toMatchObject({ device: "WINDOWS", peripherals: ["Headset", "Keyboard"] });
+    expect(per.body.choice).toMatchObject({ device: "WINDOWS", model: "HP EliteBook U7", peripherals: ["Headset", "Keyboard"] });
   });
 });
 

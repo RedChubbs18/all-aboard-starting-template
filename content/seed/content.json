@@ -39,8 +39,8 @@
     "slug": "device-choice-mac-or-windows",
     "type": "DEVICE_INFO",
     "title": "Your devices: laptop, mobile phone and headset",
-    "summary": "What you can have on day one: a Mac or Windows laptop, a mobile phone and a headset. Choose your laptop, then any optional peripherals.",
-    "body": "## Your devices on day one\n\nEvery colleague can have the following (example entitlements, figures are illustrative):\n\n### Laptop: Mac or Windows\n\n- **Mac:** a 14-inch MacBook (example). A good choice if you already use macOS, or prefer it.\n- **Windows:** a 14-inch Windows laptop (example). A good choice if you already use Windows, or your team's tools are mainly Windows-based.\n\nBoth work for the same job, so pick the one you will be happier using. IT@LBG sets up both types.\n\n### Mobile phone\n\nA work mobile phone (example: a standard smartphone) is available if your role needs one. Your line manager confirms whether you get one. Ask them if you are not sure. You collect it with your laptop.\n\n### Headset\n\nA wired or Bluetooth headset (example) for Teams calls is available to everyone. You can pick it as a peripheral.\n\n### Other peripherals (optional)\n\n- One or two monitors\n- Keyboard and mouse\n- A docking station\n- A laptop stand\n\nPick only what your role needs. Your line manager can help if you are not sure.\n\n## What to do\n\n1. Open **Choose your primary device (Mac or Windows)** on your journey and submit your choice.\n2. Optionally open **Choose peripherals** and pick any extras. You can skip this.\n\nAfter the deadline, ask your line manager if you need to change your choice.\n\nYou collect everything on Day 0. See the collect equipment guide.\n",
+    "summary": "What you can have on day one: a laptop matched to your job family, a mobile phone and a headset. Choose your laptop, then any optional peripherals.",
+    "body": "## Your devices on day one\n\nEvery colleague can have the following (example entitlements, figures are illustrative):\n\n### Laptop: two tiers, two choices each\n\nYour laptop depends on your **job family**, which comes from your offer. You are offered the two models for your tier and pick one.\n\n**Engineering (high spec)**\n\n- **MacBook Pro M5 Pro** (Mac). A good choice if you already use macOS, or your work needs the most performance.\n- **HP EliteBook U7** (Windows). A good choice if you already use Windows, or your team's tools are mainly Windows-based.\n\n**All other job families (standard spec)**\n\n- **MacBook Air M5** (Mac). Light and quick for everyday work.\n- **HP EliteBook U5** (Windows). A reliable everyday Windows laptop.\n\nBoth models in a tier work for the same job, so pick the one you will be happier using. IT@LBG sets up both types. Your journey only shows the two models you are entitled to. If you think you are in the wrong tier, ask your line manager.\n\n### Mobile phone\n\nA work mobile phone (example: a standard smartphone) is available if your role needs one. Your line manager confirms whether you get one. Ask them if you are not sure. You collect it with your laptop.\n\n### Headset\n\nA wired or Bluetooth headset (example) for Teams calls is available to everyone. You can pick it as a peripheral.\n\n### Other peripherals (optional)\n\n- One or two monitors\n- Keyboard and mouse\n- A docking station\n- A laptop stand\n\nPick only what your role needs. Your line manager can help if you are not sure.\n\n## What to do\n\n1. Open **Choose your primary device** on your journey and pick one of your two laptop models.\n2. Optionally open **Choose peripherals** and pick any extras. You can skip this.\n\nAfter the deadline, ask your line manager if you need to change your choice.\n\nYou collect everything on Day 0. See the collect equipment guide.\n",
     "stage": "CONDITIONAL_OFFER",
     "tags": [
       "mac",
@@ -54,7 +54,12 @@
       "monitor",
       "dock",
       "choose",
-      "equipment"
+      "equipment",
+      "macbook",
+      "elitebook",
+      "job family",
+      "entitlement",
+      "tier"
     ]
   },
   {
@@ -312,7 +317,7 @@
     "type": "GUIDE",
     "title": "Collect your equipment",
     "summary": "What to collect, where to collect it and what to bring.",
-    "body": "## What you collect\n\n- Your laptop (the Mac or Windows model you chose)\n- The peripherals you picked, such as monitors, keyboard, mouse, dock or headset\n\nYour journey lists the exact items.\n\n## Where\n\nThe tech bar, Floor 1, Example House (example). Open 9:00 to 16:00 (example). Deliveries go to the mailroom on the ground floor.\n\n## What to bring\n\n- Your photo ID pass, or other photo ID (example)\n- Your phone, with your journey open\n\n## Steps\n\n1. Show your pass at the tech bar.\n2. Check the items against the list on your journey.\n3. Sign for them (example).\n4. Tick the task off in your journey.\n\n## Something missing or damaged?\n\nTell the tech bar straight away, then let P&P know through the Teams chat link.",
+    "body": "## What you collect\n\n- Your laptop (the exact model you chose: MacBook Pro M5 Pro, MacBook Air M5, HP EliteBook U7 or HP EliteBook U5)\n- The peripherals you picked, such as monitors, keyboard, mouse, dock or headset\n\nYour journey lists the exact items.\n\n## Where\n\nThe tech bar, Floor 1, Example House (example). Open 9:00 to 16:00 (example). Deliveries go to the mailroom on the ground floor.\n\n## What to bring\n\n- Your photo ID pass, or other photo ID (example)\n- Your phone, with your journey open\n\n## Steps\n\n1. Show your pass at the tech bar.\n2. Check the items against the list on your journey.\n3. Sign for them (example).\n4. Tick the task off in your journey.\n\n## Something missing or damaged?\n\nTell the tech bar straight away, then let P&P know through the Teams chat link.",
     "stage": "DAY_0",
     "tags": [
       "equipment",
@@ -475,6 +480,26 @@
       "faq",
       "chatbot",
       "question"
+    ]
+  },
+  {
+    "slug": "cloud-platform-team-guide",
+    "type": "GUIDE",
+    "title": "Cloud Platform Engineering: your team checklist",
+    "summary": "Team-specific steps for Cloud Platform Engineering: GCP project access, Google Cloud fundamentals training and the on-call rota briefing.",
+    "body": "## Welcome to Cloud Platform Engineering\n\nThese steps are only for colleagues joining Cloud Platform Engineering (example).\n\n## Request GCP project access\n\nYour line manager raises an IT request for access to the team's Google Cloud Platform projects (placeholder). It unlocks once your Colleague File ID exists. Access is read-only until you finish the fundamentals training.\n\n## Google Cloud Platform fundamentals training\n\nA short self-paced course (about four hours, example) covering projects, IAM, networking basics and billing. Find it in the learning hub (https://example.test/learning, placeholder). Mark the task done once you have finished it.\n\n## Cloud on-call rota briefing\n\nA 45-minute briefing run by the team (example). It explains the rota, how incidents are raised and who to call. You join the rota after your first month, not before.\n\n## Questions?\n\nAsk your buddy or your line manager.",
+    "stage": "DAY_0",
+    "tags": [
+      "cloud",
+      "gcp",
+      "google cloud",
+      "on-call",
+      "rota",
+      "training",
+      "fundamentals",
+      "team",
+      "platform",
+      "project access"
     ]
   }
 ]

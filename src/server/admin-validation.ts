@@ -1,6 +1,7 @@
 /** Pure admin validation (no DB, no framework). Used by admin-service, the admin UI and tests. */
 import { z } from "zod";
 import { CONTENT_TYPES, OWNERS, ROLES, STAGES, TASK_TYPES, ADAPTER_KEYS } from "@/domain/types";
+import { JOB_FAMILIES } from "@/domain/job-family";
 
 /** Named conditions understood by the engine (src/domain/engine.ts NAMED_CONDITIONS). */
 export const NAMED_CONDITION_KEYS = ["induction-not-booked", "pev-steps-incomplete", "photo-check-failed"] as const;
@@ -156,6 +157,8 @@ export const seedStarterSchema = z
     lmId: z.string().min(1, "Pick a line manager"),
     buddyId: nullableText,
     startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pick a start date"),
+    /** D29: optional; no value means the standard device tier. */
+    jobFamily: z.enum(JOB_FAMILIES).optional(),
   })
   .refine((v) => v.existingUserId || (v.displayName && v.upn), { message: "Pick a starter or enter a name and work email", path: ["displayName"] });
 

@@ -9,6 +9,7 @@ import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { prisma } from "./db";
+import { JOB_FAMILIES } from "@/domain/job-family";
 import { parseRoles } from "@/lib/auth/roles";
 import { isPlaceholderSecret } from "@/lib/auth/server";
 import { createJourneyInTx, recordEvent, setTaskStatusInTx } from "./journey-service";
@@ -65,6 +66,8 @@ export const offerAcceptedSchema = z
     offerId: z.string().regex(/^[A-Za-z0-9_-]{1,64}$/, "Invalid offer id"),
     candidate: z.object({ firstName: text(60), lastName: text(60) }).strict(),
     jobTitle: text(120),
+    /** D29: required; decides the device entitlement. */
+    jobFamily: z.enum(JOB_FAMILIES),
     teamKey: key,
     lineManagerKey: key,
     startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD").refine((d) => !Number.isNaN(Date.parse(`${d}T00:00:00Z`)), "Invalid date"),
@@ -157,19 +160,21 @@ export async function handleOfferAccepted(rawBody: string): Promise<{ journeyId:
       const s =
         starter ??
         (await tx.user.create({
-          data: { id: `u-${randomUUID().slice(0, 8)}`, upn, displayName, entraOid: oid, roles: ["STARTER"], teamId: team.id, reportsToId: lm.id, jobTitle: o.jobTitle, teamRole: "Team member" },
+          data: { id: `u-${randomUUID().slice(0, 8)}`, upn, displayName, entraOid: oid, roles: ["STARTER"], teamId: team.id, reportsToId: lm.id, jobTitle: o.jobTitle, jobFamily: o.jobFamily, teamRole: "Team member" },
         }));
+      // A guest user that already existed (no journey yet) takes the job title and family from the offer.
+      if (!created) await tx.user.update({ where: { id: s.id }, data: { jobTitle: o.jobTitle, jobFamily: o.jobFamily } });
       if (created) await recordEvent({ journeyId: null, actorId: null, type: "WORKDAY_STARTER_CREATED", entity: "User", entityId: s.id, data: { offerId: o.offerId, teamId: team.id } }, tx);
       const journey = await createJourneyInTx(tx, { starterId: s.id, lmId: lm.id, teamId: team.id, startDate: new Date(`${o.startDate}T00:00:00.000Z`), actorId: null });
       if (o.guest.inviteStatus !== "failed") await setTaskStatusInTx(tx, journey.id, "guest-invite-sent", "DONE", { actorId: null, evidence: o.guest.inviteStatus });
       const ids = { journeyId: journey.id, starterId: s.id };
       await tx.integrationState.create({
-        data: { journeyId: journey.id, adapterKey: OFFER_ROW, status: o.guest.inviteStatus, payload: { offerId: o.offerId, jobTitle: o.jobTitle, conditions: o.conditions, inviteStatus: o.guest.inviteStatus } },
+        data: { journeyId: journey.id, adapterKey: OFFER_ROW, status: o.guest.inviteStatus, payload: { offerId: o.offerId, jobTitle: o.jobTitle, jobFamily: o.jobFamily, conditions: o.conditions, inviteStatus: o.guest.inviteStatus } },
       });
       await recordEvent(
         {
           journeyId: journey.id, actorId: null, type: "WORKDAY_OFFER_ACCEPTED", entity: "Journey", entityId: journey.id,
-          data: { offerId: o.offerId, jobTitle: o.jobTitle, conditionCount: o.conditions.length, inviteStatus: o.guest.inviteStatus, guestLinked: oid !== null },
+          data: { offerId: o.offerId, jobTitle: o.jobTitle, jobFamily: o.jobFamily, conditionCount: o.conditions.length, inviteStatus: o.guest.inviteStatus, guestLinked: oid !== null },
         },
         tx,
       );

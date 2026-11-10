@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/Card";
 import { Sheet } from "@/components/ui/Sheet";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/components/ui/cn";
-import { HOME_ITEMS, HOME_PREFIX, PERIPHERAL_OPTIONS, type Detail, type TaskDetailResponse } from "../detail-types";
+import { HOME_ITEMS, HOME_PREFIX, PERIPHERAL_OPTIONS, type Detail, type EquipmentChoice, type TaskDetailResponse } from "../detail-types";
 import { formatDateTime } from "../format";
 import { usePost } from "./use-post";
 
@@ -200,6 +200,8 @@ export function BookingView({ data, onChanged }: Props) {
   );
 }
 
+/** The chosen model, or the Mac/Windows type for choices stored before models existed. */
+const deviceName = (c: Pick<EquipmentChoice, "device" | "model">) => c.model ?? (c.device === "MAC" ? "Mac laptop" : "Windows laptop");
 const visible = (xs: string[]) => xs.filter((x) => !x.startsWith(HOME_PREFIX));
 const home = (xs: string[]) => xs.filter((x) => x.startsWith(HOME_PREFIX)).map((x) => x.slice(HOME_PREFIX.length));
 
@@ -208,7 +210,8 @@ export function OrderView({ data, onChanged }: Props) {
   const d = data.detail as Extract<Detail, { kind: "order" }>;
   const isHome = d.mode === "home";
   const isPeripherals = d.mode === "peripherals";
-  const [device, setDevice] = useState<"MAC" | "WINDOWS" | "">(d.choice?.device ?? "");
+  const [modelId, setModelId] = useState<string>(d.choice?.modelId ?? "");
+  const chosen = d.models.find((m) => m.id === modelId);
   const [items, setItems] = useState<string[]>([]);
   const [confirm, setConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -227,7 +230,7 @@ export function OrderView({ data, onChanged }: Props) {
         </p>
         {!isPeripherals && (
           <p>
-            Device: <strong>{d.choice.device === "MAC" ? "Mac" : "Windows"}</strong>
+            Device: <strong>{deviceName(d.choice)}</strong>
           </p>
         )}
         {!isHome && !isPeripherals ? null : isHome ? (
@@ -240,11 +243,11 @@ export function OrderView({ data, onChanged }: Props) {
     );
   }
   const toggle = (x: string) => setItems((l) => (l.includes(x) ? l.filter((y) => y !== x) : [...l, x]));
-  const ready = (!needDevice || !!device) && (!isHome || items.length > 0) && (!isPeripherals || !!d.choice);
+  const ready = (!needDevice || !!chosen) && (!isHome || items.length > 0) && (!isPeripherals || !!d.choice);
 
   async function submit() {
     setError(null);
-    const r = await post("/api/starter/equipment", { taskId: data.task.id, device: device || undefined, peripherals: d.mode === "device" ? undefined : items });
+    const r = await post("/api/starter/equipment", { taskId: data.task.id, modelId: modelId || undefined, peripherals: d.mode === "device" ? undefined : items });
     if (r.ok) {
       setConfirm(false);
       toast.success(isHome ? "Home working order sent" : isPeripherals ? "Peripherals confirmed" : "Device choice confirmed");
@@ -256,12 +259,16 @@ export function OrderView({ data, onChanged }: Props) {
     <div className="space-y-4">
       {needDevice && (
         <fieldset disabled={!canAct}>
-          <legend className="font-semibold">Which laptop would you like? (Mac or Windows)</legend>
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            {(["MAC", "WINDOWS"] as const).map((v) => (
-              <label key={v} className={cn("flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-md border-2 p-3 font-semibold", device === v ? "border-dark-green bg-brand-tint" : "border-line bg-card")}>
-                <input type="radio" name="device" className="size-5 accent-[var(--color-brand)]" checked={device === v} onChange={() => setDevice(v)} />
-                {v === "MAC" ? "Mac" : "Windows"}
+          <legend className="font-semibold">Which laptop would you like?</legend>
+          <p className="mt-1 text-sm text-muted">These are the two models for your job family.</p>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            {d.models.map((m) => (
+              <label key={m.id} className={cn("flex min-h-14 cursor-pointer items-center gap-3 rounded-md border-2 p-3 font-semibold", modelId === m.id ? "border-dark-green bg-brand-tint" : "border-line bg-card")}>
+                <input type="radio" name="device" className="size-5 accent-[var(--color-brand)]" checked={modelId === m.id} onChange={() => setModelId(m.id)} />
+                <span>
+                  {m.label}
+                  <span className="block text-sm font-normal text-muted">{m.device === "MAC" ? "Mac" : "Windows"}</span>
+                </span>
               </label>
             ))}
           </div>
@@ -285,13 +292,13 @@ export function OrderView({ data, onChanged }: Props) {
           <Button size="lg" className="w-full" aria-disabled={!ready} aria-describedby={!ready ? "order-help" : undefined} onClick={() => ready && setConfirm(true)}>
             Review and confirm
           </Button>
-          {!ready && <p id="order-help" className="text-sm text-muted">{isHome ? "Choose at least one item." : isPeripherals ? "Choose your primary device first." : "Choose a laptop to continue."}</p>}
+          {!ready && <p id="order-help" className="text-sm text-muted">{isHome ? "Choose at least one item." : isPeripherals ? "Choose your primary device first." : "Choose a laptop model to continue."}</p>}
         </>
       )}
       <Sheet open={confirm} onClose={() => setConfirm(false)} title="Confirm your order" variant="dialog">
         <p>Please check this is right. You can&apos;t change it here once it is sent.</p>
         <ul className="mt-3 list-disc space-y-1 pl-5">
-          {needDevice && <li>Laptop: {device === "MAC" ? "Mac" : "Windows"}</li>}
+          {needDevice && <li>Laptop: {chosen?.label}</li>}
           {d.mode !== "device" && (
             <li>
               {isHome ? "Home working items" : "Peripherals"}: {items.length ? items.join(", ") : "none"}
@@ -342,7 +349,7 @@ export function CollectView({ data }: Props) {
       <div>
         <h2 className="font-semibold">Your items</h2>
         <ul className="mt-1 list-disc pl-5">
-          <li>{d.choice.device === "MAC" ? "Mac laptop" : "Windows laptop"}</li>
+          <li>{deviceName(d.choice)}</li>
           {peripherals.map((p) => (
             <li key={p}>{p}</li>
           ))}

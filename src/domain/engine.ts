@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { isExitReason } from "./exit-reasons";
+import { isStageTimeReached } from "./stage-timing";
 import {
   STAGES,
   stageIndex,
@@ -257,7 +258,7 @@ export function recomputeTasks(journey: JourneyState, ctx?: Ctx): EngineResult {
 
 // ------------------------------------------------------------------- stages
 
-function stageDone(journey: JourneyState, stage: Stage): boolean {
+export function stageDone(journey: JourneyState, stage: Stage): boolean {
   const gating = journey.tasks.filter((t) => t.stage === stage && t.gating && !t.optional && t.applicable);
   if (stage === STAGES[STAGES.length - 1] && gating.length === 0) return false;
   return gating.every((t) => isEffectivelyDone(t, journey.tasks));
@@ -301,6 +302,8 @@ export function advanceStage(journey: JourneyState, ctx?: Ctx): EngineResult {
       );
       break;
     }
+    // D31: gating tasks done is necessary but not sufficient; Day 0 and Day 30 also wait for their date.
+    if (!isStageTimeReached(j.startDate, STAGES[idx + 1], nowOf(ctx))) break;
     const r = moveToStage(j, STAGES[idx + 1], ctx, "gating_tasks_done");
     j = r.journey;
     events.push(...r.events);
@@ -610,6 +613,18 @@ export function requestPhotoReview(journey: JourneyState, ctx?: Ctx & { detail?:
  */
 export function isVettingFailed(journey: Pick<JourneyState, "tasks">): boolean {
   return journey.tasks.some((t) => t.applicable && t.adapterKey === "firstadvantage" && t.owner === "PNP" && t.status === "BLOCKED");
+}
+
+/**
+ * D32: has the colleague been invited to complete PEV? Only then does anything about First Advantage show: a status
+ * chip for the starter, a red flag for the LM, an issue in MI. True when the vetting tasks are unlocked (the
+ * starter has reached PEV) and First Advantage reports something other than "not started" (or nothing at all, which
+ * counts as not started). Until then the vetting task shows only its due timing.
+ */
+export function vettingInvited(journey: Pick<JourneyState, "tasks">, faStatus: string | null | undefined): boolean {
+  const s = (faStatus ?? "").trim().toLowerCase();
+  if (!s || s === "not_started" || s === "notstarted") return false;
+  return journey.tasks.some((t) => t.applicable && t.adapterKey === "firstadvantage" && t.status !== "LOCKED");
 }
 
 // ---------------------------------------------------------------------- exit

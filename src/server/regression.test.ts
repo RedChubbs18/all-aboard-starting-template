@@ -227,7 +227,7 @@ describe("demo steps (items 8, 9, 13, 14)", () => {
   it("a journey created by the mock Workday webhook can use reset and jump_day0; other starters still cannot", async () => {
     const { journeyId } = await handleOfferAccepted(
       JSON.stringify({
-        offerId: "wd-offer-demo", candidate: { firstName: "Jo", lastName: "Bloggs" }, jobTitle: "Engineer", teamKey: "dwe", lineManagerKey: "dana-sample",
+        offerId: "wd-offer-demo", candidate: { firstName: "Jo", lastName: "Bloggs" }, jobTitle: "Engineer", jobFamily: "ENGINEERING", teamKey: "dwe", lineManagerKey: "dana-sample",
         startDate: "2027-01-11", conditions: [], guest: { objectId: "8d5f1c1e-5b0a-4c53-9a53-0b6a4f3c2d11", inviteStatus: "invited" },
       }),
     );
@@ -251,7 +251,8 @@ describe("overdue consistency (item 10)", () => {
     const later = new Date("2030-01-01T00:00:00Z");
     const passed = j.tasks.find((t) => t.key === "photo-check-passed")!;
     expect(classifyTask(passed, undefined, later, j.tasks)).toBeNull();
-    const fromMi = j.tasks.filter((t) => classifyTask(t, undefined, later, j.tasks) === "OVERDUE").map((t) => t.key).sort();
+    // First Advantage has cleared by now (the colleague was invited), so D32 does not hide its tasks from MI.
+    const fromMi = j.tasks.filter((t) => classifyTask(t, t.adapterKey === "firstadvantage" ? "cleared" : undefined, later, j.tasks) === "OVERDUE").map((t) => t.key).sort();
     const fromEngine = js.computeProgress(j, later).overdue.filter((t) => t.status !== "BLOCKED").map((t) => t.key).sort();
     expect(fromMi).toEqual(fromEngine);
     expect(j.tasks.filter((t) => t.status === "LOCKED").length).toBeGreaterThan(0);

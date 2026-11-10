@@ -245,7 +245,7 @@ describe("route guards", () => {
   });
 
   it("notifications are per user: list own, mark own read, 404 for others", async () => {
-    await simulate("firstadvantage", ALEX, "action_needed");
+    await runDemoStep("firstadvantage_action_needed", {}, ALEX); // Alex reaches vetting first (D32), then the reminder is sent
     const res = await (await notificationsGet(await as("alex-morgan", "GET", "/api/notifications"), undefined)).json();
     expect(res.unread).toBe(1);
     expect(res.notifications[0]).toMatchObject({ type: "PEV_REMINDER", read: false, link: "/journey" });

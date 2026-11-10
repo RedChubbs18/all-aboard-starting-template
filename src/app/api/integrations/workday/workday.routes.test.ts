@@ -14,6 +14,7 @@ const offer = (over: Record<string, unknown> = {}) => ({
   offerId: "wd-offer-1",
   candidate: { firstName: "Jo", lastName: "Bloggs" },
   jobTitle: "Software Engineer",
+  jobFamily: "ENGINEERING",
   teamKey: "dwe",
   lineManagerKey: "dana-sample",
   startDate: "2027-01-11",
@@ -90,6 +91,16 @@ describe("validation", () => {
     expect((await post(offer({ startDate: "11/01/2027" }))).status).toBe(400);
     expect((await post(offer({ guest: { objectId: null, inviteStatus: "sent" } }))).status).toBe(400);
     expect((await post(null, { raw: "{nope" })).status).toBe(400);
+  });
+  it("requires a known jobFamily (D29) and stores it on the starter", async () => {
+    const without: Record<string, unknown> = offer();
+    delete without.jobFamily;
+    expect((await post(without)).status).toBe(400);
+    expect((await post(offer({ jobFamily: "WIZARDRY" }))).status).toBe(400);
+    const res = await post(offer({ offerId: "wd-offer-jf", jobFamily: "CUSTOMER_SERVICE", guest: { objectId: null, inviteStatus: "simulated" } }));
+    expect(res.status).toBe(200);
+    const { starterId } = await res.json();
+    expect((await prisma.user.findUniqueOrThrow({ where: { id: starterId } })).jobFamily).toBe("CUSTOMER_SERVICE");
   });
   it("returns 409 for an unknown team or line manager", async () => {
     expect((await post(offer({ teamKey: "nope" }))).status).toBe(409);
