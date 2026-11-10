@@ -61,7 +61,7 @@ export function TeamsManager() {
       {(teams.error || people.error) && <Alert kind="danger">{teams.error ?? people.error}</Alert>}
       <section aria-labelledby="teams-h" className="rounded-lg bg-card p-4 border border-line">
         <h2 id="teams-h" className="text-lg font-bold">Teams</h2>
-        <div className="mt-2 overflow-x-auto">
+        <div tabIndex={0} role="region" aria-label="Teams" className="focus-inset mt-2 overflow-x-auto">
           <table className="w-full text-left">
             <caption className="sr-only">Teams with business area and line manager</caption>
             <thead><tr className="border-b border-line"><th scope="col" className="py-2 pr-3">Team</th><th scope="col" className="pr-3">Business area</th><th scope="col" className="pr-3">Line manager</th><th scope="col" className="pr-3">Members</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
@@ -82,7 +82,7 @@ export function TeamsManager() {
 
       <section aria-labelledby="people-h" className="rounded-lg bg-card p-4 border border-line">
         <h2 id="people-h" className="text-lg font-bold">People</h2>
-        <div className="mt-2 overflow-x-auto">
+        <div tabIndex={0} role="region" aria-label="People" className="focus-inset mt-2 overflow-x-auto">
           <table className="w-full text-left">
             <caption className="sr-only">People with roles, team and buddy eligibility</caption>
             <thead><tr className="border-b border-line"><th scope="col" className="py-2 pr-3">Name</th><th scope="col" className="pr-3">Roles</th><th scope="col" className="pr-3">Team</th><th scope="col" className="pr-3">Buddy eligible</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>

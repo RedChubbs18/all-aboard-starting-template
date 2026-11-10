@@ -29,11 +29,12 @@ export function CompletionPrompt({ open, title, onYes, onNo, onClosed }: DialogP
     >
       <p className="font-semibold">{title}</p>
       <p className="mt-1 text-muted">Only say yes if you have finished it. You can come back to it any time.</p>
-      <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+      {/* DOM order is the visual order (WCAG 1.3.2, 2.4.3): "Yes" first, stacked on phones, side by side from sm. */}
+      <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+        <Button onClick={onYes}>Yes, mark as done</Button>
         <Button variant="secondary" onClick={onNo}>
           Not yet, I&apos;ll come back to it
         </Button>
-        <Button onClick={onYes}>Yes, mark as done</Button>
       </div>
     </Sheet>
   );

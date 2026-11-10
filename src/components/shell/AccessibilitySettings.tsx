@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { usePreferences } from "@/lib/preferences/use-preferences";
@@ -90,9 +90,17 @@ const MOTIONS: Option<MotionPref>[] = [
 export function AccessibilitySettings() {
   const { prefs, update, reset } = usePreferences();
   const [message, setMessage] = useState("");
+  const frame = useRef(0);
+  useEffect(() => () => cancelAnimationFrame(frame.current), []);
+  // Clear, then set on the next frame, so the same text is announced again after every save (WCAG 4.1.3).
+  const announce = (text: string) => {
+    cancelAnimationFrame(frame.current);
+    setMessage("");
+    frame.current = requestAnimationFrame(() => setMessage(text));
+  };
   const set = (patch: Parameters<typeof update>[0]) => {
     update(patch);
-    setMessage("Saved on this device.");
+    announce("Saved on this device.");
   };
 
   return (
@@ -154,7 +162,7 @@ export function AccessibilitySettings() {
         variant="secondary"
         onClick={() => {
           reset();
-          setMessage("Preferences reset to match your device.");
+          announce("Preferences reset to match your device.");
         }}
       >
         Reset to defaults

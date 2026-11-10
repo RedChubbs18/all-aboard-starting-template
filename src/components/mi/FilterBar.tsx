@@ -3,6 +3,7 @@ import { useId, useState } from "react";
 import { STAGES } from "@/domain/types";
 import { activeFilterCount, STATUS_FILTERS, type MiFilters } from "./filters";
 import { STAGE_LABEL, STATUS_LABEL } from "./labels";
+import { Button } from "@/components/ui/Button";
 import { btnSecondary, fieldClass } from "./primitives";
 
 interface Props {
@@ -62,9 +63,16 @@ export function FilterBar({ filters, options, onChange }: Props) {
         {field(`${panel}-from`, "Start date from", <input id={`${panel}-from`} type="date" className={fieldClass} value={filters.from ?? ""} max={filters.to} onChange={(e) => set("from", e.target.value)} />)}
         {field(`${panel}-to`, "Start date to", <input id={`${panel}-to`} type="date" className={fieldClass} value={filters.to ?? ""} min={filters.from} onChange={(e) => set("to", e.target.value)} />)}
         <div>
-          <button type="button" onClick={() => onChange({})} disabled={n === 0} className={`${btnSecondary} w-full`}>
+          <Button
+            variant="secondary"
+            onClick={() => onChange({})}
+            aria-disabled={n === 0 || undefined}
+            aria-describedby={n === 0 ? `${panel}-clear-why` : undefined}
+            className="w-full"
+          >
             Clear filters
-          </button>
+          </Button>
+          {n === 0 && <span id={`${panel}-clear-why`} className="sr-only">No filters are applied.</span>}
         </div>
       </div>
     </section>

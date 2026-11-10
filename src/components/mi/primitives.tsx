@@ -81,7 +81,7 @@ export function ResponsiveTable<T>({ caption, rows, rowKey, columns, empty }: { 
   const primary = columns.find((c) => c.primary) ?? columns[0];
   return (
     <>
-      <div className="hidden overflow-x-auto md:block">
+      <div tabIndex={0} role="region" aria-label={caption} className="focus-inset hidden overflow-x-auto md:block">
         <table className="w-full border-collapse text-left text-base">
           <caption className="sr-only">{caption}</caption>
           <thead>
@@ -118,7 +118,7 @@ export function ResponsiveTable<T>({ caption, rows, rowKey, columns, empty }: { 
       <ul className="space-y-3 md:hidden" aria-label={caption}>
         {sorted.map((r) => (
           <li key={rowKey(r)} className="rounded-md border border-line bg-card p-3">
-            <p className="font-semibold">{primary.cell(r)}</p>
+            <p role="heading" aria-level={3} className="font-semibold">{primary.cell(r)}</p>
             <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
               {columns.filter((c) => c !== primary).map((c) => (
                 <div key={c.key} className="contents">
@@ -192,7 +192,7 @@ export function ChartCard({
       {summary && <p className="mt-1 text-sm text-muted">{summary}</p>}
       <div className="mt-3">
         {asTable ? (
-          <div className="overflow-x-auto">
+          <div tabIndex={0} role="region" aria-label={title} className="focus-inset overflow-x-auto">
             <table className="w-full border-collapse text-left text-base">
               <caption className="sr-only">{title}</caption>
               <thead>

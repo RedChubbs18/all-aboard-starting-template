@@ -3,7 +3,8 @@ import type { LmLeagueRow, LmRollupRow, MajorFlag } from "@/server/mi-metrics";
 import { Explain } from "./Explain";
 import { days, fmtTime, percent, plural } from "./format";
 import { MAJOR_FLAG, MAJOR_FLAG_LABEL, MAJOR_FLAG_RULES } from "./rules";
-import { Badge, ResponsiveTable, Section, btnPrimary } from "./primitives";
+import { Button } from "@/components/ui/Button";
+import { Badge, ResponsiveTable, Section } from "./primitives";
 
 interface Props {
   lm: { league: LmLeagueRow[]; byTeam: LmRollupRow[]; byArea: LmRollupRow[]; flags: MajorFlag[] };
@@ -77,9 +78,9 @@ export function LmSection({ lm, exportBtn, onChase }: Props) {
                   <span className="text-sm text-muted">Nothing to chase</span>
                 ) : (
                   <>
-                    <button type="button" disabled={!r.canChase} aria-describedby={r.canChase ? undefined : `why-${r.lmId}`} onClick={() => onChase(r)} className={btnPrimary}>
+                    <Button aria-disabled={!r.canChase || undefined} aria-describedby={r.canChase ? undefined : `why-${r.lmId}`} onClick={() => onChase(r)}>
                       Chase LM<span className="sr-only">: {r.lmName}</span>
-                    </button>
+                    </Button>
                     {!r.canChase && r.blockedUntil && <p id={`why-${r.lmId}`} className="mt-1 max-w-48 text-sm text-muted">Chased in the last 24 hours. Available again {fmtTime(r.blockedUntil)}.</p>}
                   </>
                 ),

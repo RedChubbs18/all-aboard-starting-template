@@ -124,7 +124,7 @@ function BlockView({ b, vars }: { b: Block; vars: Vars }) {
       return <hr className="my-4 border-line" />;
     case "table":
       return (
-        <div className="mt-3 overflow-x-auto">
+        <div tabIndex={0} role="region" aria-label="Table (scrolls sideways)" className="focus-inset mt-3 overflow-x-auto">
           <table className="w-full min-w-[32rem] border-collapse text-left text-sm">
             <thead>
               <tr>
