@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { COLLEAGUE_REASONS, PNP_REASONS, REASON_LABEL, reasonLabel } from "@/domain/exit-reasons";
 import { useApi } from "@/lib/auth/use-api";
+import { WorkAccountRetry, workAccountLine } from "@/components/lm/WorkAccountNote";
+import type { WorkAccountDto } from "@/components/lm/types";
 import { Alert, Drawer, Field, btnCls, inputCls, useNotice, useSend, type Fields } from "./common";
 
-interface J { id: string; starterName: string; teamName: string; startDate: string; stage: string; status: string; exitReason: string | null }
+interface J { id: string; starterName: string; teamName: string; startDate: string; stage: string; status: string; exitReason: string | null; workAccount: WorkAccountDto }
 
 const GROUPS: { label: string; reasons: [string, string][] }[] = [
   { label: "Recorded by P&P", reasons: PNP_REASONS.map((r) => [r, REASON_LABEL[r]]) },
@@ -47,6 +49,12 @@ export function JourneysManager() {
             <div>
               <p className="font-medium">{j.starterName}</p>
               <p className="text-sm text-muted">{j.teamName} | starts {j.startDate.slice(0, 10)} | {j.stage} | {j.status}{j.exitReason ? ` (${reasonLabel(j.exitReason)})` : ""}</p>
+              {workAccountLine(j.workAccount) && (
+                <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
+                  {workAccountLine(j.workAccount)}
+                  <WorkAccountRetry journeyId={j.id} state={j.workAccount.state} onDone={list.reload} />
+                </p>
+              )}
             </div>
             {j.status === "active" && (
               <button type="button" className={btnCls.secondary} aria-label={`Record exit for ${j.starterName}`} onClick={() => { setTarget(j); setReason(""); setNote(""); setErrors({}); }}>

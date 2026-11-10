@@ -11,6 +11,7 @@ import { parseRoles } from "@/lib/auth/roles";
 import { getAdapter, listAdapterModes, setAdapterMode, type AdapterMode } from "@/adapters/registry";
 import { EXIT_REASONS } from "@/domain/exit-reasons";
 import { completeGuestInviteTask } from "./integration-service";
+import { getWorkAccountStatus } from "./identity-conversion";
 import { createJourneyForStarter, exitJourney, recordEvent, NotFoundError } from "./journey-service";
 import {
   contentInputSchema,
@@ -386,7 +387,9 @@ export async function getDirectory() {
 export async function listAdminJourneys() {
   const rows = await prisma.journey.findMany({ orderBy: { startDate: "asc" }, include: { team: true } });
   const users = await prisma.user.findMany({ where: { id: { in: rows.map((r) => r.starterId) } } });
-  return rows.map((j) => ({
+  const accounts = await Promise.all(rows.map((j) => getWorkAccountStatus(j.id)));
+  return rows.map((j, i) => ({
+    workAccount: accounts[i],
     id: j.id,
     starterName: users.find((u) => u.id === j.starterId)?.displayName ?? j.starterId,
     teamName: j.team.name,

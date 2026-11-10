@@ -1,6 +1,6 @@
 import type { BaseAdapter } from "../types";
 
-export type IdentityStatus = "none" | "invited" | "guest_active" | "internal_created";
+export type IdentityStatus = "none" | "invited" | "guest_active" | "internal_created" | "converted";
 
 export interface IdentityAccount {
   status: IdentityStatus;

@@ -111,6 +111,28 @@ Until consent exists, Graph returns 403 or a consent prompt. The app then shows 
 
 **Cleanup.** Each invite creates a real guest user named `team05-*`. Delete them before 13 November (Entra, Users, filter on `team05-`).
 
+## Guest to member conversion
+
+D39. When a starter reaches `UNCONDITIONAL_OFFER`, `src/server/identity-conversion.ts` converts their Entra B2B guest into an internal member (same object id, so sign-in mapping by `entraOid` keeps working), updates `User.upn`, completes the `internal-account-created` task and emails the new sign-in name and a temporary password to their personal address. P&P and Admin see the state ("Work account: converted on ... / pending / failed") on the starter detail and the admin journeys list, with Retry (`POST /api/admin/journeys/[id]/convert`). The starter sees a notice on their journey.
+
+**Application permissions** on the existing MyJourney app registration (admin consent by the organisers; nobody here grants tenant-wide consent):
+
+- `User-ConvertToInternal.ReadWrite.All` (least privileged for the convert call)
+- `User.Read.All` (read the guest's type and personal email)
+- `Mail.Send` (send the email; `MYJOURNEY_MAIL_SENDER_UPN` must be a licensed mailbox)
+
+**Server-only env** (placeholders in `.env.example`; real values only in the ignored local `.env`): `GUEST_CONVERSION=on`, `MYJOURNEY_GRAPH_CLIENT_ID`, `MYJOURNEY_GRAPH_CLIENT_SECRET` (short-lived; delete after the event), `MYJOURNEY_MAIL_SENDER_UPN`, `MEMBER_UPN_DOMAIN` (the tenant's onmicrosoft domain, never committed), optional `NEXT_PUBLIC_MYJOURNEY_PUBLIC_URL` (link in the email; default `http://localhost:3000`). The tenant id comes from `NEXT_PUBLIC_ENTRA_TENANT_ID`. If any is missing the run is **simulated**: no Graph call, `conversion_simulated` is recorded and shown in the UI, and nothing else changes.
+
+Behaviour and limits:
+
+- Only STARTER users with an `entraOid`, whose Entra user is a Guest created by invitation and whose display name starts with `team05-`, are converted. Anything else is refused.
+- New UPN `team05-<first>-<last>@<MEMBER_UPN_DOMAIN>`, with `-2`, `-3`... on a conflict. A 20-character random password with `forceChangePasswordNextSignIn: true` is generated per conversion, held in memory only, never stored or logged. The personal email is read from Graph and used once, never stored or logged. Error text stored or shown has emails redacted.
+- Idempotent: once `converted` it never converts twice. If the email fails, the account stays converted and the UI warns that the email was not sent; the password cannot be re-sent (it is not stored), so an admin must reset it in Entra.
+- **Beta API caveat:** `convertExternalToInternalMemberUser` exists only under `/beta` and may change without notice.
+- **MFA/SSPR caveat:** Microsoft does not document whether a guest's MFA or self-service password reset registrations carry over, so a temporary password and Authenticator set-up are always required.
+- The converted users are `team05-` test accounts and are deleted with the tenant on 13 November 2026.
+- The starter's guest session may stop working after conversion; the sign-in screen already forces the account picker so they can choose the work account.
+
 ## Entra test users for the personas
 
 1. Ask Claude to generate the bulk-create CSV, or reuse the one in your Documents folder. It's never committed, because it holds initial passwords.
