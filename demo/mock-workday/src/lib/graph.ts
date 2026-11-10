@@ -28,11 +28,25 @@ export function inviteMessage(myJourneyUrl: string): string {
   return `Welcome aboard! Your offer has been accepted. To access MyJourney: ${accessInstructions(myJourneyUrl).map((s, i) => `${i + 1}. ${s}`).join(" ")}`;
 }
 
+/**
+ * Graph rejects non-https invite redirect URLs ("The invite redirect URL field is invalid"), e.g. http://localhost.
+ * Use MyJourney's URL when it is https (a tunnel); otherwise Microsoft's My Apps page for our tenant, which is the
+ * standard landing page after accepting a guest invite. The email text still points the candidate at MyJourney.
+ */
+export function inviteRedirectFor(myJourneyUrl: string, tenantId: string | undefined = process.env.WORKDAY_GRAPH_TENANT_ID || process.env.NEXT_PUBLIC_ENTRA_TENANT_ID): string {
+  try {
+    if (new URL(myJourneyUrl).protocol === "https:") return myJourneyUrl;
+  } catch {
+    // fall through to My Apps
+  }
+  return tenantId ? `https://myapplications.microsoft.com/?tenantid=${encodeURIComponent(tenantId)}` : "https://myapplications.microsoft.com/";
+}
+
 export function buildInvitationBody(i: { email: string; firstName: string; lastName: string; redirectUrl: string }) {
   return {
     invitedUserEmailAddress: i.email,
     invitedUserDisplayName: guestDisplayName(i.firstName, i.lastName),
-    inviteRedirectUrl: i.redirectUrl,
+    inviteRedirectUrl: inviteRedirectFor(i.redirectUrl),
     sendInvitationMessage: true,
     invitedUserMessageInfo: { customizedMessageBody: inviteMessage(i.redirectUrl) },
   };

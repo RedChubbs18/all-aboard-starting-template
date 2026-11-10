@@ -9,7 +9,8 @@ describe("buildInvitationBody", () => {
     expect(b.sendInvitationMessage).toBe(true);
     expect(b.invitedUserEmailAddress).toBe("jo@example.com");
     expect(b.invitedUserDisplayName).toBe("team05-jo-bloggs");
-    expect(b.inviteRedirectUrl).toBe("http://localhost:3000");
+    // Graph rejects http redirect URLs, so localhost falls back to My Apps (https); the email still names MyJourney.
+    expect(b.inviteRedirectUrl).toMatch(/^https:\/\/myapplications\.microsoft\.com\//);
     expect(b.invitedUserMessageInfo.customizedMessageBody).toContain("http://localhost:3000");
     expect(b.invitedUserMessageInfo.customizedMessageBody).toMatch(/Accept invitation/);
     expect(b.invitedUserMessageInfo.customizedMessageBody).toMatch(/sign in/i);
@@ -69,5 +70,17 @@ describe("graphErrorDetail", () => {
   it("returns an empty string when the body is not JSON", async () => {
     const { graphErrorDetail } = await import("./graph");
     expect(await graphErrorDetail({ json: async () => { throw new Error("no"); } })).toBe("");
+  });
+});
+
+describe("inviteRedirectFor", () => {
+  it("keeps an https MyJourney URL", async () => {
+    const { inviteRedirectFor } = await import("./graph");
+    expect(inviteRedirectFor("https://myjourney.example.devtunnels.ms", "t-1")).toBe("https://myjourney.example.devtunnels.ms");
+  });
+  it("falls back to My Apps for our tenant when MyJourney is http or invalid", async () => {
+    const { inviteRedirectFor } = await import("./graph");
+    expect(inviteRedirectFor("http://localhost:3000", "t-1")).toBe("https://myapplications.microsoft.com/?tenantid=t-1");
+    expect(inviteRedirectFor("not a url", undefined)).toBe("https://myapplications.microsoft.com/");
   });
 });

@@ -103,3 +103,5 @@ The recruiter API checks the `Host` header is loopback and that no proxy header 
 ## Mock Workday implementation
 
 The mock Workday side is built in `demo/mock-workday/` (own `package.json`, port 3001). See `demo/mock-workday/README.md` for setup and the demo script.
+
+**Invite redirect URL:** Graph rejects non-https redirect URLs ("The invite redirect URL field is invalid"). When `NEXT_PUBLIC_MYJOURNEY_PUBLIC_URL` is not https (for example `http://localhost:3000`), the invite redirects to Microsoft My Apps for the tenant instead (`https://myapplications.microsoft.com/?tenantid=...`). The email text still tells the candidate to open MyJourney. Set an https tunnel URL to redirect straight to MyJourney.
