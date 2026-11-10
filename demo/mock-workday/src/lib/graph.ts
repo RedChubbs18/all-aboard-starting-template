@@ -18,14 +18,24 @@ export function guestDisplayName(first: string, last: string): string {
 
 export function accessInstructions(myJourneyUrl: string): string[] {
   return [
-    "Open the email from Microsoft on behalf of Lloyds Banking Group (MyJourney) (it may be in your junk folder) and select Accept invitation.",
+    "Open the email from Microsoft Invitations (check your junk folder if it isn't in your inbox) and select Accept invitation.",
     "Sign in with the same personal email address the invitation was sent to. You may receive a one-time passcode by email: enter it when asked.",
     `Open MyJourney at ${myJourneyUrl} and sign in to start your onboarding.`,
   ];
 }
 
+/**
+ * The only part of Microsoft's invitation email we control. Microsoft shows it as plain text inside its own
+ * template (line breaks and lists collapse), and the reader is already looking at the invitation, so this is a
+ * short, natural paragraph that refers to the "Accept invitation" button below it. accessInstructions() is the
+ * step-by-step version for the candidate's confirmation page.
+ */
 export function inviteMessage(myJourneyUrl: string): string {
-  return `Welcome aboard! Your offer has been accepted. To access MyJourney: ${accessInstructions(myJourneyUrl).map((s, i) => `${i + 1}. ${s}`).join(" ")}`;
+  return (
+    "Congratulations, and welcome to Lloyds Banking Group! Your offer has been accepted and your onboarding journey is ready in MyJourney. " +
+    "Select Accept invitation below and sign in with this email address (we may email you a one-time passcode). " +
+    `Then open MyJourney at ${myJourneyUrl} to see your next steps, meet your team and track your progress to day one.`
+  );
 }
 
 /**

@@ -14,7 +14,10 @@ describe("buildInvitationBody", () => {
     expect(b.invitedUserMessageInfo.customizedMessageBody).toContain("http://localhost:3000");
     expect(b.invitedUserMessageInfo.customizedMessageBody).toMatch(/Accept invitation/);
     expect(b.invitedUserMessageInfo.customizedMessageBody).toMatch(/sign in/i);
-    expect(b.invitedUserMessageInfo.customizedMessageBody).toContain("on behalf of Lloyds Banking Group (MyJourney)");
+    expect(b.invitedUserMessageInfo.customizedMessageBody).toMatch(/^Congratulations, and welcome to Lloyds Banking Group!/);
+    // Plain text only (Microsoft collapses formatting) and no "open the email" step: the reader is already in it.
+    expect(b.invitedUserMessageInfo.customizedMessageBody).not.toMatch(/\n|\d\. |Open the email/);
+    expect(b.invitedUserMessageInfo.customizedMessageBody.length).toBeLessThan(400);
     expect(b.invitedUserMessageInfo.customizedMessageBody).toMatch(/one-time passcode/);
   });
   it("sanitises display names", () => expect(guestDisplayName("Zoë", "O'Neil-Smith")).toBe("team05-zoe-oneilsmith"));
