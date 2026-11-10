@@ -31,6 +31,7 @@ model User {
   teamId        String?
   team          Team?    @relation(fields: [teamId], references: [id])
   jobTitle      String?
+  jobFamily     String? // D29: JobFamily from the Workday offer (device entitlement); null = standard tier
   teamRole      String? // e.g. "Line Manager", "Team member" (team page, FR-1.8)
   photoUrl      String?
   bio           String?

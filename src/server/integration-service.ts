@@ -16,6 +16,7 @@ import type { AdapterKey } from "@/adapters/types";
 import { ADAPTER_KEYS, stageIndex, type JourneyState, type Stage, type TemplateInput } from "@/domain/types";
 import { createJourney as engCreate, setTaskStatus as engSetStatus } from "@/domain/engine";
 import type { NotificationInput } from "@/adapters/notification/types";
+import { entitledModels } from "@/adapters/equipment/catalogue";
 import * as js from "./journey-service";
 
 export class SimulationError extends Error {
@@ -43,6 +44,13 @@ export interface SimulationResult {
 // ------------------------------------------------------------------ helpers
 
 const strArr = (v: unknown): string[] => (Array.isArray(v) ? v.map(String) : []);
+
+/** D29: the Mac model the starter is entitled to (demo steps place an order on their behalf). */
+async function demoMacModelId(journeyId: string): Promise<string> {
+  const j = await prisma.journey.findUnique({ where: { id: journeyId }, select: { starterId: true } });
+  const u = j ? await prisma.user.findUnique({ where: { id: j.starterId }, select: { jobFamily: true } }) : null;
+  return entitledModels(u?.jobFamily).find((m) => m.device === "MAC")!.id;
+}
 
 const TERMINAL = new Set(["DONE"]);
 const OPEN = new Set(["TODO", "IN_PROGRESS", "BLOCKED"]);
@@ -263,7 +271,11 @@ export async function simulate(
   }
 
   const starterId = before.starterId;
-  if (adapterKey === "firstadvantage" && status === "action_needed") {
+  const vettingLive = (await loadOrThrow(journeyId)).tasks.some((t) => t.adapterKey === "firstadvantage" && t.applicable && t.status !== "LOCKED");
+  if (adapterKey === "firstadvantage" && (status === "action_needed" || status === "failed") && !vettingLive) {
+    // D32: the starter has not reached vetting yet. The signal is recorded and applies (flag, referral) when they do.
+    changes.push("Recorded. It applies when the starter reaches vetting");
+  } else if (adapterKey === "firstadvantage" && status === "action_needed") {
     const hv = await (await getAdapter("firstadvantage")).getVettingStatus(journeyId);
     const sent = await sendReminder(before, "action_needed", hv.message, ctx);
     if (sent) changes.push("Reminder sent to the starter");
@@ -326,15 +338,17 @@ export interface ReminderResult {
 export async function runReminders(now: Date = new Date(), opts: ReminderOptions = {}): Promise<ReminderResult> {
   const hours = opts.hours ?? DEFAULT_REMINDER_HOURS;
   const since = new Date(now.getTime() - hours * 3600_000);
-  const journeys = await js.listJourneys({ status: "active" });
+  // D31: the tick also opens Day 0 / Day 30 for journeys whose date has arrived.
+  const journeys = await Promise.all((await js.listJourneys({ status: "active" })).map((j) => js.settleForTime(j, now)));
   const result: ReminderResult = { sent: [], suppressed: 0, considered: 0 };
   const hv = await getAdapter("firstadvantage");
   for (const j of journeys) {
     const vetting = await hv.getVettingStatus(j.id);
     if (vetting.status === "cleared") continue;
-    const inPev = j.currentStage === "PEV";
-    const early = stageIndex(j.currentStage) < stageIndex("UNCONDITIONAL_OFFER");
-    if (!inPev && !(early && (vetting.status === "action_needed" || vetting.status === "in_progress"))) continue;
+    // D32: nothing to remind about until the colleague has been invited to complete vetting (status not started),
+    // and a signal recorded before they reach PEV is not acted on until they get there.
+    const live = j.tasks.some((t) => t.adapterKey === "firstadvantage" && t.applicable && t.status !== "LOCKED");
+    if (j.currentStage !== "PEV" || vetting.status === "not_started" || !live) continue;
     result.considered++;
     if (!opts.force) {
       const last = await prisma.event.findFirst({ where: { journeyId: j.id, type: "REMINDER_SENT" }, orderBy: { createdAt: "desc" } });
@@ -393,7 +407,7 @@ async function facts(key: AdapterKey, journeyId: string): Promise<string[]> {
     case "equipment": {
       const a = await getAdapter("equipment");
       const c = await a.getChoice(journeyId);
-      return [c ? `${c.device}, ${c.peripherals.length} peripheral(s), collect at ${c.collectionPoint}` : "No device chosen"];
+      return [c ? `${c.model ?? c.device}, ${c.peripherals.length} peripheral(s), collect at ${c.collectionPoint}` : "No device chosen"];
     }
     case "pass": {
       const o = await (await getAdapter("pass")).getOrder(journeyId);
@@ -482,7 +496,7 @@ async function ensureGuestSignedIn(journeyId: string, ctx: ActorCtx): Promise<st
     if (!cur || !OPEN.has(cur.status)) continue;
     if (key === "device-choice-submitted") {
       const eq = await getAdapter("equipment");
-      if (!(await eq.getChoice(journeyId))) await eq.submitChoice(journeyId, { device: "MAC", peripherals: [] });
+      if (!(await eq.getChoice(journeyId))) await eq.submitChoice(journeyId, { device: "MAC", modelId: await demoMacModelId(journeyId), peripherals: [] });
     }
     await js.completeTask(journeyId, cur.key, { actorId: ctx.actorId ?? null, now: ctx.now });
     await js.recordEvent({
@@ -581,6 +595,11 @@ export async function runDemoStep(step: DemoStep, ctx: ActorCtx = {}, journeyId?
 export async function jumpToDay0(journeyId: string, ctx: ActorCtx = {}): Promise<string[]> {
   const before = await loadOrThrow(journeyId);
   if (before.status !== "active") throw new SimulationError(`Journey is ${before.status}`, 409);
+  // D31: Day 0 never opens before the start date, so the demo moves the start date to today first.
+  const now = ctx.now ?? new Date();
+  const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const moved = before.startDate.getTime() > today.getTime();
+  if (moved) await js.moveStartDate(journeyId, today, ctx);
   const hv = await getAdapter("firstadvantage");
   if (isSimulatable(hv)) await hv.simulate(journeyId, "cleared");
   const identity = await getAdapter("identity");
@@ -588,7 +607,7 @@ export async function jumpToDay0(journeyId: string, ctx: ActorCtx = {}): Promise
   const sp = await getAdapter("sailpoint");
   await sp.applyPersona(journeyId);
   await sp.createColleagueFileId(journeyId);
-  await (await getAdapter("equipment")).submitChoice(journeyId, { device: "MAC", peripherals: ["Monitor", "Keyboard", "Mouse"] });
+  await (await getAdapter("equipment")).submitChoice(journeyId, { device: "MAC", modelId: await demoMacModelId(journeyId), peripherals: ["Monitor", "Keyboard", "Mouse"] });
   const booking = await getAdapter("booking");
   const [first] = await booking.listSessions();
   if (first) await booking.book(journeyId, first.id);
@@ -604,6 +623,7 @@ export async function jumpToDay0(journeyId: string, ctx: ActorCtx = {}): Promise
   }
   const after = await loadOrThrow(journeyId);
   const changes = diff(before, after).filter((c) => c.startsWith("Stage") || c.startsWith("Journey"));
+  if (moved) changes.unshift("Start date moved to today (demo)");
   changes.push(`${after.tasks.filter((t) => t.status === "DONE").length} of ${after.tasks.filter((t) => t.applicable).length} tasks done`);
   if (stageIndex(after.currentStage) < day0) changes.push(`Stopped at ${after.currentStage}: a gating task could not be completed automatically`);
   return changes;
@@ -630,9 +650,12 @@ export async function resetDemoStarter(journeyId: string, ctx: ActorCtx = {}): P
   await assertDemoStarterJourney(journeyId);
   const templates = await templateInputs();
   const now = ctx.now ?? new Date();
+  // D31: "Jump to Day 0" moved the start date; a reset puts the original (offer) start date back.
+  const moved = await prisma.event.findFirst({ where: { journeyId, type: "START_DATE_MOVED" }, orderBy: { createdAt: "asc" } });
+  const originalStart = moved?.from ? new Date(moved.from) : current.startDate;
   const created = engCreate(templates, {
     id: current.id, starterId: current.starterId, lmId: current.lmId, buddyId: current.buddyId, teamId: current.teamId,
-    startDate: current.startDate, now, actorId: ctx.actorId ?? null,
+    startDate: originalStart, now, actorId: ctx.actorId ?? null,
   });
   let fresh = created.journey;
   for (const key of ["guest-invite-sent", "allocate-buddy"]) {

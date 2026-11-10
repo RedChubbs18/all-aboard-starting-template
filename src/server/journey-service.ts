@@ -13,6 +13,7 @@ import {
   exitJourney as engExit,
   progress as engProgress,
   setTaskStatus as engSetStatus,
+  normalizeIntegrationStatus,
   settle,
   type BespokeTaskInput,
   type ExitOptions,
@@ -189,6 +190,30 @@ export async function persistEngineResult(tx: Db, before: JourneyState | null, r
   }
   const events = [...result.events, ...extraEvents];
   if (events.length) await tx.event.createMany({ data: events.map(eventData) });
+  if (before) await replayDeferredVettingSignal(tx, before, result.journey);
+}
+
+/**
+ * D32: an `action_needed` or `failed` signal that arrived before the starter reached PEV could not touch the
+ * (locked) vetting tasks, but was recorded. The moment those tasks unlock, apply the recorded signal so the flag and
+ * the P&P referral appear then, not earlier.
+ */
+async function replayDeferredVettingSignal(tx: Db, before: JourneyState, after: JourneyState) {
+  if (after.status !== "active") return;
+  const fa = (j: JourneyState) => j.tasks.filter((t) => t.adapterKey === "firstadvantage" && t.applicable);
+  const unlocked = fa(before).some((t) => t.status === "LOCKED" && fa(after).find((x) => x.id === t.id)?.status !== "LOCKED");
+  if (!unlocked) return;
+  const row = await tx.integrationState.findUnique({ where: { journeyId_adapterKey: { journeyId: after.id, adapterKey: "firstadvantage" } } });
+  if (!row) return;
+  const norm = normalizeIntegrationStatus(row.status);
+  if (norm !== "ACTION_NEEDED" && norm !== "FAILED") return;
+  const detail = (row.payload as { detail?: string } | null)?.detail;
+  const applied = engApplyIntegration(after, "firstadvantage", row.status, { detail });
+  const note: NewEvent = {
+    journeyId: after.id, actorId: null, type: "VETTING_SIGNAL_APPLIED", entity: "Integration", entityId: "firstadvantage",
+    from: null, to: row.status, data: { deferred: true }, createdAt: new Date(),
+  };
+  await persistEngineResult(tx, after, applied, [note]);
 }
 
 /**
@@ -292,8 +317,11 @@ export async function applyIntegrationStatus(
     const result = engApplyIntegration(before, adapterKey, status, ctx);
     await persistEngineResult(tx, before, result);
     const existing = await tx.integrationState.findUnique({ where: { journeyId_adapterKey: { journeyId, adapterKey } } });
-    if (existing) await tx.integrationState.update({ where: { id: existing.id }, data: { status } });
-    else await tx.integrationState.create({ data: { journeyId, adapterKey, status, payload: {} } });
+    // The detail is kept (merged, never replacing what an adapter stored in the same row) so a signal recorded before
+    // its task unlocks can be applied later (D32).
+    const payload = ctx.detail ? { detail: ctx.detail } : {};
+    if (existing) await tx.integrationState.update({ where: { id: existing.id }, data: { status, ...(ctx.detail ? { payload: { ...((existing.payload as object | null) ?? {}), ...payload } } : {}) } });
+    else await tx.integrationState.create({ data: { journeyId, adapterKey, status, payload } });
     return result.journey;
   });
 }
@@ -319,6 +347,38 @@ export const exitJourney = (journeyId: string, reason: string, ctx: ExitOptions 
 /** Re-run recompute/advance/flag (e.g. after an admin edits dependencies). */
 export const recomputeJourney = (journeyId: string, ctx: Ctx = {}) =>
   mutateJourney(journeyId, (j) => settle(j, ctx));
+
+/**
+ * D31: nothing happens in the engine when time passes, so a journey whose Day 0 or Day 30 date has now arrived is
+ * re-settled on read (starter journey, LM list) and by the scheduler tick. Checks in memory first and writes
+ * only when something would change. Returns the (possibly advanced) journey.
+ */
+export async function settleForTime(journey: JourneyState, now: Date = new Date()): Promise<JourneyState> {
+  if (journey.status !== "active") return journey;
+  if (settle(journey, { now }).events.length === 0) return journey;
+  return mutateJourney(journey.id, (j) => settle(j, { now }));
+}
+
+/**
+ * Demo only ("Jump to Day 0"): moves the start date and shifts every due date by the same amount, then re-settles,
+ * so the timing rule (D31) lets the journey reach Day 0.
+ */
+export async function moveStartDate(journeyId: string, startDate: Date, ctx: Ctx = {}): Promise<JourneyState> {
+  return mutateJourney(journeyId, (j) => {
+    const delta = startDate.getTime() - j.startDate.getTime();
+    const moved: JourneyState = {
+      ...j,
+      startDate,
+      tasks: j.tasks.map((t) => ({ ...t, dueDate: new Date(t.dueDate.getTime() + delta) })),
+    };
+    const e: NewEvent = {
+      journeyId: j.id, actorId: ctx.actorId ?? null, type: "START_DATE_MOVED", entity: "Journey", entityId: j.id,
+      from: j.startDate.toISOString(), to: startDate.toISOString(), data: { demo: true }, createdAt: ctx.now ?? new Date(),
+    };
+    const s = settle(moved, ctx);
+    return { journey: s.journey, events: [e, ...s.events] };
+  });
+}
 
 /** Record an audit event that has no engine state change (nudges, support requests, overrides). */
 export async function recordEvent(

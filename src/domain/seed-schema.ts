@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { JOB_FAMILIES } from "./job-family";
 import type { TemplateInput } from "./types";
 import {
   CONTENT_TYPES,
@@ -81,6 +82,8 @@ export const userSchema = z.object({
   teamKey: z.string().nullish(),
   teamRole: z.string().nullish(),
   jobTitle: z.string().nullish(),
+  /** D29: drives the device entitlement. Optional so older fixtures still load. */
+  jobFamily: z.enum(JOB_FAMILIES).nullish(),
   reportsToKey: z.string().nullish(),
   bio: z.string().nullish(),
   buddyEligible: z.boolean().default(false),

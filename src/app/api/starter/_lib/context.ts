@@ -2,26 +2,27 @@ import { canActOnTask, canViewJourney, journeyScopeWhere, taskVisibleInScope, vi
 import { isVettingFailed } from "@/domain/engine";
 import { hasAnyRole, type SessionUser } from "@/lib/auth/roles";
 import { prisma } from "@/server/db";
-import { listJourneys, loadJourney, loadJourneyByStarter } from "@/server/journey-service";
+import { listJourneys, loadJourney, loadJourneyByStarter, settleForTime } from "@/server/journey-service";
 import type { JourneyState, TaskState } from "@/domain/types";
 import { HttpError } from "./http";
 
 /** The journey the viewer asked for (must be visible to them), or their default one. */
 export async function resolveJourney(user: SessionUser, journeyId: string | null): Promise<JourneyState> {
+  // D31: Day 0 / Day 30 open on their dates, so settle for the passage of time before showing the journey.
   if (journeyId) {
     const j = await loadJourney(journeyId);
     if (!j) throw new HttpError(404, "not_found", "Journey not found");
     if (!canViewJourney(user, j)) throw new HttpError(403, "forbidden", "You cannot view this journey");
-    return j;
+    return settleForTime(j);
   }
   if (hasAnyRole(user, "STARTER")) {
     const own = await loadJourneyByStarter(user.id);
-    if (own) return own;
+    if (own) return settleForTime(own);
   }
   const list = await listJourneys(journeyScopeWhere(user));
   const pick = list.find((j) => j.status === "active") ?? list[0];
   if (!pick) throw new HttpError(404, "no_journey", "There is no journey for you to view yet");
-  return pick;
+  return settleForTime(pick);
 }
 
 /** Other journeys the viewer can switch to (never includes the one in view). */

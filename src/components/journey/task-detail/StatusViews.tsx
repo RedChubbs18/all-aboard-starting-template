@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/Card";
 import { ContactCard } from "@/components/ui/ContactCard";
 import { cn } from "@/components/ui/cn";
 import type { Detail, TaskDetailResponse } from "../detail-types";
-import { formatDateTime } from "../format";
+import { formatDateTime, vettingTiming } from "../format";
 
 type Hv = Extract<Detail, { kind: "firstadvantage" }>["status"];
 
@@ -53,6 +53,24 @@ export function FirstAdvantagePanel({ data, onChanged }: { data: TaskDetailRespo
   const meta = HV[s.status];
   const [busy, setBusy] = useState(false);
   const attention = s.status === "action_needed" || s.status === "failed";
+  // D32: until the colleague has been invited to complete vetting there is no status chip, only the due timing.
+  if (s.status === "not_started") {
+    return (
+      <div className="space-y-4">
+        <Card className="space-y-2">
+          <p className="text-sm font-semibold text-muted">First Advantage vetting</p>
+          <p className="text-lg font-bold">{data.task.status === "DONE" ? "Done" : vettingTiming(data.task.dueDate, new Date())}</p>
+          <p>First Advantage will email you an invitation to enter your vetting information. This page then shows how it is going.</p>
+        </Card>
+        {data.journey.pnp && data.task.stage === "PEV" && (
+          <section aria-label="People and Places support">
+            <h2 className="mb-2 font-semibold">Need help with your vetting?</h2>
+            <ContactCard name={data.journey.pnp.name} role="People & Places" upn={data.journey.pnp.upn} photoUrl={data.journey.pnp.photoUrl} variant="compact" />
+          </section>
+        )}
+      </div>
+    );
+  }
   return (
     <div className="space-y-4">
       <Card className="space-y-3">

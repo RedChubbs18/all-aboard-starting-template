@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { UserRound } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Owner, Stage } from "@/domain/types";
 import { Alert } from "@/components/ui/Alert";
@@ -105,6 +106,13 @@ export function JourneyView({ data, onComplete, pendingId, lastCompletedTitle, r
 
   return (
     <div className="space-y-4">
+      {/* D26: until the offer is unconditional the colleague uses a personal account as a B2B guest. */}
+      {viewerIsStarter && journey.status === "active" && (journey.currentStage === "CONDITIONAL_OFFER" || journey.currentStage === "PEV") && (
+        <p className="flex items-center gap-2 text-sm text-muted">
+          <UserRound aria-hidden className="size-4 shrink-0" strokeWidth={1.8} />
+          You&apos;re signed in with your personal account as a guest. Your work account comes later.
+        </p>
+      )}
       {!viewerIsStarter && (
         <Alert tone="info" title={`Viewing ${journey.starter.name}'s journey`}>
           <p>

@@ -7,6 +7,7 @@ import { OverdueBadge, OwnerBadge, StatusBadge } from "@/components/ui/Badge";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Markdown } from "@/components/ui/Markdown";
+import { useCompletionGate } from "../CompletionPrompt";
 import { STAGE_META } from "../derive";
 import type { TaskDetailResponse } from "../detail-types";
 import { formatLongDate, isOverdue } from "../format";
@@ -26,7 +27,9 @@ export function TaskDetailView({ data, onChanged, onComplete, completing }: Prop
   const { task, detail, content, links, waitingFor, journey } = data;
   const back = journey.viewerIsStarter ? "/journey" : `/journey?journeyId=${encodeURIComponent(journey.id)}`;
   const overdue = task.status !== "DONE" && task.status !== "LOCKED" && isOverdue(task.dueDate, new Date());
-  const sub = { data, onChanged, onComplete, completing };
+  // D30: tasks that need action or input ask "Is this task complete?" first (checklists, training, plain actions).
+  const gate = useCompletionGate(task, onComplete);
+  const sub = { data, onChanged, onComplete: async () => gate.trigger(), completing };
   const locked = task.status === "LOCKED";
 
   // Generic "mark complete" for tasks with nothing to submit.
@@ -68,7 +71,7 @@ export function TaskDetailView({ data, onChanged, onComplete, completing }: Prop
           ) : (
             <p>{task.lockedReason ?? "This unlocks after an earlier step."}</p>
           )}
-          {waitingFor.length > 0 && task.lockedReason && /Unlocks when/.test(task.lockedReason) && <p className="mt-1">{task.lockedReason}</p>}
+          {waitingFor.length > 0 && task.lockedReason && /^Unlocks/.test(task.lockedReason) && <p className="mt-1">{task.lockedReason}</p>}
         </Alert>
       )}
       {task.status === "BLOCKED" && task.blockedReason && (
@@ -145,12 +148,13 @@ export function TaskDetailView({ data, onChanged, onComplete, completing }: Prop
 
       {showGeneric && (
         <div className="sticky bottom-[88px]">
-          <Button size="lg" className="w-full" loading={completing} onClick={() => void onComplete()}>
+          <Button size="lg" className="w-full" loading={completing} onClick={gate.trigger}>
             <CheckCircle2 aria-hidden className="size-5" />
             {detail.kind === "collect" ? "Mark as collected" : "Mark complete"}
           </Button>
         </div>
       )}
+      {gate.dialog}
     </article>
   );
 }

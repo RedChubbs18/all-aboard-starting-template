@@ -1,3 +1,4 @@
+import { entitledModels } from "./equipment/catalogue";
 import { describe, expect, it } from "vitest";
 import { memoryStore } from "./store";
 import { createBookingMock, sessionsFrom } from "./booking/mock";
@@ -91,10 +92,18 @@ describe("equipment mock", () => {
   it("offers a catalogue, honours the collection point and orders home-working items", async () => {
     const a = createEquipmentMock(memoryStore());
     const cat = await a.getCatalogue();
-    expect(cat.devices.map((d) => d.device).sort()).toEqual(["MAC", "WINDOWS"]);
+    // D29: two tiers, one Mac and one Windows model in each.
+    expect(cat.devices.map((d) => d.label).sort()).toEqual(["HP EliteBook U5", "HP EliteBook U7", "MacBook Air M5", "MacBook Pro M5 Pro"]);
+    expect(entitledModels("ENGINEERING").map((d) => d.label)).toEqual(["MacBook Pro M5 Pro", "HP EliteBook U7"]);
+    for (const f of ["OPERATIONS", "DATA_AND_ANALYTICS", "CUSTOMER_SERVICE", "RISK_AND_COMPLIANCE", "CORPORATE_FUNCTIONS", null]) {
+      expect(entitledModels(f).map((d) => d.label)).toEqual(["MacBook Air M5", "HP EliteBook U5"]);
+    }
     expect(cat.collectionPoints.map((c) => c.id)).toEqual(["TECH_BAR", "MAILROOM"]);
-    const c = await a.submitChoice("j1", { device: "WINDOWS", peripherals: ["Monitor"], collectionPoint: "MAILROOM" });
+    const c = await a.submitChoice("j1", { device: "WINDOWS", modelId: "hp-elitebook-u7", peripherals: ["Monitor"], collectionPoint: "MAILROOM" });
     expect(c.collectionPoint).toMatch(/^Mailroom/);
+    expect(c).toMatchObject({ device: "WINDOWS", modelId: "hp-elitebook-u7", model: "HP EliteBook U7" });
+    await expect(a.submitChoice("j1", { device: "MAC", modelId: "hp-elitebook-u7", peripherals: [] })).rejects.toThrow(); // model must match the device
+    await expect(a.submitChoice("j1", { device: "MAC", modelId: "nope", peripherals: [] })).rejects.toThrow();
     await expect(a.submitChoice("j1", { device: "MAC", peripherals: [], collectionPoint: "ATTIC" as never })).rejects.toThrow();
     const o = await a.orderHomeWorking("j1", ["desk", "chair"]);
     expect(o.items).toEqual(["Height-adjustable desk", "Office chair"]);

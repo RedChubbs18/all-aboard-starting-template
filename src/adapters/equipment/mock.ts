@@ -1,12 +1,10 @@
 import { statusMock } from "../mock-helpers";
 import type { StateStore } from "../types";
+import { DEVICE_MODELS, findModel } from "./catalogue";
 import type { CollectionPoint, EquipmentAdapter, EquipmentCatalogue, EquipmentChoice, HomeWorkingOrder } from "./types";
 
 export const CATALOGUE: EquipmentCatalogue = {
-  devices: [
-    { id: "mac-14", label: "MacBook Pro 14-inch", device: "MAC" },
-    { id: "win-14", label: "Windows laptop 14-inch", device: "WINDOWS" },
-  ],
+  devices: DEVICE_MODELS,
   peripherals: [
     { id: "monitor", label: "Monitor" },
     { id: "keyboard", label: "Keyboard" },
@@ -38,8 +36,14 @@ export function createEquipmentMock(store: StateStore): EquipmentAdapter & Retur
       if (choice.device !== "MAC" && choice.device !== "WINDOWS") throw new Error("device must be MAC or WINDOWS");
       const point = choice.collectionPoint ?? "TECH_BAR";
       if (!CATALOGUE.collectionPoints.some((c) => c.id === point)) throw new Error("collectionPoint must be TECH_BAR or MAILROOM");
+      // D29: an explicit model must match the device; otherwise default to the standard-tier model of that device.
+      const model = choice.modelId ? findModel(choice.modelId) : DEVICE_MODELS.find((m) => m.device === choice.device && m.tier === "STANDARD");
+      if (!model) throw new Error("Unknown device model");
+      if (model.device !== choice.device) throw new Error("The model does not match the device");
       const out: EquipmentChoice = {
         device: choice.device,
+        modelId: model.id,
+        model: model.label,
         peripherals: [...choice.peripherals],
         collectionPoint: pointLabel(point),
         ref: `EQ-${journeyId.replace(/[^a-z0-9]/gi, "").slice(0, 6).toUpperCase()}`,

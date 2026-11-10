@@ -31,6 +31,8 @@ Prisma refuses `--force-reset` when invoked by an AI agent, which is why `db:res
 
 Journeys in `people.json` are instantiated through the real engine, then tasks in stages before `currentStage` are marked DONE (all tasks for completed journeys), then `taskStates` overrides apply. `firstAdvantageStatus` is stored as `IntegrationState` for `firstadvantage`.
 
+Every seeded user has a `jobFamily` (D29: `ENGINEERING` gets MacBook Pro M5 Pro or HP EliteBook U7, everyone else MacBook Air M5 or HP EliteBook U5). There are four teams; "Cloud Platform Engineering" (`cpe`, Group Technology) has the only TEAM templates besides DWE's. Stage timing (D31): Day 0 opens no earlier than the start date and Day 30 no earlier than start + 30 days; the journey view settles for the passage of time when read, and `POST /api/simulate/tick` does it for all journeys.
+
 Optional `prisma/seed.local.json` (gitignored) maps seeded users to real identities. Keys are the user `key` from `people.json`:
 
 ```json

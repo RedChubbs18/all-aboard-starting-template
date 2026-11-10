@@ -13,6 +13,10 @@ import {
   normalizeIntegrationStatus,
   progress,
   recomputeTasks,
+  settle,
+  stageIndex,
+  stageUnlockDate,
+  isStageTimeReached,
   setTaskStatus,
   type JourneyState,
 } from "./index";
@@ -20,6 +24,8 @@ import { TEMPLATES } from "./test-fixtures";
 
 const startDate = new Date("2026-12-01T00:00:00Z");
 const now = new Date("2026-11-09T09:00:00Z");
+/** After start + 30 days: Day 0 and Day 30 are open (D31). */
+const later = new Date("2027-01-15T09:00:00Z");
 let n = 0;
 const newId = () => `id-${++n}`;
 
@@ -34,7 +40,7 @@ function finishAll(j: JourneyState): JourneyState {
   for (let i = 0; i < 50 && cur.status === "active"; i++) {
     const t = cur.tasks.find((x) => x.gating && x.applicable && x.status !== "DONE" && x.status !== "LOCKED");
     if (!t) break;
-    cur = completeTask(cur, t.key, { now }).journey;
+    cur = completeTask(cur, t.key, { now: later }).journey;
   }
   return cur;
 }
@@ -164,6 +170,57 @@ describe("stage progression", () => {
   it("does nothing on a non-active journey", () => {
     const j = exitJourney(make().journey, "ROLE_NOT_RIGHT", { now }).journey;
     expect(advanceStage(j).events).toHaveLength(0);
+  });
+});
+
+describe("stage timing (D31)", () => {
+  const dayBefore = new Date("2026-11-30T23:59:59Z");
+  const onStart = new Date("2026-12-01T00:00:00Z");
+  const day30 = new Date("2026-12-31T00:00:00Z");
+
+  /** Completes every gating task up to (not including) Day 0 with the clock at `at`. */
+  function toEndOfUnconditional(at: Date) {
+    let cur = make().journey;
+    for (let i = 0; i < 50; i++) {
+      const t = cur.tasks.find((x) => x.gating && x.applicable && x.status !== "DONE" && x.status !== "LOCKED" && stageIndex(x.stage) < stageIndex("DAY_0"));
+      if (!t) break;
+      cur = completeTask(cur, t.key, { now: at }).journey;
+    }
+    return cur;
+  }
+
+  it("Day 0 stays closed until the start date even when every earlier gating task is done", () => {
+    const j = toEndOfUnconditional(dayBefore);
+    expect(j.currentStage).toBe("UNCONDITIONAL_OFFER");
+    for (const t of j.tasks.filter((x) => x.stage === "DAY_0")) expect(t.status).toBe("LOCKED");
+  });
+
+  it("Day 0 opens on the start date, and a later settle (the passage of time) opens it", () => {
+    const j = toEndOfUnconditional(dayBefore);
+    expect(settle(j, { now: dayBefore }).journey.currentStage).toBe("UNCONDITIONAL_OFFER");
+    const opened = settle(j, { now: onStart });
+    expect(opened.journey.currentStage).toBe("DAY_0");
+    expect(opened.events.some((e) => e.type === "STAGE_CHANGED" && e.to === "DAY_0")).toBe(true);
+  });
+
+  it("Day 30 stays closed until start + 30 days even when every Day 0 gating task is done", () => {
+    let j = settle(toEndOfUnconditional(dayBefore), { now: onStart }).journey;
+    for (let i = 0; i < 50; i++) {
+      const t = j.tasks.find((x) => x.gating && x.applicable && x.status !== "DONE" && x.status !== "LOCKED" && x.stage === "DAY_0");
+      if (!t) break;
+      j = completeTask(j, t.key, { now: onStart }).journey;
+    }
+    expect(j.currentStage).toBe("DAY_0");
+    expect(settle(j, { now: new Date("2026-12-30T23:00:00Z") }).journey.currentStage).toBe("DAY_0");
+    expect(settle(j, { now: day30 }).journey.currentStage).toBe("DAY_30");
+  });
+
+  it("exposes the unlock dates", () => {
+    expect(stageUnlockDate(startDate, "PEV")).toBeNull();
+    expect(stageUnlockDate(startDate, "DAY_0")?.toISOString()).toBe(startDate.toISOString());
+    expect(stageUnlockDate(startDate, "DAY_30")?.toISOString()).toBe("2026-12-31T00:00:00.000Z");
+    expect(isStageTimeReached(startDate, "DAY_0", dayBefore)).toBe(false);
+    expect(isStageTimeReached(startDate, "DAY_0", onStart)).toBe(true);
   });
 });
 
@@ -317,7 +374,7 @@ describe("named conditions and overrides (seed content)", () => {
     j = applyIntegrationStatus(j, "photocheck", "failed", { now }).journey;
     expect(j.tasks.find((t) => t.key === "photo-check-override")!.applicable).toBe(true);
     expect(j.flagged).toBe(true);
-    j = completeTask(j, "photo-check-override", { now, actorId: "pnp" }).journey;
+    j = completeTask(j, "photo-check-override", { now: later, actorId: "pnp" }).journey;
     expect(status(j, "order-pass")).toBe("TODO");
     expect(j.flagged).toBe(false);
     expect(j.currentStage).not.toBe("UNCONDITIONAL_OFFER"); // gating photo task satisfied by the override

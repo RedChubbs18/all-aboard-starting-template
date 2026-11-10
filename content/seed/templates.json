@@ -576,7 +576,8 @@
     "adapterKey": null,
     "gating": false,
     "contentSlug": "office-wayfinding-example-house",
-    "condition": null
+    "condition": null,
+    "autoCompleteOnOpen": true
   },
   {
     "key": "watch-executive-welcome",
@@ -696,8 +697,8 @@
   },
   {
     "key": "review-flex-benefits",
-    "title": "Review your flex benefits",
-    "description": "Review and choose your flex benefits before the deadline on the benefits platform.",
+    "title": "Choose your flex benefits",
+    "description": "Review the options and make your flex benefit choices on the benefits platform before the deadline. Tell us when you have done it.",
     "stage": "DAY_0",
     "owner": "STARTER",
     "type": "ACTION",
@@ -707,8 +708,7 @@
     "adapterKey": null,
     "gating": false,
     "contentSlug": "flex-benefits-guide",
-    "condition": null,
-    "autoCompleteOnOpen": true
+    "condition": null
   },
   {
     "key": "cascade-performance-goals",
@@ -745,19 +745,18 @@
   },
   {
     "key": "read-development-goals",
-    "title": "Read the development goals guidance",
-    "description": "How to set development goals with your LM. Marking this done completes your journey.",
+    "title": "Set your development goals",
+    "description": "Agree one to three development goals with your LM. Marking this done completes your journey.",
     "stage": "DAY_30",
     "owner": "STARTER",
-    "type": "INFO",
+    "type": "ACTION",
     "dueOffsetDays": 30,
     "dependsOn": [],
     "source": "CORE",
     "adapterKey": null,
     "gating": true,
     "contentSlug": "development-goals-guide",
-    "condition": null,
-    "autoCompleteOnOpen": true
+    "condition": null
   },
   {
     "key": "team-github-access",
@@ -847,6 +846,56 @@
     "adapterKey": null,
     "gating": false,
     "contentSlug": null,
+    "condition": null
+  },
+  {
+    "key": "team-gcp-project-access",
+    "title": "Request GCP project access",
+    "description": "Request access to the team's Google Cloud Platform projects through an IT request.",
+    "stage": "UNCONDITIONAL_OFFER",
+    "owner": "LM",
+    "type": "ACTION",
+    "dueOffsetDays": -14,
+    "dependsOn": [
+      "colleague-file-id-created"
+    ],
+    "source": "TEAM",
+    "teamKey": "cpe",
+    "adapterKey": "itrequest",
+    "gating": false,
+    "contentSlug": "cloud-platform-team-guide",
+    "condition": null
+  },
+  {
+    "key": "team-gcp-fundamentals-training",
+    "title": "Complete Google Cloud Platform fundamentals training",
+    "description": "Work through the Google Cloud Platform fundamentals course. Tell us when you have completed it.",
+    "stage": "DAY_0",
+    "owner": "STARTER",
+    "type": "ACTION",
+    "dueOffsetDays": 10,
+    "dependsOn": [],
+    "source": "TEAM",
+    "teamKey": "cpe",
+    "adapterKey": null,
+    "gating": false,
+    "contentSlug": "cloud-platform-team-guide",
+    "condition": null
+  },
+  {
+    "key": "team-cloud-oncall-briefing",
+    "title": "Join the cloud on-call rota briefing",
+    "description": "Join the team's on-call rota briefing so you know how incidents are handled before you join the rota.",
+    "stage": "DAY_0",
+    "owner": "STARTER",
+    "type": "ACTION",
+    "dueOffsetDays": 3,
+    "dependsOn": [],
+    "source": "TEAM",
+    "teamKey": "cpe",
+    "adapterKey": null,
+    "gating": false,
+    "contentSlug": "cloud-platform-team-guide",
     "condition": null
   }
 ]

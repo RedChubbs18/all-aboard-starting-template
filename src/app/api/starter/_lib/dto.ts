@@ -1,4 +1,6 @@
-import { isVettingFailed } from "@/domain/engine";
+import { isVettingFailed, stageDone, vettingInvited } from "@/domain/engine";
+import { stageUnlockDate } from "@/domain/stage-timing";
+import { formatLongDate } from "@/components/journey/format";
 import { stageIndex, type JourneyState, type TaskState } from "@/domain/types";
 import { getAdapter } from "@/adapters/registry";
 import { STAGE_META, tallyStages } from "@/components/journey/derive";
@@ -24,11 +26,19 @@ export const toPerson = (u: UserRow): PersonDto => ({
 export const PNP_PHONE = "0800 000 0000 (example)";
 
 /** Plain-words reason a task is locked. For starters, hidden (manager, buddy, P&P) steps are summarised, never named. */
-export function lockedReason(j: JourneyState, t: TaskState, scope: ViewScope = "FULL"): string | null {
+export function lockedReason(j: JourneyState, t: TaskState, scope: ViewScope = "FULL", now: Date = new Date()): string | null {
   if (t.status !== "LOCKED") return null;
   const at = stageIndex(j.currentStage);
   if (stageIndex(t.stage) > at) {
     const prev = STAGES[stageIndex(t.stage) - 1];
+    // D31: Day 0 and Day 30 also wait for their date, even when every task is done.
+    const unlock = stageUnlockDate(j.startDate, t.stage);
+    if (unlock && unlock.getTime() > now.getTime()) {
+      const on = formatLongDate(unlock.toISOString());
+      return stageDone(j, j.currentStage) && stageIndex(t.stage) === at + 1
+        ? `Unlocks on ${on}.`
+        : `Unlocks when ${STAGE_META[prev].label} tasks are done, and not before ${on}.`;
+    }
     return `Unlocks when ${STAGE_META[prev].label} tasks are done.`;
   }
   const waiting = t.dependsOn
@@ -109,7 +119,9 @@ export async function buildJourneyDto(j: JourneyState, user: SessionUser): Promi
   };
   const scope = viewScope(user, j);
   const vettingBlocked = scope === "STARTER" && isVettingFailed(j);
-  const [pnp, firstadvantage] = await Promise.all([pnpContact(), firstAdvantageSummary(j.id)]);
+  const [pnp, faSummary] = await Promise.all([pnpContact(), firstAdvantageSummary(j.id)]);
+  // D32: no First Advantage status until the colleague has been invited to complete PEV (the UI shows only timing).
+  const firstadvantage = vettingInvited(j, faSummary?.status) ? faSummary : null;
   return {
     id: j.id,
     status: j.status,

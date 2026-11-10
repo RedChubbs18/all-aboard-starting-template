@@ -1,6 +1,6 @@
 /** Builds the LM-facing DTOs. Read-only: all writes go through journey-service. */
-import { normalizeIntegrationStatus } from "@/domain/engine";
-import type { JourneyState } from "@/domain/types";
+import { normalizeIntegrationStatus, vettingInvited, type Progress } from "@/domain/engine";
+import type { JourneyState, TaskState } from "@/domain/types";
 import { PHOTO_OVERRIDE_TASK_KEY, canActOnTask } from "@/lib/auth/access";
 import type { SessionUser } from "@/lib/auth/roles";
 import { chatLink } from "@/lib/teams";
@@ -39,12 +39,15 @@ export async function firstAdvantageStates(journeyIds: string[]): Promise<Map<st
 
 const isRed = (h: FirstAdvantageState | null | undefined) => h === "ACTION_NEEDED" || h === "FAILED";
 
+/** D32: the First Advantage state the LM may see: nothing until the colleague has been invited to complete PEV. */
+const visibleFa = (j: JourneyState, h: FirstAdvantageState | null | undefined): FirstAdvantageState | null => (vettingInvited(j, h) ? (h ?? null) : null);
+
 export async function buildSummaries(journeys: JourneyState[], now = new Date()): Promise<StarterSummary[]> {
   const people = await prisma.user.findMany({ where: { id: { in: journeys.map((j) => j.starterId) } }, select: { id: true, displayName: true } });
   const hv = await firstAdvantageStates(journeys.map((j) => j.id));
   const out = journeys.map((j): StarterSummary => {
-    const p = computeProgress(j, now);
-    const h = hv.get(j.id) ?? null;
+    const h = visibleFa(j, hv.get(j.id));
+    const p = withoutUninvitedVetting(computeProgress(j, now), j, h);
     const redFlag = isRed(h);
     const next = p.nextDue[0];
     return {
@@ -75,6 +78,13 @@ export async function buildSummaries(journeys: JourneyState[], now = new Date())
   );
 }
 
+/** D32: before the colleague is invited, the vetting tasks are not counted as overdue (there is nothing for anyone to chase). */
+function withoutUninvitedVetting(p: Progress, j: JourneyState, h: FirstAdvantageState | null): Progress {
+  if (h) return p;
+  const keep = (t: TaskState) => t.adapterKey !== "firstadvantage";
+  return { ...p, overdue: p.overdue.filter(keep) };
+}
+
 const person = (u: { id: string; displayName: string; upn: string; jobTitle: string | null }): Person => ({
   id: u.id,
   displayName: u.displayName,
@@ -101,7 +111,8 @@ export async function buildDetail(journeyId: string, user: SessionUser, now = ne
   ]);
   if (!starter || !lm) throw new HttpError(404, "not_found", "Starter not found");
 
-  const p = computeProgress(j, now);
+  const h = visibleFa(j, hv.get(journeyId));
+  const p = withoutUninvitedVetting(computeProgress(j, now), j, h);
   const live = j.tasks.filter((t) => t.applicable);
   const byKey = new Map(live.map((t) => [t.key, t]));
   const overdueIds = new Set(p.overdue.map((t) => t.id));
@@ -126,7 +137,6 @@ export async function buildDetail(journeyId: string, user: SessionUser, now = ne
         : [],
     canAct: j.status === "active" && t.owner === "LM" && t.status !== "LOCKED" && canActOnTask(user, j, t.owner),
   }));
-  const h = hv.get(journeyId) ?? null;
   const overrideTask = tasks.find((t) => t.key === PHOTO_OVERRIDE_KEY);
   const photoReview =
     overrideTask && overrideTask.status !== "DONE"

@@ -25,7 +25,8 @@ const ROLES = ['STARTER', 'BUDDY', 'LM', 'PNP', 'ADMIN'];
 const TASK_STATUS = ['LOCKED', 'TODO', 'IN_PROGRESS', 'BLOCKED', 'DONE'];
 const JOURNEY_STATUS = ['active', 'completed', 'exited'];
 const FIRSTADVANTAGE = ['NOT_STARTED', 'IN_PROGRESS', 'ACTION_NEEDED', 'CLEARED', 'FAILED'];
-const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const JOB_FAMILIES = ['ENGINEERING', 'DATA_AND_ANALYTICS', 'OPERATIONS', 'CUSTOMER_SERVICE', 'RISK_AND_COMPLIANCE', 'CORPORATE_FUNCTIONS']; // D29
+const SLUG =/^[a-z0-9]+(-[a-z0-9]+)*$/;
 const EMAIL = /^[a-z]+\.[a-z]+@example\.test$/;
 
 // Every §5 FR. FEATURE_ONLY ones are behaviour, not a task, so no template is expected.
@@ -272,6 +273,7 @@ if (!people || typeof people !== 'object' || !Array.isArray(people.teams) || !Ar
     if (!Array.isArray(u.roles) || !u.roles.every((r) => ROLES.includes(r))) fail(`user ${u.key}: bad roles`);
     if (u.teamKey !== null && !teamByKey.has(u.teamKey)) fail(`user ${u.key}: unknown teamKey ${u.teamKey}`);
     if (u.reportsToKey !== null && !(people.users.some((x) => x.key === u.reportsToKey))) fail(`user ${u.key}: unknown reportsToKey`);
+    if (u.jobFamily === undefined || !JOB_FAMILIES.includes(u.jobFamily)) fail(`user ${u.key}: jobFamily must be one of ${JOB_FAMILIES.join(', ')}`);
     if (typeof u.buddyEligible !== 'boolean') fail(`user ${u.key}: buddyEligible must be boolean`);
     if (u.bio !== null && !isStr(u.bio)) fail(`user ${u.key}: bio must be string or null`);
     if (u.photo !== null) fail(`user ${u.key}: photo must be null in seed`);

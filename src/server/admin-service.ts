@@ -323,7 +323,7 @@ export async function seedNewStarter(actorId: string, input: unknown, opts: { de
   if (!existing) {
     starterId = `u-${randomUUID().slice(0, 8)}`;
     await prisma.user.create({
-      data: { id: starterId, upn: v.upn!, displayName: v.displayName!, roles: ["STARTER"], teamId: v.teamId, reportsToId: v.lmId, teamRole: "Team member" },
+      data: { id: starterId, upn: v.upn!, displayName: v.displayName!, roles: ["STARTER"], teamId: v.teamId, reportsToId: v.lmId, teamRole: "Team member", jobFamily: v.jobFamily ?? null },
     });
     await audit(actorId, "ADMIN_USER_CREATED", "User", starterId, { roles: ["STARTER"], teamId: v.teamId });
   }
