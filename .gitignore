@@ -47,3 +47,6 @@ public/fonts/*.ttf
 
 # Mock Workday demo store (holds personal emails)
 demo/mock-workday/.data/
+
+# MediaPipe WASM runtime: copied from node_modules by scripts/copy-vision-assets.mjs (the model file IS committed)
+public/vision/wasm/

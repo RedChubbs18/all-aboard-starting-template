@@ -16,6 +16,8 @@ const eslintConfig = defineConfig([
     ".claude/**",
     // Separate demo-only app with its own package.json and lint config.
     "demo/**",
+    // Vendored MediaPipe WASM glue copied into public/vision by scripts/copy-vision-assets.mjs.
+    "public/vision/**",
   ]),
 ]);
 
