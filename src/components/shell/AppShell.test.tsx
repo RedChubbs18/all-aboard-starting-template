@@ -44,7 +44,7 @@ describe("AppShell navigation by breakpoint", () => {
     expect(bottom).not.toHaveClass("hidden");
     // The 430px phone column is gone and content sits beside the side nav.
     expect(document.querySelector('[class*="max-w-[430px]"]')).toBeNull();
-    expect(screen.getByRole("main").parentElement).toHaveClass("md:pl-60");
+    expect(screen.getByRole("main").parentElement).toHaveClass("md:pl-[15rem]");
   });
 
   it("lists every role item plus Accessibility and display in the side nav, and four on the bottom bar", () => {

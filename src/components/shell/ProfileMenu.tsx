@@ -51,7 +51,7 @@ export function ProfileMenu({ more }: { more: ShellNavItem[] }) {
         <UserRound aria-hidden className="size-[22px]" strokeWidth={1.8} />
       </button>
       {open && (
-        <section id={panelId} aria-label="Profile" className="absolute right-0 top-full z-50 mt-2 w-64 rounded-md border border-line bg-card p-2 text-ink shadow-card">
+        <section id={panelId} aria-label="Profile" className="absolute right-0 top-full z-50 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-md border border-line bg-card p-2 text-ink shadow-card">
           {user && (
             <div className="border-b border-line px-3 pb-2 pt-1">
               <p className="font-bold">{user.displayName}</p>

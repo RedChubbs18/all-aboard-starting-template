@@ -203,7 +203,8 @@ export function HorseTrack(props: HorseTrackProps) {
 
   // The marker sits on the thick bar at the overall percentage. It strides forward with a short ease
   // (~500ms) when progress increases; motion-safe means it jumps instantly under reduced motion.
-  const markerLeft = `calc(${percent}% - ${(percent / 100) * 40}px)`;
+  // The marker is size-10 (10 spacing units), so it scales with --spacing: offset by the same unit, not 40px.
+  const markerLeft = `calc(${percent}% - ${percent / 100} * var(--spacing) * 10)`;
   return (
     <section aria-labelledby={headingId} className={cn("rounded-md border border-line bg-card px-[22px] py-5", className)}>
       <h2 id={headingId} className="text-xl font-bold">
@@ -216,7 +217,7 @@ export function HorseTrack(props: HorseTrackProps) {
         {percent}%
       </p>
       <div className="relative mt-4 h-10">
-        <div className="absolute inset-x-0 top-[13px]">
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2">
           <ProgressBar value={percent} label="Journey progress" valueText={valueText} size="thick" className="[&>div]:motion-safe:duration-500" />
         </div>
         <span

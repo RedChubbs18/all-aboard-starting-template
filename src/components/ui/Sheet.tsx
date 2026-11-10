@@ -41,7 +41,7 @@ export function Sheet({ open, onClose, title, children, variant = "sheet" }: Pro
         "app-dialog m-0 bg-card p-0 text-ink shadow-card",
         variant === "sheet"
           ? "sheet-up fixed inset-x-0 bottom-0 top-auto max-h-[90dvh] w-full max-w-none overflow-y-auto rounded-t-lg lg:inset-y-0 lg:left-auto lg:right-0 lg:max-h-none lg:w-[420px] lg:rounded-none lg:rounded-l-lg"
-          : "m-auto w-[calc(100%-2rem)] max-w-sm rounded-lg",
+          : "m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-sm overflow-y-auto rounded-lg",
       )}
     >
       {open && (

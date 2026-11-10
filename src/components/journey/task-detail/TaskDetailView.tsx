@@ -48,7 +48,7 @@ export function TaskDetailView({ data, onChanged, onComplete, completing }: Prop
 
       <header className="space-y-2">
         <p className="text-sm text-muted">{STAGE_META[task.stage].label}</p>
-        <h1 id="task-h" className="text-[28px] font-bold leading-tight text-ink">
+        <h1 id="task-h" className="text-[1.75rem] font-bold leading-tight text-ink">
           {task.title}
         </h1>
         <div className="flex flex-wrap items-center gap-2">
@@ -147,7 +147,7 @@ export function TaskDetailView({ data, onChanged, onComplete, completing }: Prop
       )}
 
       {showGeneric && (
-        <div className="sticky bottom-[88px] md:bottom-4">
+        <div className="sticky bottom-[calc(var(--bottom-nav-h)+0.75rem)] md:bottom-4">
           <Button size="lg" className="w-full" loading={completing} onClick={gate.trigger}>
             <CheckCircle2 aria-hidden className="size-5" />
             {detail.kind === "collect" ? "Mark as collected" : "Mark complete"}

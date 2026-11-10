@@ -41,7 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {signedIn && (
         <div
           data-testid="side-nav"
-          className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col overflow-y-auto border-r border-line bg-card md:flex"
+          className="fixed inset-y-0 left-0 z-30 hidden w-[15rem] flex-col overflow-y-auto border-r border-line bg-card md:flex"
         >
           <Link href="/" aria-label="MyJourney home" className="m-4 inline-flex min-h-11 items-center self-start">
             <BrandLogo height={40} />
@@ -84,9 +84,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      <div className={cn("flex min-h-screen flex-col", signedIn && "md:pl-60")}>
+      <div className={cn("flex min-h-screen flex-col", signedIn && "md:pl-[15rem]")}>
         {signedIn && (
-          <header className="sticky top-0 z-40 border-b border-line bg-card px-4 py-3 md:px-8">
+          <header className="sticky top-0 z-40 border-b border-line bg-card px-4 py-3 md:px-[2rem]">
             <div className={cn("mx-auto flex items-center gap-2", full ? "max-w-[1280px]" : "max-w-3xl")}>
               <Link href="/" aria-label="MyJourney home" className="inline-flex shrink-0 items-center md:hidden">
                 <BrandLogo height={32} className="text-base" />
@@ -102,8 +102,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           id="main"
           tabIndex={-1}
           className={cn(
-            "flex-1 px-4 pt-5 md:px-8 md:pt-8",
-            bar.length > 0 ? "pb-[110px] md:pb-10" : "pb-10",
+            "flex-1 px-4 pt-5 md:px-[2rem] md:pt-8",
+            bar.length > 0 ? "pb-[calc(var(--bottom-nav-h)+2.5rem)] md:pb-10" : "pb-10",
             !signedIn && "flex flex-col items-center justify-center",
           )}
         >

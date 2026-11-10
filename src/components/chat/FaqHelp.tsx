@@ -213,7 +213,7 @@ export function FaqHelp() {
       </aside>
       </div>
 
-      <div className="sticky bottom-[88px] z-30 md:bottom-4 lg:hidden">
+      <div className="sticky bottom-[calc(var(--bottom-nav-h)+0.75rem)] z-30 md:bottom-4 lg:hidden">
         <button
           ref={askRef}
           type="button"
