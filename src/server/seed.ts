@@ -19,6 +19,7 @@ import {
 import { createJourney, recomputeTasks, refreshFlag } from "@/domain/engine";
 import { STAGES, stageIndex, type NewEvent, type TaskState, type TemplateInput } from "@/domain/types";
 import { eventData, persistEngineResult } from "./journey-service";
+import { at, doneAtFor, seedChases, stageEntries, taskDoneEvents, vettingEvents } from "./seed-history";
 
 const ROOT = process.cwd();
 const SEED_DIR = path.join(ROOT, "content", "seed");
@@ -137,14 +138,18 @@ export async function seedDatabase(prisma: PrismaClient, log: (m: string) => voi
   const now = new Date();
   for (const j of people.journeys) {
     const k = stageIndex(j.currentStage);
-    const base = new Date(now.getTime() - (k + 1) * 4 * DAY); // synthetic history for MI time-in-stage
+    const h = j.history ?? null;
+    // Synthetic history for MI time-in-stage: back-dated when the journey carries a `history` block.
+    const base = h ? at(h.offerAcceptedAt) : new Date(now.getTime() - (k + 1) * 4 * DAY);
+    const entries = stageEntries(h ?? { stageEnteredAt: {}, lmDelayDays: 0, offerAcceptedAt: "" }, base, k);
+    const endAt = new Date(Math.min(now.getTime(), j.status === "exited" && j.exitedAt ? Date.parse(j.exitedAt) : j.status === "completed" && j.completedAt ? Date.parse(j.completedAt) : now.getTime()));
     const created = createJourney(tplRows, {
       id: j.key, starterId: j.starterKey, lmId: j.lmKey, buddyId: j.buddyKey ?? null, teamId: j.teamKey,
       startDate: new Date(j.startDate), now: base,
     });
     let jr = created.journey;
     const overrides = new Map(j.taskStates.map((s) => [s.templateKey, s]));
-    const doneAt = (t: TaskState) => new Date(Math.min(now.getTime(), t.dueDate.getTime()));
+    const doneAt = (t: TaskState) => doneAtFor(h, t, { journeyKey: j.key, now, entries, k, endAt });
     const tasks: TaskState[] = jr.tasks.map((t) => {
       const o = overrides.get(t.key);
       const allDone = j.status === "completed" || stageIndex(t.stage) < k;
@@ -170,25 +175,33 @@ export async function seedDatabase(prisma: PrismaClient, log: (m: string) => voi
       events.push({
         journeyId: jr.id, actorId: null, type: "STAGE_CHANGED", entity: "Journey", entityId: jr.id,
         from: STAGES[i - 1], to: STAGES[i], data: { reason: "seed" },
-        createdAt: new Date(base.getTime() + i * 4 * DAY),
+        createdAt: entries[i],
       });
     }
     if (jr.status === "exited") {
-      events.push({ journeyId: jr.id, actorId: null, type: "JOURNEY_EXITED", entity: "Journey", entityId: jr.id, from: "active", to: "exited", data: { reason: jr.exitReason, stage: jr.exitStage }, createdAt: new Date(j.exitedAt ?? now) });
+      events.push({ journeyId: jr.id, actorId: null, type: "JOURNEY_EXITED", entity: "Journey", entityId: jr.id, from: "active", to: "exited", data: { reason: jr.exitReason, stage: jr.exitStage, ...(h?.exit ? { reasonSource: h.exit.reasonSource, ...(h.exit.comment ? { comment: h.exit.comment } : {}) } : {}) }, createdAt: new Date(j.exitedAt ?? now) });
     }
     if (jr.status === "completed") {
       events.push({ journeyId: jr.id, actorId: null, type: "JOURNEY_COMPLETED", entity: "Journey", entityId: jr.id, from: "active", to: "completed", data: null, createdAt: jr.completedAt ?? now });
     }
+    events.push(
+      ...taskDoneEvents(jr.id, jr.tasks, { starter: j.starterKey, lm: j.lmKey, buddy: j.buddyKey ?? null, pnp: userKeys.has("imogen-sample") ? "imogen-sample" : null },
+        // Without a history block the completion time is the due date, which can predate the journey: stamp the audit event no earlier than the current stage entry.
+        h ? undefined : (t) => new Date(Math.max((t.completedAt as Date).getTime(), entries[k].getTime()))),
+      ...(h ? vettingEvents(jr.id, h) : []),
+    );
     if (jr.flagged) {
       events.push({ journeyId: jr.id, actorId: null, type: "JOURNEY_FLAGGED", entity: "Journey", entityId: jr.id, from: "false", to: "true", data: { reason: jr.flagReason }, createdAt: now });
     }
     await prisma.$transaction(async (tx) => {
       await persistEngineResult(tx, null, { journey: jr, events: [] });
       await tx.event.createMany({ data: events.map((e) => eventData(e)) as Prisma.EventCreateManyInput[] });
+      if (h) await tx.journey.update({ where: { id: jr.id }, data: { createdAt: base } });
       if (j.firstAdvantageStatus) {
         await tx.integrationState.create({ data: { journeyId: jr.id, adapterKey: "firstadvantage", status: j.firstAdvantageStatus.toLowerCase(), payload: {} } });
       }
     });
   }
+  await seedChases(prisma, people, now);
   return { teams: people.teams.length, users: people.users.length, templates: templates.length, journeys: people.journeys.length, content: content.length, faqs: faqs.length };
 }

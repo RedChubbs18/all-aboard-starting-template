@@ -17,6 +17,18 @@
       "name": "Operations Support",
       "businessArea": "Operations",
       "lmKey": "harriet-demo"
+    },
+    {
+      "key": "pay",
+      "name": "Payments Platform",
+      "businessArea": "Payments",
+      "lmKey": "priya-example"
+    },
+    {
+      "key": "fra",
+      "name": "Fraud Operations",
+      "businessArea": "Risk and Fraud",
+      "lmKey": "marcus-testwell"
     }
   ],
   "users": [
@@ -433,6 +445,752 @@
       "bio": null,
       "buddyEligible": false,
       "photo": null
+    },
+    {
+      "key": "priya-example",
+      "name": "Priya Example",
+      "email": "priya.example@example.test",
+      "roles": [
+        "LM"
+      ],
+      "teamKey": "pay",
+      "teamRole": "Line Manager",
+      "jobTitle": "Platform Manager",
+      "reportsToKey": null,
+      "bio": "Leads Payments Platform. Prefers written plans and weekly one-to-ones.",
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "noor-testing",
+      "name": "Noor Testing",
+      "email": "noor.testing@example.test",
+      "roles": [
+        "BUDDY"
+      ],
+      "teamKey": "pay",
+      "teamRole": "Team member",
+      "jobTitle": "Senior Engineer",
+      "reportsToKey": "priya-example",
+      "bio": "Looks after the payments API. Happy to pair on first tickets.",
+      "buddyEligible": true,
+      "photo": null
+    },
+    {
+      "key": "ravi-mockley",
+      "name": "Ravi Mockley",
+      "email": "ravi.mockley@example.test",
+      "roles": [
+        "BUDDY"
+      ],
+      "teamKey": "pay",
+      "teamRole": "Team member",
+      "jobTitle": "Engineer",
+      "reportsToKey": "priya-example",
+      "bio": "Runs the team's release checklist and knows the on-call rota.",
+      "buddyEligible": true,
+      "photo": null
+    },
+    {
+      "key": "sven-placeholder",
+      "name": "Sven Placeholder",
+      "email": "sven.placeholder@example.test",
+      "roles": [],
+      "teamKey": "pay",
+      "teamRole": "Team member",
+      "jobTitle": "Analyst",
+      "reportsToKey": "priya-example",
+      "bio": "Tracks payment success rates and reports on them weekly.",
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "marcus-testwell",
+      "name": "Marcus Testwell",
+      "email": "marcus.testwell@example.test",
+      "roles": [
+        "LM"
+      ],
+      "teamKey": "fra",
+      "teamRole": "Line Manager",
+      "jobTitle": "Operations Manager",
+      "reportsToKey": null,
+      "bio": "Leads Fraud Operations. Keeps a close eye on case queues.",
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "tess-fakeman",
+      "name": "Tess Fakeman",
+      "email": "tess.fakeman@example.test",
+      "roles": [
+        "BUDDY"
+      ],
+      "teamKey": "fra",
+      "teamRole": "Team member",
+      "jobTitle": "Senior Investigator",
+      "reportsToKey": "marcus-testwell",
+      "bio": "Mentors new investigators through their first cases.",
+      "buddyEligible": true,
+      "photo": null
+    },
+    {
+      "key": "omar-dummy",
+      "name": "Omar Dummy",
+      "email": "omar.dummy@example.test",
+      "roles": [
+        "BUDDY"
+      ],
+      "teamKey": "fra",
+      "teamRole": "Team member",
+      "jobTitle": "Investigator",
+      "reportsToKey": "marcus-testwell",
+      "bio": "Covers alerts triage and the weekly case review.",
+      "buddyEligible": true,
+      "photo": null
+    },
+    {
+      "key": "lila-synthetic",
+      "name": "Lila Synthetic",
+      "email": "lila.synthetic@example.test",
+      "roles": [],
+      "teamKey": "fra",
+      "teamRole": "Team member",
+      "jobTitle": "Analyst",
+      "reportsToKey": "marcus-testwell",
+      "bio": "Builds the dashboards the team uses to track fraud trends.",
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "leon-underhill",
+      "name": "Leon Underhill",
+      "email": "leon.underhill@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "dwe",
+      "teamRole": null,
+      "jobTitle": "Associate",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "anya-rowntree",
+      "name": "Anya Rowntree",
+      "email": "anya.rowntree@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "cia",
+      "teamRole": null,
+      "jobTitle": "Engineer",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "zane-garrick",
+      "name": "Zane Garrick",
+      "email": "zane.garrick@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "ops",
+      "teamRole": null,
+      "jobTitle": "Analyst",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "emeka-dunmore",
+      "name": "Emeka Dunmore",
+      "email": "emeka.dunmore@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "pay",
+      "teamRole": null,
+      "jobTitle": "Associate",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "pia-quill",
+      "name": "Pia Quill",
+      "email": "pia.quill@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "fra",
+      "teamRole": null,
+      "jobTitle": "Engineer",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "viktor-orwell",
+      "name": "Viktor Orwell",
+      "email": "viktor.orwell@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "dwe",
+      "teamRole": null,
+      "jobTitle": "Investigator",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "mina-denholm",
+      "name": "Mina Denholm",
+      "email": "mina.denholm@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "cia",
+      "teamRole": null,
+      "jobTitle": "Associate",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "tobias-fenwick",
+      "name": "Tobias Fenwick",
+      "email": "tobias.fenwick@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "pay",
+      "teamRole": null,
+      "jobTitle": "Associate",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "rhea-whitlock",
+      "name": "Rhea Whitlock",
+      "email": "rhea.whitlock@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "ops",
+      "teamRole": null,
+      "jobTitle": "Specialist",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "nell-mayfield",
+      "name": "Nell Mayfield",
+      "email": "nell.mayfield@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "dwe",
+      "teamRole": null,
+      "jobTitle": "Investigator",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "orla-oakes",
+      "name": "Orla Oakes",
+      "email": "orla.oakes@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "cia",
+      "teamRole": null,
+      "jobTitle": "Investigator",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "greta-holloway",
+      "name": "Greta Holloway",
+      "email": "greta.holloway@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "ops",
+      "teamRole": null,
+      "jobTitle": "Analyst",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "uma-vance",
+      "name": "Uma Vance",
+      "email": "uma.vance@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "pay",
+      "teamRole": null,
+      "jobTitle": "Associate",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "jasper-fairbrook",
+      "name": "Jasper Fairbrook",
+      "email": "jasper.fairbrook@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "fra",
+      "teamRole": null,
+      "jobTitle": "Specialist",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "esme-radcliffe",
+      "name": "Esme Radcliffe",
+      "email": "esme.radcliffe@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "dwe",
+      "teamRole": null,
+      "jobTitle": "Analyst",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "cyrus-pemberton",
+      "name": "Cyrus Pemberton",
+      "email": "cyrus.pemberton@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "ops",
+      "teamRole": null,
+      "jobTitle": "Specialist",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "yara-iverson",
+      "name": "Yara Iverson",
+      "email": "yara.iverson@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "pay",
+      "teamRole": null,
+      "jobTitle": "Associate",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "luca-norwood",
+      "name": "Luca Norwood",
+      "email": "luca.norwood@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "fra",
+      "teamRole": null,
+      "jobTitle": "Specialist",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "farah-ainsley",
+      "name": "Farah Ainsley",
+      "email": "farah.ainsley@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "dwe",
+      "teamRole": null,
+      "jobTitle": "Analyst",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "iona-carrow",
+      "name": "Iona Carrow",
+      "email": "iona.carrow@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "cia",
+      "teamRole": null,
+      "jobTitle": "Specialist",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "nico-hartley",
+      "name": "Nico Hartley",
+      "email": "nico.hartley@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "pay",
+      "teamRole": null,
+      "jobTitle": "Associate",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "gideon-lockhart",
+      "name": "Gideon Lockhart",
+      "email": "gideon.lockhart@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "fra",
+      "teamRole": null,
+      "jobTitle": "Associate",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "abel-ashby",
+      "name": "Abel Ashby",
+      "email": "abel.ashby@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "ops",
+      "teamRole": null,
+      "jobTitle": "Associate",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "celia-stanton",
+      "name": "Celia Stanton",
+      "email": "celia.stanton@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "fra",
+      "teamRole": null,
+      "jobTitle": "Engineer",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "sabine-kestrel",
+      "name": "Sabine Kestrel",
+      "email": "sabine.kestrel@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "cia",
+      "teamRole": null,
+      "jobTitle": "Associate",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "jonas-jessop",
+      "name": "Jonas Jessop",
+      "email": "jonas.jessop@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "pay",
+      "teamRole": null,
+      "jobTitle": "Associate",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "rafa-galloway",
+      "name": "Rafa Galloway",
+      "email": "rafa.galloway@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "dwe",
+      "teamRole": null,
+      "jobTitle": "Associate",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "maren-calloway",
+      "name": "Maren Calloway",
+      "email": "maren.calloway@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "fra",
+      "teamRole": null,
+      "jobTitle": "Analyst",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "hugo-ingram",
+      "name": "Hugo Ingram",
+      "email": "hugo.ingram@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "pay",
+      "teamRole": null,
+      "jobTitle": "Engineer",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "bruno-eastwood",
+      "name": "Bruno Eastwood",
+      "email": "bruno.eastwood@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "cia",
+      "teamRole": null,
+      "jobTitle": "Investigator",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "kira-embry",
+      "name": "Kira Embry",
+      "email": "kira.embry@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "ops",
+      "teamRole": null,
+      "jobTitle": "Analyst",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "xavi-kingsley",
+      "name": "Xavi Kingsley",
+      "email": "xavi.kingsley@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "dwe",
+      "teamRole": null,
+      "jobTitle": "Analyst",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "hollis-bexley",
+      "name": "Hollis Bexley",
+      "email": "hollis.bexley@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "pay",
+      "teamRole": null,
+      "jobTitle": "Engineer",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "kemi-yardley",
+      "name": "Kemi Yardley",
+      "email": "kemi.yardley@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "fra",
+      "teamRole": null,
+      "jobTitle": "Analyst",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "dalia-brightwell",
+      "name": "Dalia Brightwell",
+      "email": "dalia.brightwell@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "cia",
+      "teamRole": null,
+      "jobTitle": "Associate",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "pavel-thorne",
+      "name": "Pavel Thorne",
+      "email": "pavel.thorne@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "ops",
+      "teamRole": null,
+      "jobTitle": "Analyst",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "dev-zeller",
+      "name": "Dev Zeller",
+      "email": "dev.zeller@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "dwe",
+      "teamRole": null,
+      "jobTitle": "Specialist",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "beth-sutcliffe",
+      "name": "Beth Sutcliffe",
+      "email": "beth.sutcliffe@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "pay",
+      "teamRole": null,
+      "jobTitle": "Investigator",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "isla-lowell",
+      "name": "Isla Lowell",
+      "email": "isla.lowell@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "fra",
+      "teamRole": null,
+      "jobTitle": "Associate",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "wren-nightingale",
+      "name": "Wren Nightingale",
+      "email": "wren.nightingale@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "cia",
+      "teamRole": null,
+      "jobTitle": "Associate",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "quinn-pryce",
+      "name": "Quinn Pryce",
+      "email": "quinn.pryce@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "ops",
+      "teamRole": null,
+      "jobTitle": "Investigator",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
+    },
+    {
+      "key": "otto-jarvis",
+      "name": "Otto Jarvis",
+      "email": "otto.jarvis@example.test",
+      "roles": [
+        "STARTER"
+      ],
+      "teamKey": "dwe",
+      "teamRole": null,
+      "jobTitle": "Analyst",
+      "reportsToKey": null,
+      "bio": null,
+      "buddyEligible": false,
+      "photo": null
     }
   ],
   "journeys": [
@@ -679,6 +1437,1379 @@
       "completedAt": "2026-11-04",
       "firstAdvantageStatus": "CLEARED",
       "taskStates": []
+    },
+    {
+      "key": "journey-leon-underhill",
+      "starterKey": "leon-underhill",
+      "lmKey": "dana-sample",
+      "buddyKey": "kai-demo",
+      "teamKey": "dwe",
+      "startDate": "2026-05-18",
+      "currentStage": "DAY_30",
+      "status": "completed",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": "2026-06-21",
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-03-21",
+        "stageEnteredAt": {
+          "PEV": "2026-03-26",
+          "UNCONDITIONAL_OFFER": "2026-04-28",
+          "DAY_0": "2026-05-18",
+          "DAY_30": "2026-05-23"
+        },
+        "lmDelayDays": 1,
+        "vetting": {
+          "clearedAt": "2026-04-27",
+          "actionNeededAt": "2026-03-29",
+          "actionResolvedAt": "2026-04-06"
+        }
+      }
+    },
+    {
+      "key": "journey-anya-rowntree",
+      "starterKey": "anya-rowntree",
+      "lmKey": "owen-placeholder",
+      "buddyKey": "jin-park",
+      "teamKey": "cia",
+      "startDate": "2026-06-01",
+      "currentStage": "DAY_30",
+      "status": "completed",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": "2026-07-04",
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-04-25",
+        "stageEnteredAt": {
+          "PEV": "2026-04-28",
+          "UNCONDITIONAL_OFFER": "2026-05-13",
+          "DAY_0": "2026-06-01",
+          "DAY_30": "2026-06-09"
+        },
+        "lmDelayDays": 6,
+        "vetting": {
+          "clearedAt": "2026-05-12"
+        }
+      }
+    },
+    {
+      "key": "journey-zane-garrick",
+      "starterKey": "zane-garrick",
+      "lmKey": "harriet-demo",
+      "buddyKey": "felix-ramos",
+      "teamKey": "ops",
+      "startDate": "2026-06-15",
+      "currentStage": "DAY_30",
+      "status": "completed",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": "2026-07-21",
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-04-13",
+        "stageEnteredAt": {
+          "PEV": "2026-04-18",
+          "UNCONDITIONAL_OFFER": "2026-04-29",
+          "DAY_0": "2026-06-15",
+          "DAY_30": "2026-06-25"
+        },
+        "lmDelayDays": 3,
+        "vetting": {
+          "clearedAt": "2026-04-28"
+        }
+      }
+    },
+    {
+      "key": "journey-emeka-dunmore",
+      "starterKey": "emeka-dunmore",
+      "lmKey": "priya-example",
+      "buddyKey": "ravi-mockley",
+      "teamKey": "pay",
+      "startDate": "2026-06-29",
+      "currentStage": "DAY_30",
+      "status": "completed",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": "2026-07-30",
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-05-12",
+        "stageEnteredAt": {
+          "PEV": "2026-05-17",
+          "UNCONDITIONAL_OFFER": "2026-05-24",
+          "DAY_0": "2026-06-29",
+          "DAY_30": "2026-07-09"
+        },
+        "lmDelayDays": 0,
+        "vetting": {
+          "clearedAt": "2026-05-23"
+        }
+      }
+    },
+    {
+      "key": "journey-pia-quill",
+      "starterKey": "pia-quill",
+      "lmKey": "marcus-testwell",
+      "buddyKey": "tess-fakeman",
+      "teamKey": "fra",
+      "startDate": "2026-07-13",
+      "currentStage": "DAY_30",
+      "status": "completed",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": "2026-08-20",
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-05-23",
+        "stageEnteredAt": {
+          "PEV": "2026-05-28",
+          "UNCONDITIONAL_OFFER": "2026-06-22",
+          "DAY_0": "2026-07-13",
+          "DAY_30": "2026-07-21"
+        },
+        "lmDelayDays": 8,
+        "vetting": {
+          "clearedAt": "2026-06-21"
+        }
+      }
+    },
+    {
+      "key": "journey-viktor-orwell",
+      "starterKey": "viktor-orwell",
+      "lmKey": "dana-sample",
+      "buddyKey": "lena-example",
+      "teamKey": "dwe",
+      "startDate": "2026-08-03",
+      "currentStage": "DAY_30",
+      "status": "completed",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": "2026-09-04",
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-06-13",
+        "stageEnteredAt": {
+          "PEV": "2026-06-19",
+          "UNCONDITIONAL_OFFER": "2026-06-30",
+          "DAY_0": "2026-08-03",
+          "DAY_30": "2026-08-10"
+        },
+        "lmDelayDays": 1,
+        "vetting": {
+          "clearedAt": "2026-06-29"
+        }
+      }
+    },
+    {
+      "key": "journey-mina-denholm",
+      "starterKey": "mina-denholm",
+      "lmKey": "owen-placeholder",
+      "buddyKey": "rosa-fields",
+      "teamKey": "cia",
+      "startDate": "2026-08-17",
+      "currentStage": "DAY_30",
+      "status": "completed",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": "2026-09-26",
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-06-28",
+        "stageEnteredAt": {
+          "PEV": "2026-07-04",
+          "UNCONDITIONAL_OFFER": "2026-07-11",
+          "DAY_0": "2026-08-17",
+          "DAY_30": "2026-08-26"
+        },
+        "lmDelayDays": 6,
+        "vetting": {
+          "clearedAt": "2026-07-10"
+        }
+      }
+    },
+    {
+      "key": "journey-tobias-fenwick",
+      "starterKey": "tobias-fenwick",
+      "lmKey": "priya-example",
+      "buddyKey": "ravi-mockley",
+      "teamKey": "pay",
+      "startDate": "2026-09-07",
+      "currentStage": "DAY_30",
+      "status": "completed",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": "2026-10-08",
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-07-20",
+        "stageEnteredAt": {
+          "PEV": "2026-07-23",
+          "UNCONDITIONAL_OFFER": "2026-07-30",
+          "DAY_0": "2026-09-07",
+          "DAY_30": "2026-09-14"
+        },
+        "lmDelayDays": 0,
+        "vetting": {
+          "clearedAt": "2026-07-29"
+        }
+      }
+    },
+    {
+      "key": "journey-rhea-whitlock",
+      "starterKey": "rhea-whitlock",
+      "lmKey": "harriet-demo",
+      "buddyKey": "felix-ramos",
+      "teamKey": "ops",
+      "startDate": "2026-09-14",
+      "currentStage": "DAY_30",
+      "status": "completed",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": "2026-10-17",
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-08-10",
+        "stageEnteredAt": {
+          "PEV": "2026-08-13",
+          "UNCONDITIONAL_OFFER": "2026-09-17",
+          "DAY_0": "2026-09-14",
+          "DAY_30": "2026-09-19"
+        },
+        "lmDelayDays": 3,
+        "vetting": {
+          "clearedAt": "2026-09-16"
+        }
+      }
+    },
+    {
+      "key": "journey-nell-mayfield",
+      "starterKey": "nell-mayfield",
+      "lmKey": "dana-sample",
+      "buddyKey": "kai-demo",
+      "teamKey": "dwe",
+      "startDate": "2026-06-15",
+      "currentStage": "CONDITIONAL_OFFER",
+      "status": "exited",
+      "exitReason": "ACCEPTED_ANOTHER_OFFER",
+      "exitedAt": "2026-04-21",
+      "completedAt": null,
+      "firstAdvantageStatus": "NOT_STARTED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-04-13",
+        "stageEnteredAt": {},
+        "lmDelayDays": 1,
+        "exit": {
+          "reasonSource": "COLLEAGUE",
+          "comment": "Received a better offer elsewhere."
+        }
+      }
+    },
+    {
+      "key": "journey-orla-oakes",
+      "starterKey": "orla-oakes",
+      "lmKey": "owen-placeholder",
+      "buddyKey": "rosa-fields",
+      "teamKey": "cia",
+      "startDate": "2026-07-06",
+      "currentStage": "PEV",
+      "status": "exited",
+      "exitReason": "FAILED_PEV",
+      "exitedAt": "2026-06-12",
+      "completedAt": null,
+      "firstAdvantageStatus": "FAILED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-05-11",
+        "stageEnteredAt": {
+          "PEV": "2026-05-15"
+        },
+        "lmDelayDays": 6,
+        "exit": {
+          "reasonSource": "PNP"
+        }
+      }
+    },
+    {
+      "key": "journey-greta-holloway",
+      "starterKey": "greta-holloway",
+      "lmKey": "harriet-demo",
+      "buddyKey": "grace-ilori",
+      "teamKey": "ops",
+      "startDate": "2026-07-20",
+      "currentStage": "UNCONDITIONAL_OFFER",
+      "status": "exited",
+      "exitReason": "ONBOARDING_EXPERIENCE",
+      "exitedAt": "2026-07-14",
+      "completedAt": null,
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-05-20",
+        "stageEnteredAt": {
+          "PEV": "2026-05-22",
+          "UNCONDITIONAL_OFFER": "2026-06-07"
+        },
+        "lmDelayDays": 3,
+        "vetting": {
+          "clearedAt": "2026-06-06"
+        },
+        "exit": {
+          "reasonSource": "COLLEAGUE",
+          "comment": "Felt out of the loop. Nobody from the team got in touch before the start date."
+        }
+      }
+    },
+    {
+      "key": "journey-uma-vance",
+      "starterKey": "uma-vance",
+      "lmKey": "priya-example",
+      "buddyKey": "noor-testing",
+      "teamKey": "pay",
+      "startDate": "2026-08-03",
+      "currentStage": "PEV",
+      "status": "exited",
+      "exitReason": "PAY_OR_BENEFITS",
+      "exitedAt": "2026-07-05",
+      "completedAt": null,
+      "firstAdvantageStatus": "IN_PROGRESS",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-05-25",
+        "stageEnteredAt": {
+          "PEV": "2026-05-28"
+        },
+        "lmDelayDays": 0,
+        "exit": {
+          "reasonSource": "COLLEAGUE"
+        }
+      }
+    },
+    {
+      "key": "journey-jasper-fairbrook",
+      "starterKey": "jasper-fairbrook",
+      "lmKey": "marcus-testwell",
+      "buddyKey": "omar-dummy",
+      "teamKey": "fra",
+      "startDate": "2026-08-24",
+      "currentStage": "UNCONDITIONAL_OFFER",
+      "status": "exited",
+      "exitReason": "ONBOARDING_EXPERIENCE",
+      "exitedAt": "2026-08-21",
+      "completedAt": null,
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-07-02",
+        "stageEnteredAt": {
+          "PEV": "2026-07-04",
+          "UNCONDITIONAL_OFFER": "2026-07-12"
+        },
+        "lmDelayDays": 8,
+        "vetting": {
+          "clearedAt": "2026-07-11"
+        },
+        "exit": {
+          "reasonSource": "COLLEAGUE",
+          "comment": "Day 0 plans were still unclear a week before starting."
+        }
+      }
+    },
+    {
+      "key": "journey-esme-radcliffe",
+      "starterKey": "esme-radcliffe",
+      "lmKey": "dana-sample",
+      "buddyKey": "lena-example",
+      "teamKey": "dwe",
+      "startDate": "2026-09-07",
+      "currentStage": "DAY_0",
+      "status": "exited",
+      "exitReason": "NO_SHOW",
+      "exitedAt": "2026-09-09",
+      "completedAt": null,
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-07-30",
+        "stageEnteredAt": {
+          "PEV": "2026-08-01",
+          "UNCONDITIONAL_OFFER": "2026-08-13",
+          "DAY_0": "2026-09-07"
+        },
+        "lmDelayDays": 1,
+        "vetting": {
+          "clearedAt": "2026-08-12"
+        },
+        "exit": {
+          "reasonSource": "PNP"
+        }
+      }
+    },
+    {
+      "key": "journey-cyrus-pemberton",
+      "starterKey": "cyrus-pemberton",
+      "lmKey": "harriet-demo",
+      "buddyKey": "grace-ilori",
+      "teamKey": "ops",
+      "startDate": "2026-10-12",
+      "currentStage": "UNCONDITIONAL_OFFER",
+      "status": "exited",
+      "exitReason": "ROLE_NOT_RIGHT",
+      "exitedAt": "2026-09-18",
+      "completedAt": null,
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-08-12",
+        "stageEnteredAt": {
+          "PEV": "2026-08-18",
+          "UNCONDITIONAL_OFFER": "2026-08-26"
+        },
+        "lmDelayDays": 3,
+        "vetting": {
+          "clearedAt": "2026-08-25",
+          "actionNeededAt": "2026-08-21",
+          "actionResolvedAt": "2026-08-24"
+        },
+        "exit": {
+          "reasonSource": "COLLEAGUE",
+          "comment": "The role is different from what was described at interview."
+        }
+      }
+    },
+    {
+      "key": "journey-yara-iverson",
+      "starterKey": "yara-iverson",
+      "lmKey": "priya-example",
+      "buddyKey": "noor-testing",
+      "teamKey": "pay",
+      "startDate": "2026-11-16",
+      "currentStage": "CONDITIONAL_OFFER",
+      "status": "exited",
+      "exitReason": "OFFER_WITHDRAWN_BY_LBG",
+      "exitedAt": "2026-11-03",
+      "completedAt": null,
+      "firstAdvantageStatus": "NOT_STARTED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-09-17",
+        "stageEnteredAt": {},
+        "lmDelayDays": 0,
+        "exit": {
+          "reasonSource": "PNP"
+        }
+      }
+    },
+    {
+      "key": "journey-luca-norwood",
+      "starterKey": "luca-norwood",
+      "lmKey": "marcus-testwell",
+      "buddyKey": "omar-dummy",
+      "teamKey": "fra",
+      "startDate": "2026-11-30",
+      "currentStage": "UNCONDITIONAL_OFFER",
+      "status": "exited",
+      "exitReason": "LOCATION_OR_HYBRID",
+      "exitedAt": "2026-11-06",
+      "completedAt": null,
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-09-27",
+        "stageEnteredAt": {
+          "PEV": "2026-09-30",
+          "UNCONDITIONAL_OFFER": "2026-10-07"
+        },
+        "lmDelayDays": 8,
+        "vetting": {
+          "clearedAt": "2026-10-06"
+        },
+        "exit": {
+          "reasonSource": "COLLEAGUE",
+          "comment": "Office days were more than expected."
+        }
+      }
+    },
+    {
+      "key": "journey-farah-ainsley",
+      "starterKey": "farah-ainsley",
+      "lmKey": "dana-sample",
+      "buddyKey": "kai-demo",
+      "teamKey": "dwe",
+      "startDate": "2026-10-19",
+      "currentStage": "DAY_0",
+      "status": "exited",
+      "exitReason": "PERSONAL_CIRCUMSTANCES",
+      "exitedAt": "2026-10-27",
+      "completedAt": null,
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-09-14",
+        "stageEnteredAt": {
+          "PEV": "2026-09-19",
+          "UNCONDITIONAL_OFFER": "2026-09-30",
+          "DAY_0": "2026-10-19"
+        },
+        "lmDelayDays": 1,
+        "vetting": {
+          "clearedAt": "2026-09-29",
+          "actionNeededAt": "2026-09-22",
+          "actionResolvedAt": "2026-09-28"
+        },
+        "exit": {
+          "reasonSource": "COLLEAGUE"
+        }
+      }
+    },
+    {
+      "key": "journey-iona-carrow",
+      "starterKey": "iona-carrow",
+      "lmKey": "owen-placeholder",
+      "buddyKey": "jin-park",
+      "teamKey": "cia",
+      "startDate": "2026-09-28",
+      "currentStage": "DAY_30",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-08-25",
+        "stageEnteredAt": {
+          "PEV": "2026-08-29",
+          "UNCONDITIONAL_OFFER": "2026-09-12",
+          "DAY_0": "2026-09-28",
+          "DAY_30": "2026-10-08"
+        },
+        "lmDelayDays": 6,
+        "vetting": {
+          "clearedAt": "2026-09-11"
+        }
+      }
+    },
+    {
+      "key": "journey-nico-hartley",
+      "starterKey": "nico-hartley",
+      "lmKey": "priya-example",
+      "buddyKey": "noor-testing",
+      "teamKey": "pay",
+      "startDate": "2026-10-12",
+      "currentStage": "DAY_30",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-08-24",
+        "stageEnteredAt": {
+          "PEV": "2026-08-30",
+          "UNCONDITIONAL_OFFER": "2026-10-03",
+          "DAY_0": "2026-10-12",
+          "DAY_30": "2026-10-17"
+        },
+        "lmDelayDays": 0,
+        "vetting": {
+          "clearedAt": "2026-10-02"
+        }
+      }
+    },
+    {
+      "key": "journey-gideon-lockhart",
+      "starterKey": "gideon-lockhart",
+      "lmKey": "marcus-testwell",
+      "buddyKey": "omar-dummy",
+      "teamKey": "fra",
+      "startDate": "2026-10-19",
+      "currentStage": "DAY_30",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-08-19",
+        "stageEnteredAt": {
+          "PEV": "2026-08-25",
+          "UNCONDITIONAL_OFFER": "2026-09-10",
+          "DAY_0": "2026-10-19",
+          "DAY_30": "2026-10-28"
+        },
+        "lmDelayDays": 8,
+        "vetting": {
+          "clearedAt": "2026-09-09",
+          "actionNeededAt": "2026-08-28",
+          "actionResolvedAt": "2026-09-05"
+        }
+      }
+    },
+    {
+      "key": "journey-abel-ashby",
+      "starterKey": "abel-ashby",
+      "lmKey": "harriet-demo",
+      "buddyKey": "felix-ramos",
+      "teamKey": "ops",
+      "startDate": "2026-09-21",
+      "currentStage": "DAY_30",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [
+        {
+          "templateKey": "cascade-performance-goals",
+          "status": "DONE"
+        }
+      ],
+      "history": {
+        "offerAcceptedAt": "2026-07-16",
+        "stageEnteredAt": {
+          "PEV": "2026-07-20",
+          "UNCONDITIONAL_OFFER": "2026-07-31",
+          "DAY_0": "2026-09-21",
+          "DAY_30": "2026-09-28"
+        },
+        "lmDelayDays": 3,
+        "vetting": {
+          "clearedAt": "2026-07-30"
+        }
+      }
+    },
+    {
+      "key": "journey-celia-stanton",
+      "starterKey": "celia-stanton",
+      "lmKey": "marcus-testwell",
+      "buddyKey": "omar-dummy",
+      "teamKey": "fra",
+      "startDate": "2026-11-02",
+      "currentStage": "DAY_0",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [
+        {
+          "templateKey": "review-flex-benefits",
+          "status": "DONE"
+        }
+      ],
+      "history": {
+        "offerAcceptedAt": "2026-09-13",
+        "stageEnteredAt": {
+          "PEV": "2026-09-18",
+          "UNCONDITIONAL_OFFER": "2026-10-02",
+          "DAY_0": "2026-11-02"
+        },
+        "lmDelayDays": 8,
+        "vetting": {
+          "clearedAt": "2026-10-01"
+        }
+      }
+    },
+    {
+      "key": "journey-sabine-kestrel",
+      "starterKey": "sabine-kestrel",
+      "lmKey": "owen-placeholder",
+      "buddyKey": "rosa-fields",
+      "teamKey": "cia",
+      "startDate": "2026-10-28",
+      "currentStage": "DAY_0",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [],
+      "history": {
+        "offerAcceptedAt": "2026-09-06",
+        "stageEnteredAt": {
+          "PEV": "2026-09-11",
+          "UNCONDITIONAL_OFFER": "2026-10-09",
+          "DAY_0": "2026-10-28"
+        },
+        "lmDelayDays": 6,
+        "vetting": {
+          "clearedAt": "2026-10-08",
+          "actionNeededAt": "2026-09-14",
+          "actionResolvedAt": "2026-09-22"
+        },
+        "lastStarterActivityAt": "2026-10-28"
+      }
+    },
+    {
+      "key": "journey-jonas-jessop",
+      "starterKey": "jonas-jessop",
+      "lmKey": "priya-example",
+      "buddyKey": "ravi-mockley",
+      "teamKey": "pay",
+      "startDate": "2026-10-26",
+      "currentStage": "DAY_0",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [
+        {
+          "templateKey": "review-flex-benefits",
+          "status": "DONE"
+        }
+      ],
+      "history": {
+        "offerAcceptedAt": "2026-08-29",
+        "stageEnteredAt": {
+          "PEV": "2026-09-03",
+          "UNCONDITIONAL_OFFER": "2026-09-14",
+          "DAY_0": "2026-10-26"
+        },
+        "lmDelayDays": 0,
+        "vetting": {
+          "clearedAt": "2026-09-13"
+        }
+      }
+    },
+    {
+      "key": "journey-rafa-galloway",
+      "starterKey": "rafa-galloway",
+      "lmKey": "dana-sample",
+      "buddyKey": "lena-example",
+      "teamKey": "dwe",
+      "startDate": "2026-11-09",
+      "currentStage": "DAY_0",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [
+        {
+          "templateKey": "review-flex-benefits",
+          "status": "DONE"
+        }
+      ],
+      "history": {
+        "offerAcceptedAt": "2026-09-07",
+        "stageEnteredAt": {
+          "PEV": "2026-09-11",
+          "UNCONDITIONAL_OFFER": "2026-09-25",
+          "DAY_0": "2026-11-09"
+        },
+        "lmDelayDays": 1,
+        "vetting": {
+          "clearedAt": "2026-09-24"
+        }
+      }
+    },
+    {
+      "key": "journey-maren-calloway",
+      "starterKey": "maren-calloway",
+      "lmKey": "marcus-testwell",
+      "buddyKey": "omar-dummy",
+      "teamKey": "fra",
+      "startDate": "2026-11-11",
+      "currentStage": "UNCONDITIONAL_OFFER",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [
+        {
+          "templateKey": "internal-account-created",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "sailpoint-persona-applied",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "colleague-file-id-created",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "eptura-engage-access",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "view-mandatory-training",
+          "status": "DONE"
+        }
+      ],
+      "history": {
+        "offerAcceptedAt": "2026-09-24",
+        "stageEnteredAt": {
+          "PEV": "2026-09-27",
+          "UNCONDITIONAL_OFFER": "2026-10-08"
+        },
+        "lmDelayDays": 8,
+        "vetting": {
+          "clearedAt": "2026-10-07",
+          "actionNeededAt": "2026-09-30",
+          "actionResolvedAt": "2026-10-06"
+        }
+      }
+    },
+    {
+      "key": "journey-hugo-ingram",
+      "starterKey": "hugo-ingram",
+      "lmKey": "priya-example",
+      "buddyKey": "noor-testing",
+      "teamKey": "pay",
+      "startDate": "2026-11-13",
+      "currentStage": "UNCONDITIONAL_OFFER",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [
+        {
+          "templateKey": "internal-account-created",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "sailpoint-persona-applied",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "colleague-file-id-created",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "eptura-engage-access",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "view-mandatory-training",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "raise-it-requests",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "lm-team-checklist",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "agree-pre-start-check-ins",
+          "status": "DONE"
+        }
+      ],
+      "history": {
+        "offerAcceptedAt": "2026-09-25",
+        "stageEnteredAt": {
+          "PEV": "2026-09-30",
+          "UNCONDITIONAL_OFFER": "2026-10-26"
+        },
+        "lmDelayDays": 0,
+        "vetting": {
+          "clearedAt": "2026-10-25"
+        }
+      }
+    },
+    {
+      "key": "journey-bruno-eastwood",
+      "starterKey": "bruno-eastwood",
+      "lmKey": "owen-placeholder",
+      "buddyKey": "jin-park",
+      "teamKey": "cia",
+      "startDate": "2026-11-16",
+      "currentStage": "UNCONDITIONAL_OFFER",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [
+        {
+          "templateKey": "internal-account-created",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "sailpoint-persona-applied",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "colleague-file-id-created",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "eptura-engage-access",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "view-mandatory-training",
+          "status": "DONE"
+        }
+      ],
+      "history": {
+        "offerAcceptedAt": "2026-10-16",
+        "stageEnteredAt": {
+          "PEV": "2026-10-22",
+          "UNCONDITIONAL_OFFER": "2026-11-07"
+        },
+        "lmDelayDays": 6,
+        "vetting": {
+          "clearedAt": "2026-11-06"
+        },
+        "lastStarterActivityAt": "2026-10-29"
+      }
+    },
+    {
+      "key": "journey-kira-embry",
+      "starterKey": "kira-embry",
+      "lmKey": "harriet-demo",
+      "buddyKey": "felix-ramos",
+      "teamKey": "ops",
+      "startDate": "2026-11-18",
+      "currentStage": "PEV",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "ACTION_NEEDED",
+      "taskStates": [
+        {
+          "templateKey": "complete-vetting-steps",
+          "status": "TODO"
+        },
+        {
+          "templateKey": "firstadvantage-vetting-status",
+          "status": "BLOCKED",
+          "blockedReason": "First Advantage action needed"
+        }
+      ],
+      "history": {
+        "offerAcceptedAt": "2026-10-24",
+        "stageEnteredAt": {
+          "PEV": "2026-10-30"
+        },
+        "lmDelayDays": 3,
+        "vetting": {
+          "actionNeededAt": "2026-11-04"
+        }
+      }
+    },
+    {
+      "key": "journey-xavi-kingsley",
+      "starterKey": "xavi-kingsley",
+      "lmKey": "dana-sample",
+      "buddyKey": "mira-placeholder",
+      "teamKey": "dwe",
+      "startDate": "2026-11-23",
+      "currentStage": "UNCONDITIONAL_OFFER",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "CLEARED",
+      "taskStates": [
+        {
+          "templateKey": "internal-account-created",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "sailpoint-persona-applied",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "colleague-file-id-created",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "eptura-engage-access",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "view-mandatory-training",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "raise-it-requests",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "lm-team-checklist",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "propose-day-0-arrangements",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "agree-pre-start-check-ins",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "forward-team-calls",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "team-azure-devops-access",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "team-distribution-lists",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "team-recurring-calls-list",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "team-welcome-message",
+          "status": "DONE"
+        }
+      ],
+      "history": {
+        "offerAcceptedAt": "2026-10-14",
+        "stageEnteredAt": {
+          "PEV": "2026-10-16",
+          "UNCONDITIONAL_OFFER": "2026-10-29"
+        },
+        "lmDelayDays": 1,
+        "vetting": {
+          "clearedAt": "2026-10-28"
+        }
+      }
+    },
+    {
+      "key": "journey-hollis-bexley",
+      "starterKey": "hollis-bexley",
+      "lmKey": "priya-example",
+      "buddyKey": "noor-testing",
+      "teamKey": "pay",
+      "startDate": "2026-11-30",
+      "currentStage": "PEV",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "IN_PROGRESS",
+      "taskStates": [
+        {
+          "templateKey": "complete-vetting-steps",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "firstadvantage-vetting-status",
+          "status": "IN_PROGRESS"
+        }
+      ],
+      "history": {
+        "offerAcceptedAt": "2026-10-21",
+        "stageEnteredAt": {
+          "PEV": "2026-10-24"
+        },
+        "lmDelayDays": 0,
+        "lastStarterActivityAt": "2026-10-27"
+      }
+    },
+    {
+      "key": "journey-kemi-yardley",
+      "starterKey": "kemi-yardley",
+      "lmKey": "marcus-testwell",
+      "buddyKey": "omar-dummy",
+      "teamKey": "fra",
+      "startDate": "2026-12-07",
+      "currentStage": "PEV",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "ACTION_NEEDED",
+      "taskStates": [
+        {
+          "templateKey": "complete-vetting-steps",
+          "status": "TODO"
+        },
+        {
+          "templateKey": "firstadvantage-vetting-status",
+          "status": "BLOCKED",
+          "blockedReason": "First Advantage action needed"
+        }
+      ],
+      "history": {
+        "offerAcceptedAt": "2026-10-21",
+        "stageEnteredAt": {
+          "PEV": "2026-10-27"
+        },
+        "lmDelayDays": 8,
+        "vetting": {
+          "actionNeededAt": "2026-11-01"
+        }
+      }
+    },
+    {
+      "key": "journey-dalia-brightwell",
+      "starterKey": "dalia-brightwell",
+      "lmKey": "owen-placeholder",
+      "buddyKey": "rosa-fields",
+      "teamKey": "cia",
+      "startDate": "2026-12-02",
+      "currentStage": "CONDITIONAL_OFFER",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "NOT_STARTED",
+      "taskStates": [
+        {
+          "templateKey": "guest-invite-sent",
+          "status": "DONE"
+        }
+      ],
+      "history": {
+        "offerAcceptedAt": "2026-10-26",
+        "stageEnteredAt": {},
+        "lmDelayDays": 6
+      }
+    },
+    {
+      "key": "journey-pavel-thorne",
+      "starterKey": "pavel-thorne",
+      "lmKey": "harriet-demo",
+      "buddyKey": "grace-ilori",
+      "teamKey": "ops",
+      "startDate": "2026-12-14",
+      "currentStage": "CONDITIONAL_OFFER",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "NOT_STARTED",
+      "taskStates": [
+        {
+          "templateKey": "guest-invite-sent",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "guest-sign-in",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "allocate-buddy",
+          "status": "DONE"
+        }
+      ],
+      "history": {
+        "offerAcceptedAt": "2026-10-23",
+        "stageEnteredAt": {},
+        "lmDelayDays": 3
+      }
+    },
+    {
+      "key": "journey-dev-zeller",
+      "starterKey": "dev-zeller",
+      "lmKey": "dana-sample",
+      "buddyKey": "kai-demo",
+      "teamKey": "dwe",
+      "startDate": "2026-12-21",
+      "currentStage": "CONDITIONAL_OFFER",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "NOT_STARTED",
+      "taskStates": [
+        {
+          "templateKey": "guest-invite-sent",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "guest-sign-in",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "allocate-buddy",
+          "status": "DONE"
+        }
+      ],
+      "history": {
+        "offerAcceptedAt": "2026-11-08",
+        "stageEnteredAt": {},
+        "lmDelayDays": 1
+      }
+    },
+    {
+      "key": "journey-beth-sutcliffe",
+      "starterKey": "beth-sutcliffe",
+      "lmKey": "priya-example",
+      "buddyKey": "ravi-mockley",
+      "teamKey": "pay",
+      "startDate": "2027-01-11",
+      "currentStage": "CONDITIONAL_OFFER",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "NOT_STARTED",
+      "taskStates": [
+        {
+          "templateKey": "guest-invite-sent",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "guest-sign-in",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "allocate-buddy",
+          "status": "DONE"
+        }
+      ],
+      "history": {
+        "offerAcceptedAt": "2026-11-08",
+        "stageEnteredAt": {},
+        "lmDelayDays": 0
+      }
+    },
+    {
+      "key": "journey-isla-lowell",
+      "starterKey": "isla-lowell",
+      "lmKey": "marcus-testwell",
+      "buddyKey": "tess-fakeman",
+      "teamKey": "fra",
+      "startDate": "2027-01-18",
+      "currentStage": "CONDITIONAL_OFFER",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "NOT_STARTED",
+      "taskStates": [
+        {
+          "templateKey": "guest-invite-sent",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "allocate-buddy",
+          "status": "DONE"
+        }
+      ],
+      "history": {
+        "offerAcceptedAt": "2026-11-01",
+        "stageEnteredAt": {},
+        "lmDelayDays": 8
+      }
+    },
+    {
+      "key": "journey-wren-nightingale",
+      "starterKey": "wren-nightingale",
+      "lmKey": "owen-placeholder",
+      "buddyKey": "jin-park",
+      "teamKey": "cia",
+      "startDate": "2027-01-25",
+      "currentStage": "CONDITIONAL_OFFER",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "NOT_STARTED",
+      "taskStates": [
+        {
+          "templateKey": "guest-invite-sent",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "guest-sign-in",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "allocate-buddy",
+          "status": "DONE"
+        }
+      ],
+      "history": {
+        "offerAcceptedAt": "2026-11-08",
+        "stageEnteredAt": {},
+        "lmDelayDays": 6
+      }
+    },
+    {
+      "key": "journey-quinn-pryce",
+      "starterKey": "quinn-pryce",
+      "lmKey": "harriet-demo",
+      "buddyKey": "felix-ramos",
+      "teamKey": "ops",
+      "startDate": "2027-02-01",
+      "currentStage": "CONDITIONAL_OFFER",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "NOT_STARTED",
+      "taskStates": [
+        {
+          "templateKey": "guest-invite-sent",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "guest-sign-in",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "allocate-buddy",
+          "status": "DONE"
+        }
+      ],
+      "history": {
+        "offerAcceptedAt": "2026-11-08",
+        "stageEnteredAt": {},
+        "lmDelayDays": 3
+      }
+    },
+    {
+      "key": "journey-otto-jarvis",
+      "starterKey": "otto-jarvis",
+      "lmKey": "dana-sample",
+      "buddyKey": "lena-example",
+      "teamKey": "dwe",
+      "startDate": "2027-02-08",
+      "currentStage": "CONDITIONAL_OFFER",
+      "status": "active",
+      "exitReason": null,
+      "exitedAt": null,
+      "completedAt": null,
+      "firstAdvantageStatus": "NOT_STARTED",
+      "taskStates": [
+        {
+          "templateKey": "guest-invite-sent",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "guest-sign-in",
+          "status": "DONE"
+        },
+        {
+          "templateKey": "allocate-buddy",
+          "status": "DONE"
+        }
+      ],
+      "history": {
+        "offerAcceptedAt": "2026-11-08",
+        "stageEnteredAt": {},
+        "lmDelayDays": 1
+      }
     }
   ]
 }

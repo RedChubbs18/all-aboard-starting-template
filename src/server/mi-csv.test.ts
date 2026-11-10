@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { csvCell, exitsCsv, toCsv } from "./mi-csv";
+import { csvCell, earlyWarningCsv, exitsCsv, lmFlagsCsv, lmLeagueCsv, toCsv } from "./mi-csv";
+import type { Overview } from "./mi-service";
 
 describe("csvCell", () => {
   it("prefixes formula triggers so spreadsheets treat them as text", () => {
@@ -35,5 +36,20 @@ describe("toCsv", () => {
     expect(withC.split("\r\n")[0]).toContain("Comment");
     expect(withC).toContain("hello");
     expect(out).not.toContain("j1");
+  });
+});
+
+describe("section CSVs", () => {
+  it("neutralise formula triggers in names and titles", () => {
+    const o = {
+      lm: {
+        league: [{ lmName: "=cmd", teams: ["@Team"], areas: [], activeStarters: 1, openActions: 1, overdueActions: 1, avgDaysOverdue: 2, onTimePct: 50, oldestOverdue: { title: "+x", starterName: "-y", days: 2 }, lastChasedAt: null, chaseCount: 0, flagRules: ["TASK_OVERDUE"] }],
+        flags: [{ lmName: "=cmd", teamName: "T", area: null, starterName: "@s", title: "+t", daysOverdue: 6, rules: ["TASK_OVERDUE"], detail: "6 days overdue" }],
+      },
+      attrition: { earlyWarning: [{ starterName: "=s", teamName: "T", lmName: "L", stage: "PEV", startDate: "2026-12-01T00:00:00.000Z", daysToStart: 20, level: "HIGH", signals: [{ kind: "LM_OVERDUE", detail: "1 LM action overdue" }] }] },
+    } as unknown as Overview;
+    expect(lmLeagueCsv(o)).toContain("'=cmd,'@Team");
+    expect(lmFlagsCsv(o)).toContain("'=cmd,T,,'@s,'+t,6,Over 5 days overdue,6 days overdue");
+    expect(earlyWarningCsv(o)).toContain("'=s,T,L,Pre-employment vetting,2026-12-01,20,High,LM actions overdue (1 LM action overdue)");
   });
 });
