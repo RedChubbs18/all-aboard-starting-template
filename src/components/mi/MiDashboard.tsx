@@ -15,6 +15,7 @@ import { fmtDate, plural } from "./format";
 import { IntakeSection } from "./IntakeSection";
 import { LmSection } from "./LmSection";
 import { ChipRow, chipClass as chipLinkClass } from "@/components/ui/Chip";
+import { Button } from "@/components/ui/Button";
 import { Badge, Icon, Modal, ResponsiveTable, Section, Skeleton, btnPrimary, btnSecondary, fieldClass } from "./primitives";
 
 type Notice = { kind: "success" | "error"; text: string } | null;
@@ -79,7 +80,7 @@ export function MiDashboard() {
 
   return (
     <div className="mx-auto max-w-[1200px] space-y-4 pb-20 md:pb-4">
-      <h1 className="text-[28px] font-bold leading-tight text-ink">MI: onboarding insight</h1>
+      <h1 className="text-[1.75rem] font-bold leading-tight text-ink">MI: onboarding insight</h1>
 
       {/* Two always-mounted live regions (polite and assertive) so announcements are reliable; the role never swaps. */}
       <div className="pointer-events-none fixed inset-x-3 top-3 z-50 md:inset-x-auto md:right-4 md:top-auto md:bottom-4 md:w-96">
@@ -173,7 +174,7 @@ function Body({ data, onClear, post, reload, setNotice, exportBtn }: {
         <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-7">
           {kpis.map((k) => (
             <li key={k.label} className="rounded-md border border-line bg-card px-[22px] py-4">
-              <p className="text-[32px] font-extrabold leading-tight tracking-[-0.02em] text-ink">{k.value}</p>
+              <p className="text-[2rem] font-extrabold leading-tight tracking-[-0.02em] text-ink">{k.value}</p>
               <p className="text-sm text-muted">{k.label}</p>
             </li>
           ))}
@@ -244,7 +245,7 @@ function Body({ data, onClear, post, reload, setNotice, exportBtn }: {
             </ul>
             <div className="mt-4 flex flex-wrap gap-3">
               <button type="button" onClick={() => setChasing(null)} className={btnSecondary}>Cancel</button>
-              <button type="button" onClick={doChase} disabled={busy} aria-busy={busy} className={btnPrimary}>{busy ? "Sending..." : "Send nudge"}</button>
+              <Button onClick={doChase} aria-disabled={busy || undefined} busy={busy}>{busy ? "Sending..." : "Send nudge"}</Button>
             </div>
           </>
         )}
@@ -260,7 +261,7 @@ function Body({ data, onClear, post, reload, setNotice, exportBtn }: {
             <p className="text-right text-sm text-muted">{note.length} of 500</p>
             <div className="mt-3 flex flex-wrap gap-3">
               <button type="button" onClick={() => setSupport(null)} className={btnSecondary}>Cancel</button>
-              <button type="submit" disabled={busy} aria-busy={busy} className={btnPrimary}>{busy ? "Submitting..." : "Submit"}</button>
+              <Button type="submit" aria-disabled={busy || undefined} busy={busy}>{busy ? "Submitting..." : "Submit"}</Button>
             </div>
           </form>
         )}

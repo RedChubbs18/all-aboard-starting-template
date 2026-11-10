@@ -11,7 +11,7 @@ export function initialsOf(name: string): string {
 
 /** Photo when available, otherwise initials on brand-soft. */
 export function Avatar({ name, photoUrl, size = 56, className }: { name: string; photoUrl?: string | null; size?: number; className?: string }) {
-  const style = { width: size, height: size, fontSize: size >= 80 ? 26 : Math.round(size / 2.6) };
+  const style = { width: size, height: size, fontSize: `${(size >= 80 ? 26 : Math.round(size / 2.6)) / 16}rem` };
   if (photoUrl) {
     return <img src={photoUrl} alt={name} width={size} height={size} className={cn("shrink-0 rounded-full object-cover", className)} style={style} />;
   }
