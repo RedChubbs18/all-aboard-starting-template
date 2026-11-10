@@ -54,7 +54,10 @@
   /* Focus: outline colour and the halo that separates it from the element. Inverted in dark themes. */
   --color-focus: #000000;
   --color-focus-halo: #ffffff;
+  /* Fixed surfaces (camera viewfinder): never overridden by a theme, so these stay readable on #0d1512 in every theme. */
   --color-viewfinder: #0d1512;
+  --color-on-viewfinder: #ffffff; /* text on the viewfinder */
+  --color-guide: #ffffff; /* dashed oval guide on the viewfinder (non-text, 3:1) */
   /* LBG radii: 8, 12, 16 */
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -199,6 +202,10 @@ html[data-contrast="high"] a:not(.no-underline) {
 
 :root {
   color-scheme: light;
+  /* Bottom navigation height (AppShell): padding (11.5 spacing units) + min target (11 units) + 1px border.
+   * Built from --spacing so it follows data-spacing, and is in rem so it follows data-text. Sticky CTAs and
+   * the main bottom padding use it. */
+  --bottom-nav-h: calc(var(--spacing) * 22.5 + 1px);
 }
 
 h1, h2, h3, h4, .font-display {
@@ -242,8 +249,11 @@ html[data-theme="dark"] :is(a, button, summary, [role="button"], [role="tab"]):f
 /* Keep focused elements clear of the sticky header, bottom nav and sticky CTA (WCAG 2.4.11). */
 html {
   scroll-padding-top: 5rem;
-  scroll-padding-bottom: 8.5rem;
+  scroll-padding-bottom: calc(var(--bottom-nav-h) + 4.5rem);
 }
+/* The header grows with spacing and large text; keep focus targets below it. */
+html[data-spacing="increased"], html[data-text="130"], html[data-text="150"] { scroll-padding-top: 6.5rem; }
+html[data-spacing="increased"][data-text="130"], html[data-spacing="increased"][data-text="150"] { scroll-padding-top: 8rem; }
 @media (min-width: 768px) {
   html { scroll-padding-bottom: 2rem; }
 }

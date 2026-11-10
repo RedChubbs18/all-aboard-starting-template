@@ -139,7 +139,7 @@ export function PhotoFlow({ task, detail, onChanged }: { task: TaskDto; detail: 
             <div className="relative flex h-[min(46vh,380px)] w-full items-center justify-center overflow-hidden rounded-md bg-viewfinder">
               <img src={preview ?? undefined} alt="Preview of the photo you chose" className="h-full w-full object-cover" />
               {/* Dashed oval guide, centred over the preview. */}
-              <span aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-[70%] w-[48%] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border-2 border-dashed border-focus" />
+              <span aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-[70%] w-[48%] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border-2 border-dashed border-guide" />
               {state.step === "passed" && (
                 <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-brand-tint px-2.5 py-0.5 text-xs font-bold text-brand-strong">
                   <Check aria-hidden className="size-4" /> Passed

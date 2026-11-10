@@ -2,7 +2,7 @@
 // Asserts the WCAG 2.2 AA contrast pairings (docs/STYLE.md section 0) for every theme.
 // Run: node scripts/contrast-check.mjs
 // Token values are read from src/app/globals.css, so the check cannot drift from the real palette.
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 
 const css = readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8");
 
@@ -79,6 +79,11 @@ const checks = [
   ["Form control border on page", "line-strong", "page", 3],
   ["Info icon on card", "info", "card", 3],
   ["Brand fill on bar track", "brand", "track", 3],
+  ["Pending tick ring on card", "line-strong", "card", 3],
+  ["Pending tick ring on page", "line-strong", "page", 3],
+  // Fixed-background surface (camera viewfinder): these tokens are never overridden by a theme.
+  ["Viewfinder text on viewfinder", "on-viewfinder", "viewfinder", 4.5],
+  ["Viewfinder guide on viewfinder", "guide", "viewfinder", 3],
 ];
 
 // Theme-specific extras
@@ -105,6 +110,34 @@ for (const [theme, t] of Object.entries(themes)) {
     if (!ok) failed++;
     if (!ok || process.env.VERBOSE !== "0") console.log(`${ok ? "PASS" : "FAIL"}  ${r.toFixed(2).padStart(5)}:1  (min ${min})  ${name}`);
   }
+}
+
+// Fixed-surface tokens must be defined once (in @theme) and never overridden by a theme block.
+for (const tok of ["viewfinder", "on-viewfinder", "guide"]) {
+  total++;
+  if ((css.match(new RegExp(`--color-${tok}:`, "g")) ?? []).length !== 1) {
+    failed++;
+    console.log(`FAIL  --color-${tok} must be defined once (in @theme) and not overridden by any theme`);
+  } else console.log(`PASS  --color-${tok} is theme-independent`);
+}
+
+// Source scan: themed tokens flip with the theme, so they must not be used in a file that draws on the fixed viewfinder
+// (text-card on #0d1512 was 1.13:1 in dark themes; border-focus is black in light themes). Use text-on-viewfinder / border-guide.
+function walk(dir) {
+  return readdirSync(dir).flatMap((f) => {
+    const p = `${dir}/${f}`;
+    return statSync(p).isDirectory() ? walk(p) : p.endsWith(".tsx") && !p.includes(".test.") ? [p] : [];
+  });
+}
+for (const file of walk(new URL("../src/components", import.meta.url).pathname)) {
+  const src = readFileSync(file, "utf8");
+  if (!src.includes("bg-viewfinder")) continue;
+  total++;
+  const offenders = src.split("\n").filter((l) => /\b(text-card|border-focus)\b/.test(l));
+  if (offenders.length) {
+    failed++;
+    console.log(`FAIL  ${file.split("/src/")[1]}: themed token on the viewfinder:\n${offenders.join("\n")}`);
+  } else console.log(`PASS  ${file.split("/src/")[1]}: no text-card / border-focus on the viewfinder`);
 }
 
 // Known and accepted: information only.

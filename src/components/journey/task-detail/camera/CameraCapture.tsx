@@ -49,6 +49,8 @@ export function CameraCapture({ onUse, onCapturedChange, disabled, focusOnMount 
   const [shot, setShot] = useState<{ file: File; url: string; summary: LocalCheckSummary } | null>(null);
   const [auto, setAuto] = useState(false);
   const [remaining, setRemaining] = useState<number | null>(null);
+  const [cancelNote, setCancelNote] = useState("");
+  const autoRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -167,6 +169,12 @@ export function CameraCapture({ onUse, onCapturedChange, disabled, focusOnMount 
     };
   }, [armed]);
 
+  function cancelAuto() {
+    setAuto(false);
+    setCancelNote("Automatic photo cancelled. Take the photo when you're ready.");
+    autoRef.current?.focus(); // the Cancel button unmounts, so keep keyboard focus nearby (WCAG 2.4.3)
+  }
+
   function retake() {
     setShot(null);
     wantFocus.current = true; // Retake unmounts; the start button (shown while starting) takes focus (WCAG 2.4.3)
@@ -183,6 +191,9 @@ export function CameraCapture({ onUse, onCapturedChange, disabled, focusOnMount 
       <p role="status" className="sr-only">
         {ANNOUNCE[phase] ?? ""}
       </p>
+      <p role="status" className="sr-only">
+        {auto ? "" : cancelNote}
+      </p>
       <div className="relative flex h-[min(46vh,380px)] w-full items-center justify-center overflow-hidden rounded-md bg-viewfinder">
         {phase === "captured" && shot ? (
           <img src={shot.url} alt="The photo you just took" className="h-full w-full -scale-x-100 object-cover" />
@@ -196,30 +207,35 @@ export function CameraCapture({ onUse, onCapturedChange, disabled, focusOnMount 
             className={`h-full w-full -scale-x-100 object-cover ${phase === "live" ? "" : "hidden"}`}
           />
         )}
-        {phase === "starting" && <span className="absolute px-4 text-center text-sm text-card">Waiting for camera permission...</span>}
+        {phase === "starting" && <span className="absolute px-4 text-center text-sm text-on-viewfinder">Waiting for camera permission...</span>}
         {!showStage && (
-          <div className="px-6 text-center text-sm text-card">
+          <div className="px-6 text-center text-sm text-on-viewfinder">
             {phase === "intro" && "Your browser will ask to use your camera. We only use it to take this one photo."}
             {phase === "paused" && "The camera was switched off while this page was hidden."}
             {fallback && "Camera unavailable"}
           </div>
         )}
         {showStage && (
-          <span aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-[70%] w-[48%] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border-2 border-dashed border-focus" />
+          <span aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-[70%] w-[48%] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border-2 border-dashed border-guide" />
         )}
       </div>
 
       {phase === "live" && <LiveChecklist live={live} countdown={countdown} />}
       {phase === "live" && live.status === "running" && (
         <label className="mt-2 flex min-h-11 cursor-pointer items-center gap-3 text-sm">
-          <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} className="size-6 accent-[var(--color-brand)]" />
+          <input ref={autoRef} type="checkbox" checked={auto} onChange={(e) => { setCancelNote(""); setAuto(e.target.checked); }} className="size-6 accent-[var(--color-brand)]" />
           Take the photo for me when all checks pass
         </label>
       )}
       {countdown !== null && (
-        <p aria-hidden className="mt-1 text-sm font-semibold">
-          Taking your photo in {countdown}...
-        </p>
+        <div className="mt-1 flex flex-wrap items-center gap-3">
+          <p aria-hidden className="text-sm font-semibold">
+            Taking your photo in {countdown}...
+          </p>
+          <Button variant="secondary" className="px-4 py-2" onClick={cancelAuto}>
+            Cancel
+          </Button>
+        </div>
       )}
 
       {fallback && (

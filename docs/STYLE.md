@@ -6,7 +6,7 @@ The team supplied this guide on 2026-11-09. Section 0 (D33 to D35) is the newest
 
 This section follows the official Lloyds Banking Group website (colours, buttons, focus, radii, fonts), with permission. It **supersedes** the palette and shape rules in sections A and B wherever they differ: A.1 and A.3 (greens, focus ring colours), A.5 (page, card, chip, feature colours), A.6 and A.7 (430px column, bottom navigation on every screen size), A.8 and A.9 (placeholder logo and horse are used only when `NEXT_PUBLIC_BRAND_ASSETS` is not `official`), A.12 (border value) and B sections 2 to 4 (colour table, type, pill buttons). WCAG 2.2 AA still applies and the rules in A about what must stay accessible still hold: non-colour conditions (A.4), locked stages with no opacity fade (A.11), 44px targets, and form borders at 3:1 (A.12).
 
-Tokens live in `src/app/globals.css` (`@theme`) and keep their semantic names (`bg-page`, `text-brand-strong`, `bg-dark-green`, ...). Components never use hex values. `scripts/contrast-check.mjs` reads the CSS and asserts every pairing in all four themes (light, dark, high contrast, dark high contrast): 156 checks.
+Tokens live in `src/app/globals.css` (`@theme`) and keep their semantic names (`bg-page`, `text-brand-strong`, `bg-dark-green`, ...). Components never use hex values. `scripts/contrast-check.mjs` reads the CSS and asserts every pairing in all four themes (light, dark, high contrast, dark high contrast): 177 checks (including the fixed viewfinder surface, the pending tick ring and a source scan).
 
 ### Light theme
 

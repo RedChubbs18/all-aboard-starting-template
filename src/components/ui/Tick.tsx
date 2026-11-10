@@ -3,7 +3,7 @@ import type { TaskStatus } from "@/domain/types";
 import { cn } from "./cn";
 
 /**
- * Status circle (STYLE section 10). Pending: 2px #b8c5bf ring. Done: green fill with white tick.
+ * Status circle (STYLE section 10). Pending: 2px line-strong ring (3:1, WCAG 1.4.11). Done: green fill with white tick.
  * Current: #00a36c ring with a soft 4px glow. Blocked: red fill. Decorative: the status is always also written in words.
  */
 export function Tick({ status, current, size = 22, className }: { status: TaskStatus; current?: boolean; size?: number; className?: string }) {
@@ -19,7 +19,7 @@ export function Tick({ status, current, size = 22, className }: { status: TaskSt
         blocked && "bg-blocked text-card",
         !done && !blocked && (current || status === "IN_PROGRESS")
           ? "border-2 border-now bg-card shadow-[0_0_0_4px_color-mix(in_srgb,var(--color-now)_20%,transparent)]"
-          : !done && !blocked && "border-2 border-disabled bg-card",
+          : !done && !blocked && "border-2 border-line-strong bg-card",
         className,
       )}
     >
