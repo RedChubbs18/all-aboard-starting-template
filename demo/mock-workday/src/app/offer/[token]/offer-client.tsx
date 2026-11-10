@@ -183,7 +183,7 @@ function Confirmation({ offer }: { offer: OfferView }) {
           ? "Setting up your access…"
           : offer.phase === "simulated"
             ? "Demo: the invitation from Microsoft was simulated, so no email was sent. In a live run, this is where you would check your email."
-            : "Check your email for an invitation from Microsoft to access MyJourney. Open the email from Microsoft on behalf of Lloyds Banking Group (MyJourney), select Accept invitation, then sign in with the same personal email. You may receive a one-time passcode by email."}
+            : "Check your email for an invitation from Microsoft to access MyJourney. It comes from Microsoft Invitations (check your junk folder). Select Accept invitation, then sign in with the same personal email; you may receive a one-time passcode."}
       </p>
       <h2 className="mt-6 font-semibold">How to access MyJourney</h2>
       <ol className="mt-2 list-decimal space-y-1 pl-5">
