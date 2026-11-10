@@ -11,8 +11,10 @@ describe("buildInvitationBody", () => {
     expect(b.invitedUserDisplayName).toBe("team05-jo-bloggs");
     expect(b.inviteRedirectUrl).toBe("http://localhost:3000");
     expect(b.invitedUserMessageInfo.customizedMessageBody).toContain("http://localhost:3000");
-    expect(b.invitedUserMessageInfo.customizedMessageBody).toMatch(/accept the invitation/i);
+    expect(b.invitedUserMessageInfo.customizedMessageBody).toMatch(/Accept invitation/);
     expect(b.invitedUserMessageInfo.customizedMessageBody).toMatch(/sign in/i);
+    expect(b.invitedUserMessageInfo.customizedMessageBody).toContain("on behalf of Lloyds Banking Group (MyJourney)");
+    expect(b.invitedUserMessageInfo.customizedMessageBody).toMatch(/one-time passcode/);
   });
   it("sanitises display names", () => expect(guestDisplayName("Zoë", "O'Neil-Smith")).toBe("team05-zoe-oneilsmith"));
 });
@@ -31,10 +33,18 @@ describe("runInvite", () => {
     expect(getToken).not.toHaveBeenCalled();
   });
 
+  it("returns inviteRedeemUrl for a Gmail address (request body unchanged)", async () => {
+    const f = vi.fn(async () => new Response(JSON.stringify({ invitedUser: { id: "g2" }, inviteRedeemUrl: "https://login.microsoftonline.com/redeem?x=1" }), { status: 201 }));
+    const r = await runInvite({ ...base, email: "jo.bloggs@gmail.com", fetch: f as unknown as typeof fetch, getToken: async () => "tok", approved: true });
+    expect(r).toEqual({ status: "invited", guestObjectId: "g2", inviteRedeemUrl: "https://login.microsoftonline.com/redeem?x=1" });
+    const [, init] = f.mock.calls[0] as unknown as [string, RequestInit];
+    expect(JSON.parse(init.body as string).invitedUserEmailAddress).toBe("jo.bloggs@gmail.com");
+  });
+
   it("approved: POSTs /invitations with a bearer token and returns the guest id", async () => {
     const f = vi.fn(async () => new Response(JSON.stringify({ invitedUser: { id: "guest-1" } }), { status: 201 }));
     const r = await runInvite({ ...base, fetch: f as unknown as typeof fetch, getToken: async () => "tok", approved: true });
-    expect(r).toEqual({ status: "invited", guestObjectId: "guest-1" });
+    expect(r).toEqual({ status: "invited", guestObjectId: "guest-1", inviteRedeemUrl: undefined });
     const [url, init] = f.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toBe("https://graph.microsoft.com/v1.0/invitations");
     expect((init.headers as Record<string, string>).Authorization).toBe("Bearer tok");

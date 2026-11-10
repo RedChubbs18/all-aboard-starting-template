@@ -1,10 +1,12 @@
 import { signedHeaders } from "./hmac";
+import type { JobFamily } from "./jobFamily";
 import type { InviteStatus, Offer } from "./store";
 
 export interface WebhookPayload {
   offerId: string;
   candidate: { firstName: string; lastName: string };
   jobTitle: string;
+  jobFamily: JobFamily;
   teamKey: string;
   lineManagerKey: string;
   startDate: string;
@@ -19,6 +21,7 @@ export function buildWebhookPayload(o: Offer, guest: { objectId: string | null; 
     offerId: o.id,
     candidate: { firstName: o.candidate.firstName, lastName: o.candidate.lastName },
     jobTitle: o.jobTitle,
+    jobFamily: o.jobFamily,
     teamKey: o.teamKey,
     lineManagerKey: o.lineManagerKey,
     startDate: o.startDate,

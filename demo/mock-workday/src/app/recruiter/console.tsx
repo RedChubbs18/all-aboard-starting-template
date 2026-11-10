@@ -5,11 +5,14 @@ import QRCode from "qrcode";
 import { useAuth } from "@/lib/msal";
 import { runInvite } from "@/lib/graph";
 import type { Directory } from "@/lib/webhook";
+import { JOB_FAMILIES, JOB_FAMILY_LABELS, type JobFamily } from "@/lib/jobFamily";
+import { randomMonday, startDateError } from "@/lib/startDate";
 
 interface OfferRow {
   id: string;
   token: string;
   jobTitle: string;
+  jobFamily: JobFamily;
   teamName: string;
   lineManagerName: string;
   startDate: string;
@@ -18,6 +21,10 @@ interface OfferRow {
   journeyId?: string;
   error?: string;
   createdAt: string;
+  inviteStatus?: "invited" | "simulated" | "failed";
+  acceptedAt?: string;
+  inviteAt?: string;
+  onboardedAt?: string;
 }
 
 const CONDITION_OPTIONS = [
@@ -43,9 +50,39 @@ const offerBase = () => process.env.NEXT_PUBLIC_OFFER_BASE_URL || (typeof window
 const offerLink = (token: string) => `${offerBase().replace(/\/$/, "")}/offer/${token}`;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-function defaultStart(): string {
-  const d = new Date(Date.now() + 56 * 86_400_000);
-  return d.toISOString().slice(0, 10);
+const fmtTime = (iso?: string) => (iso ? new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", second: "2-digit" }) : null);
+const fmtDay = (d: string) => {
+  const dt = new Date(`${d}T12:00:00`);
+  return Number.isNaN(dt.getTime()) ? d : dt.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+};
+
+function Timeline({ o }: { o: OfferRow }) {
+  const accepted = o.status !== "sent";
+  const invited = o.status === "invite_sent" || o.status === "invite_simulated" || o.status === "onboarded" || (o.status === "failed" && !!o.inviteAt && o.inviteStatus !== "failed");
+  const steps = [
+    { label: "Offer created", at: o.createdAt, done: true },
+    { label: "Offer accepted", at: o.acceptedAt, done: accepted },
+    { label: o.status === "invite_simulated" ? "Invite simulated" : "Invite sent", at: o.inviteAt, done: invited },
+    { label: "MyJourney journey created", at: o.onboardedAt, done: o.status === "onboarded" },
+  ];
+  const current = steps.findIndex((s) => !s.done);
+  return (
+    <ol className="mt-3 grid gap-2 sm:grid-cols-4" aria-label="Offer progress">
+      {steps.map((s, i) => {
+        const failedHere = o.status === "failed" && i === current;
+        return (
+          <li
+            key={s.label}
+            className={`rounded border p-2 text-sm ${s.done ? "border-green-700 bg-green-50 text-green-950" : failedHere ? "border-red-700 bg-red-50 text-red-950" : i === current ? "border-amber-600 bg-amber-50 text-amber-950" : "border-slate-300 bg-white text-slate-600"}`}
+          >
+            <span className="font-semibold">{s.done ? "Done: " : failedHere ? "Failed: " : i === current ? "Next: " : "Waiting: "}</span>
+            {s.label}
+            {s.at && s.done && <span className="block text-xs">{fmtTime(s.at)}</span>}
+          </li>
+        );
+      })}
+    </ol>
+  );
 }
 
 export default function Console() {
@@ -55,7 +92,10 @@ export default function Console() {
   const [dirError, setDirError] = useState<string | null>(null);
   const [log, setLog] = useState<{ id: number; t: string; msg: string }[]>([]);
   const [previews, setPreviews] = useState<Record<string, string>>({});
+  // Fallback redeem links live in this browser only; they are never stored or shown to the candidate.
+  const [redeem, setRedeem] = useState<Record<string, string>>({});
   const [created, setCreated] = useState<OfferRow | null>(null);
+  const [resetNote, setResetNote] = useState(false);
   const processing = useRef(new Set<string>());
   const logId = useRef(0);
 
@@ -110,6 +150,11 @@ export default function Console() {
       let payload: { inviteStatus: string; guestObjectId?: string; error?: string };
       if (outcome.status === "invited") {
         say("Guest invited. Microsoft is emailing the candidate.");
+        if (outcome.inviteRedeemUrl) {
+          const url = outcome.inviteRedeemUrl;
+          setRedeem((p) => ({ ...p, [o.id]: url }));
+          say("Fallback invitation link available on the offer (recruiter only).");
+        }
         payload = { inviteStatus: "invited", guestObjectId: outcome.guestObjectId };
       } else if (outcome.status === "simulated") {
         say(`Invite simulated: ${outcome.message}`);
@@ -197,11 +242,33 @@ export default function Console() {
         <h1 className="text-2xl font-semibold">Recruiter console</h1>
         <div className="flex items-center gap-3 text-sm text-slate-600">
           <span>{approved() ? "Real Entra invites ON" : "Invites simulated"}</span>
+          <button
+            onClick={async () => {
+              if (!window.confirm("Reset demo data? This deletes all offers and candidate emails held by this mock HR app.")) return;
+              const r = await auth.apiFetch("/api/recruiter/reset", { method: "POST" });
+              if (!r.ok) return say("Reset was refused.");
+              setOffers([]);
+              setCreated(null);
+              setPreviews({});
+              setRedeem({});
+              say("Demo data reset. To remove the created journey from MyJourney, run `npm run db:reset` in MyJourney.");
+              setResetNote(true);
+            }}
+            className="rounded border border-red-300 bg-white px-3 py-1 text-red-900 hover:bg-red-50"
+          >
+            Reset demo data
+          </button>
           <button onClick={() => void auth.signOut()} className="rounded border border-slate-300 bg-white px-3 py-1 hover:bg-slate-50">
             Sign out
           </button>
         </div>
       </div>
+
+      {resetNote && (
+        <p role="status" className="rounded border border-amber-400 bg-amber-50 p-3 text-sm text-amber-950">
+          Mock HR data cleared. MyJourney keeps the journey it created: run <code className="font-mono">npm run db:reset</code> in MyJourney to remove it before the next rehearsal.
+        </p>
+      )}
 
       <CreateOffer
         directory={directory}
@@ -229,13 +296,15 @@ export default function Console() {
           <ul className="mt-4 divide-y divide-slate-200">
             {offers.map((o) => (
               <li key={o.id} className="flex flex-wrap items-start justify-between gap-3 py-3">
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="font-medium">
                     {o.jobTitle} <span className="font-normal text-slate-600">· {o.teamName}</span>
                   </p>
                   <p className="text-sm text-slate-600">
                     {o.candidate ? `${o.candidate.firstName} ${o.candidate.lastName}` : "Awaiting candidate"} · LM {o.lineManagerName} · starts {o.startDate}
                   </p>
+                  <p className="text-sm text-slate-600">{JOB_FAMILY_LABELS[o.jobFamily] ?? o.jobFamily}</p>
+                  {redeem[o.id] && <RedeemLink url={redeem[o.id]} />}
                   {o.status === "invite_simulated" && previews[o.id] && <p className="mt-1 text-sm text-violet-900">Invite simulated: {previews[o.id].slice(0, 140)}…</p>}
                   {o.status === "failed" && <p className="mt-1 text-sm text-red-800">{o.error}</p>}
                   {o.status === "sent" && (
@@ -245,12 +314,15 @@ export default function Console() {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_STYLE[o.status]}`}>{o.status}</span>
+                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_STYLE[o.status]}`}>{o.status.replace(/_/g, " ")}</span>
                   {o.status === "failed" && (
                     <button onClick={() => void retry(o.id)} className="rounded border border-slate-300 px-3 py-1 text-sm hover:bg-slate-50">
                       Retry
                     </button>
                   )}
+                </div>
+                <div className="w-full">
+                  <Timeline o={o} />
                 </div>
               </li>
             ))}
@@ -282,12 +354,13 @@ function CreateOffer({
 }: {
   directory: Directory | null;
   dirError: string | null;
-  onCreate: (i: { jobTitle: string; teamKey: string; lineManagerKey: string; startDate: string; conditions: string[] }) => Promise<string | null>;
+  onCreate: (i: { jobTitle: string; jobFamily: JobFamily; teamKey: string; lineManagerKey: string; startDate: string; conditions: string[] }) => Promise<string | null>;
 }) {
   const [jobTitle, setJobTitle] = useState("Software Engineer");
   const [teamKey, setTeamKey] = useState("");
   const [lmKey, setLmKey] = useState("");
-  const [startDate, setStartDate] = useState(defaultStart);
+  const [jobFamily, setJobFamily] = useState<JobFamily>("ENGINEERING");
+  const [startDate, setStartDate] = useState(() => randomMonday());
   const [conds, setConds] = useState<Set<string>>(new Set(DEFAULT_CONDITIONS));
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -305,7 +378,13 @@ function CreateOffer({
         e.preventDefault();
         setBusy(true);
         setErr(null);
-        const m = await onCreate({ jobTitle, teamKey: effTeam, lineManagerKey: effLm, startDate, conditions: CONDITION_OPTIONS.filter((c) => conds.has(c)) });
+        const dErr = startDateError(startDate);
+        if (dErr) {
+          setErr(dErr);
+          setBusy(false);
+          return;
+        }
+        const m = await onCreate({ jobTitle, jobFamily, teamKey: effTeam, lineManagerKey: effLm, startDate, conditions: CONDITION_OPTIONS.filter((c) => conds.has(c)) });
         setErr(m);
         setBusy(false);
       }}
@@ -323,7 +402,23 @@ function CreateOffer({
         </label>
         <label className="block text-sm font-medium">
           Start date
-          <input type="date" className={field} value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
+          <input type="date" className={field} value={startDate} onChange={(e) => setStartDate(e.target.value)} required aria-describedby="start-help" />
+          <span id="start-help" className="mt-1 block text-xs font-normal text-slate-600">
+            {startDate ? fmtDay(startDate) : "Pick a Monday"}. Must be a Monday within the next 3 months.
+          </span>
+          <button type="button" onClick={() => setStartDate(randomMonday())} className="mt-1 rounded border border-slate-300 bg-white px-3 py-1 text-sm font-medium hover:bg-slate-50">
+            Pick another Monday
+          </button>
+        </label>
+        <label className="block text-sm font-medium">
+          Job family
+          <select className={field} value={jobFamily} onChange={(e) => setJobFamily(e.target.value as JobFamily)} required>
+            {JOB_FAMILIES.map((f) => (
+              <option key={f} value={f}>
+                {JOB_FAMILY_LABELS[f]}
+              </option>
+            ))}
+          </select>
         </label>
         <label className="block text-sm font-medium">
           Team
@@ -382,7 +477,7 @@ function LinkCard({ offer }: { offer: OfferRow }) {
   const [copied, setCopied] = useState(false);
   useEffect(() => {
     let c = false;
-    QRCode.toDataURL(link, { margin: 1, width: 192 }).then((u) => !c && setQr(u)).catch(() => {});
+    QRCode.toDataURL(link, { margin: 2, width: 360 }).then((u) => !c && setQr(u)).catch(() => {});
     return () => {
       c = true;
     };
@@ -394,22 +489,42 @@ function LinkCard({ offer }: { offer: OfferRow }) {
       </h2>
       <div className="mt-3 flex flex-wrap items-center gap-6">
         <div className="min-w-0 flex-1">
-          <p className="break-all rounded border border-slate-300 bg-white p-2 font-mono text-sm">{link}</p>
+          <p className="break-all rounded border-2 border-slate-400 bg-white p-4 font-mono text-2xl font-semibold">{link}</p>
           <button
             onClick={async () => {
               await navigator.clipboard.writeText(link).catch(() => {});
               setCopied(true);
               setTimeout(() => setCopied(false), 2000);
             }}
-            className="mt-2 rounded bg-blue-700 px-3 py-1 text-sm font-medium text-white hover:bg-blue-800"
+            className="mt-3 rounded bg-blue-700 px-4 py-2 font-medium text-white hover:bg-blue-800"
           >
             {copied ? "Copied" : "Copy link"}
           </button>
           <p className="mt-2 text-sm text-slate-600">Scan the code to open the offer on a phone (the phone must reach this computer).</p>
         </div>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {qr && <img src={qr} alt="QR code for the candidate offer link" width={192} height={192} className="rounded border border-slate-300 bg-white" />}
+        {qr && <img src={qr} alt="QR code for the candidate offer link" width={360} height={360} className="rounded border border-slate-300 bg-white" />}
       </div>
     </section>
+  );
+}
+
+function RedeemLink({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="mt-2 rounded border border-slate-300 bg-slate-50 p-2 text-sm">
+      <p className="font-medium">Fallback invitation link (recruiter only, do not show the candidate)</p>
+      <p className="mt-1 break-all font-mono text-xs">{url}</p>
+      <button
+        onClick={async () => {
+          await navigator.clipboard.writeText(url).catch(() => {});
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        }}
+        className="mt-1 rounded border border-slate-400 bg-white px-3 py-1 hover:bg-slate-100"
+      >
+        {copied ? "Copied" : "Copy invite link"}
+      </button>
+    </div>
   );
 }

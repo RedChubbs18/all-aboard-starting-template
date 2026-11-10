@@ -23,11 +23,25 @@ describe("candidate validation", () => {
 });
 
 describe("offer input validation", () => {
-  const base = { jobTitle: "Eng", teamKey: "t", lineManagerKey: "m", startDate: "2027-01-11", conditions: ["References"] };
-  it("accepts good input", () => expect(validateOfferInput(base).ok).toBe(true));
+  const now = new Date("2026-11-10T09:00:00Z");
+  const base = { jobTitle: "Eng", jobFamily: "ENGINEERING", teamKey: "t", lineManagerKey: "m", startDate: "2027-01-11", conditions: ["References"] };
+  it("accepts good input", () => {
+    const r = validateOfferInput(base, now);
+    expect(r.ok && r.value.jobFamily).toBe("ENGINEERING");
+  });
+  it("requires a known job family", () => {
+    expect(validateOfferInput({ ...base, jobFamily: undefined }, now).ok).toBe(false);
+    expect(validateOfferInput({ ...base, jobFamily: "SALES" }, now).ok).toBe(false);
+    expect(validateOfferInput({ ...base, jobFamily: "CORPORATE_FUNCTIONS" }, now).ok).toBe(true);
+  });
+  it("enforces Monday within 3 months server-side", () => {
+    expect(validateOfferInput({ ...base, startDate: "2027-01-12" }, now).ok).toBe(false);
+    expect(validateOfferInput({ ...base, startDate: "2026-11-02" }, now).ok).toBe(false);
+    expect(validateOfferInput({ ...base, startDate: "2027-03-01" }, now).ok).toBe(false);
+  });
   it("rejects bad dates and missing fields", () => {
-    expect(validateOfferInput({ ...base, startDate: "11/01/2027" }).ok).toBe(false);
-    expect(validateOfferInput({ ...base, jobTitle: "" }).ok).toBe(false);
-    expect(validateOfferInput({ ...base, teamKey: "" }).ok).toBe(false);
+    expect(validateOfferInput({ ...base, startDate: "11/01/2027" }, now).ok).toBe(false);
+    expect(validateOfferInput({ ...base, jobTitle: "" }, now).ok).toBe(false);
+    expect(validateOfferInput({ ...base, teamKey: "" }, now).ok).toBe(false);
   });
 });

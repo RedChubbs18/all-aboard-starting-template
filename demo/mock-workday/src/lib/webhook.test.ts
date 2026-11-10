@@ -7,6 +7,7 @@ const offer: Offer = {
   id: "wd-offer-1",
   token: "t".repeat(32),
   jobTitle: "Engineer",
+  jobFamily: "ENGINEERING",
   teamKey: "dwe",
   teamName: "DWE",
   lineManagerKey: "dana",
@@ -76,5 +77,13 @@ describe("fetchDirectory", () => {
     const init = (f.mock.calls[0] as unknown as [string, RequestInit])[1];
     const h = init.headers as Record<string, string>;
     expect(h["x-workday-signature"]).toBe(sign(secret, h["x-workday-timestamp"], ""));
+  });
+});
+
+describe("webhook payload jobFamily", () => {
+  it("includes jobFamily from the explicit field list", () => {
+    expect(payload.jobFamily).toBe("ENGINEERING");
+    expect(buildWebhookPayload({ ...offer, jobFamily: "OPERATIONS" }, { objectId: null, inviteStatus: "simulated" }).jobFamily).toBe("OPERATIONS");
+    expect(Object.keys(payload).sort()).toEqual(["candidate", "conditions", "guest", "jobFamily", "jobTitle", "lineManagerKey", "offerId", "startDate", "teamKey"]);
   });
 });
