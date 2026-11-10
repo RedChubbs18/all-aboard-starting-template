@@ -363,9 +363,10 @@ const allText = ['content.json', 'faqs.json', 'templates.json', 'people.json']
 for (const m of allText.matchAll(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g)) {
   if (!m[0].endsWith('@example.test')) fail(`safety: non-placeholder email '${m[0]}'`);
 }
-for (const m of allText.matchAll(/https?:\/\/[^\s"')\]\\]+/g)) {
+for (const m of allText.matchAll(/https?:\/\/[^\s"'`)\]\\]+/g)) {
   let host = '';
   try { host = new URL(m[0]).hostname; } catch { host = ''; }
+  if (m[0] === 'https://youtu.be/4XfbVKkJHbI') continue; // the team's chosen Group Exec welcome video (FR-4.6)
   if (host !== 'example.test' && !host.endsWith('.example.test')) fail(`safety: URL must be on example.test, found '${m[0]}'`);
 }
 if (/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/.test(allText)) fail('safety: GUID-like value found');

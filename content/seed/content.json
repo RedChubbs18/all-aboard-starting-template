@@ -299,8 +299,8 @@
     "slug": "executive-welcome-video",
     "type": "VIDEO",
     "title": "Welcome from our executive sponsor",
-    "summary": "A short welcome video from our executive sponsor (example).",
-    "body": "## Welcome message\n\nTake about three minutes to hear a welcome message from our executive sponsor (example). The speaker and the content are fictional for this demo.\n\n**Video URL:** `https://example.test/videos/executive-welcome-placeholder.mp4`\n\nYour journey marks this task complete when you play the video through to the end.",
+    "summary": "A short welcome video from our Group Executive.",
+    "body": "## Welcome message\n\nA welcome message from our Group Executive to everyone joining the bank. The video has English captions, and you can change them in the YouTube player.\n\n**Video URL:** `https://youtu.be/4XfbVKkJHbI`\n\nYour journey marks this task complete when you play the video through to the end.",
     "stage": "DAY_0",
     "tags": [
       "video",

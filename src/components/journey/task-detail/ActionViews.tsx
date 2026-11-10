@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, MapPin, PackageCheck } from "lucide-react";
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -10,6 +10,7 @@ import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/components/ui/cn";
 import { HOME_ITEMS, HOME_PREFIX, PERIPHERAL_OPTIONS, type Detail, type EquipmentChoice, type TaskDetailResponse } from "../detail-types";
 import { formatDateTime } from "../format";
+import { parseYouTubeId, youTubeEmbedUrl, youTubeWatchUrl } from "@/lib/youtube";
 import { usePost } from "./use-post";
 
 interface Props {
@@ -72,12 +73,101 @@ export function ChecklistView({ data, onComplete, completing }: Props) {
   );
 }
 
-/** Synthetic WebVTT captions live in public/media, named after the video file (WCAG 1.2.2). */
-const captionsSrc = (url: string) => `/media/${(url.split("/").pop() ?? "video").replace(/\.[a-z0-9]+$/i, "").replace(/[^a-z0-9-]/gi, "")}.en.vtt`;
+const YT_API_SRC = "https://www.youtube.com/iframe_api";
+const YT_ENDED = 0;
 
-/** FR-4.6: embedded video, completes on `ended`. A keyboard-accessible "I've watched it" is always available. */
+interface YTPlayer {
+  destroy: () => void;
+}
+interface YTApi {
+  Player: new (el: HTMLIFrameElement, opts: { events: { onStateChange?: (e: { data: number }) => void; onError?: () => void } }) => YTPlayer;
+}
+type YTWindow = Window & { YT?: YTApi; onYouTubeIframeAPIReady?: () => void };
+
+let ytPromise: Promise<YTApi> | null = null;
+/** Loads the IFrame Player API once, and only when a YouTube task page asks for it. Rejects if blocked or offline. */
+function loadYouTubeApi(): Promise<YTApi> {
+  const w = window as YTWindow;
+  if (w.YT?.Player) return Promise.resolve(w.YT);
+  ytPromise ??= new Promise<YTApi>((resolve, reject) => {
+    const prev = w.onYouTubeIframeAPIReady;
+    w.onYouTubeIframeAPIReady = () => {
+      prev?.();
+      if (w.YT?.Player) resolve(w.YT);
+      else reject(new Error("YT missing"));
+    };
+    const s = document.createElement("script");
+    s.src = YT_API_SRC;
+    s.async = true;
+    s.onerror = () => {
+      s.remove();
+      ytPromise = null;
+      reject(new Error("YouTube API failed to load"));
+    };
+    document.head.appendChild(s);
+  });
+  return ytPromise;
+}
+
+/** FR-4.6: YouTube (privacy-enhanced) embed. Playing to ENDED completes the task (D30: no prompt). */
+function YouTubeEmbed({ id, title, onEnded, onFailed }: { id: string; title: string; onEnded: () => void; onFailed: () => void }) {
+  const frame = useRef<HTMLIFrameElement>(null);
+  const cb = useRef({ onEnded, onFailed });
+  useEffect(() => {
+    cb.current = { onEnded, onFailed };
+  });
+  useEffect(() => {
+    let player: YTPlayer | null = null;
+    let cancelled = false;
+    // If the API never answers (blocked script, offline), fall back after a timeout.
+    const timer = window.setTimeout(() => !cancelled && cb.current.onFailed(), 10000);
+    loadYouTubeApi()
+      .then((YT) => {
+        if (cancelled || !frame.current) return;
+        window.clearTimeout(timer);
+        player = new YT.Player(frame.current, {
+          events: {
+            onStateChange: (e) => {
+              if (e.data === YT_ENDED) cb.current.onEnded();
+            },
+            onError: () => cb.current.onFailed(),
+          },
+        });
+      })
+      .catch(() => {
+        window.clearTimeout(timer);
+        if (!cancelled) cb.current.onFailed();
+      });
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+      try {
+        player?.destroy();
+      } catch {
+        /* iframe already gone */
+      }
+    };
+  }, [id]);
+  return (
+    <div className="aspect-video w-full overflow-hidden rounded-md bg-ink">
+      <iframe
+        ref={frame}
+        title={title}
+        src={youTubeEmbedUrl(id, typeof window === "undefined" ? undefined : window.location.origin)}
+        className="size-full border-0"
+        allow="encrypted-media; picture-in-picture; fullscreen"
+        referrerPolicy="strict-origin-when-cross-origin"
+        allowFullScreen
+        onError={onFailed}
+      />
+    </div>
+  );
+}
+
+/** FR-4.6: embedded video, completes on ended. A keyboard-accessible "I've watched it" is always available. */
 export function VideoView({ data, onComplete, completing }: Props) {
   const d = data.detail as Extract<Detail, { kind: "video" }>;
+  const ytId = parseYouTubeId(d.url);
   const [failed, setFailed] = useState(!d.url);
   const [percent, setPercent] = useState(0);
   const fired = useRef(false);
@@ -89,7 +179,9 @@ export function VideoView({ data, onComplete, completing }: Props) {
   };
   return (
     <div className="space-y-3">
-      {d.url && !failed ? (
+      {ytId && !failed ? (
+        <YouTubeEmbed id={ytId} title="Group Executive welcome video" onEnded={finish} onFailed={() => setFailed(true)} />
+      ) : d.url && !failed ? (
         <video
           controls
           preload="metadata"
@@ -103,20 +195,35 @@ export function VideoView({ data, onComplete, completing }: Props) {
           }}
         >
           <source src={d.url} />
-          <track kind="captions" srcLang="en" label="English" src={captionsSrc(d.url)} default />
           Your browser can&apos;t play this video.
         </video>
+      ) : ytId ? (
+        <Alert tone="info" title="The video can't be played here">
+          <p>
+            <a className="font-semibold underline" href={youTubeWatchUrl(ytId)} target="_blank" rel="noopener noreferrer">
+              Watch on YouTube (opens in a new tab)
+            </a>
+            , then tell us when you&apos;ve watched it.
+          </p>
+        </Alert>
       ) : (
         <Alert tone="info" title="The video can't be played here">
           <p>This is a demo placeholder. Read the transcript below, then tell us when you&apos;ve watched it.</p>
         </Alert>
       )}
       {percent > 0 && !failed && <p className="tabular text-sm text-muted">Watched {percent}%</p>}
-      <p className="text-sm text-muted">English captions are available from the video controls. The transcript is also below.</p>
+      {ytId ? (
+        <>
+          <p className="text-sm text-muted">This video is hosted on YouTube (privacy-enhanced mode).</p>
+          <p className="text-sm text-muted">English captions are on by default and can be changed in the YouTube player. A short summary is below.</p>
+        </>
+      ) : (
+        <p className="text-sm text-muted">English captions are available from the video controls where the video provides them. The transcript is also below.</p>
+      )}
       {data.content && (
         <details className="rounded-md border border-line bg-card p-3">
-          <summary className="min-h-11 cursor-pointer py-2 font-semibold">Transcript</summary>
-          <p className="mt-2 whitespace-pre-line">{data.content.body.replace(/[#*`]/g, "").replace(/\*\*Video URL:.*\n?/i, "")}</p>
+          <summary className="min-h-11 cursor-pointer py-2 font-semibold">{ytId ? "Summary" : "Transcript"}</summary>
+          <p className="mt-2 whitespace-pre-line">{data.content.body.replace(/[#*`]/g, "").replace(/\*?\*?Video URL:.*\n?/i, "")}</p>
         </details>
       )}
       {canAct && (
