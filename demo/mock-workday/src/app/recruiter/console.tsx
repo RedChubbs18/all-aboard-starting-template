@@ -1,10 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
-import { useAuth } from "@/lib/msal";
 import { isLocalUrl } from "@/lib/publicUrl";
-import { runInvite } from "@/lib/graph";
 import type { Directory } from "@/lib/webhook";
 import { JOB_FAMILIES, JOB_FAMILY_LABELS, type JobFamily } from "@/lib/jobFamily";
 import { randomMonday, startDateError } from "@/lib/startDate";
@@ -18,7 +16,10 @@ interface OfferRow {
   lineManagerName: string;
   startDate: string;
   status: "sent" | "accepted_pending_invite" | "invite_sent" | "invite_simulated" | "onboarded" | "failed";
-  candidate?: { firstName: string; lastName: string; email?: string };
+  candidate?: { firstName: string; lastName: string };
+  events?: { at: string; msg: string }[];
+  /** Fallback invitation link: sent by the server to this console only. */
+  redeemUrl?: string;
   journeyId?: string;
   error?: string;
   createdAt: string;
@@ -45,11 +46,14 @@ const STATUS_STYLE: Record<OfferRow["status"], string> = {
   failed: "bg-red-200 text-red-950",
 };
 
-const approved = () => process.env.NEXT_PUBLIC_GRAPH_INVITE_EXTERNAL_APPROVED === "yes";
-const publicUrl = () => process.env.NEXT_PUBLIC_MYJOURNEY_PUBLIC_URL || "http://localhost:3000";
 const offerBase = () => process.env.NEXT_PUBLIC_OFFER_BASE_URL || (typeof window !== "undefined" ? window.location.origin : "http://localhost:3001");
 const offerLink = (token: string) => `${offerBase().replace(/\/$/, "")}/offer/${token}`;
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+interface Meta {
+  invites: "real" | "simulated" | "simulated_no_credentials";
+  myJourneyPublicUrl: string;
+}
+const PIN_KEY = "mock-workday-recruiter-pin";
 
 const fmtTime = (iso?: string) => (iso ? new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", second: "2-digit" }) : null);
 const fmtDay = (d: string) => {
@@ -87,187 +91,124 @@ function Timeline({ o }: { o: OfferRow }) {
 }
 
 export default function Console() {
-  const auth = useAuth();
   const [offers, setOffers] = useState<OfferRow[]>([]);
+  const [meta, setMeta] = useState<Meta | null>(null);
   const [directory, setDirectory] = useState<Directory | null>(null);
   const [dirError, setDirError] = useState<string | null>(null);
-  const [log, setLog] = useState<{ id: number; t: string; msg: string }[]>([]);
-  const [previews, setPreviews] = useState<Record<string, string>>({});
-  // Fallback redeem links live in this browser only; they are never stored or shown to the candidate.
-  const [redeem, setRedeem] = useState<Record<string, string>>({});
   const [created, setCreated] = useState<OfferRow | null>(null);
   const [resetNote, setResetNote] = useState(false);
-  const processing = useRef(new Set<string>());
-  const logId = useRef(0);
+  const [note, setNote] = useState<string | null>(null);
+  const [needPin, setNeedPin] = useState<null | "pin_required" | "bad_pin" | "forbidden">(null);
+  const [pinTick, setPinTick] = useState(0);
 
-  const say = useCallback((msg: string) => {
-    const t = new Date().toLocaleTimeString("en-GB");
-    setLog((l) => [{ id: ++logId.current, t, msg }, ...l].slice(0, 50));
+  // Calls the recruiter API. A PIN (only needed when this app is reached from another host) is kept in sessionStorage.
+  const apiFetch = useCallback(async (path: string, init: RequestInit = {}): Promise<Response> => {
+    const headers = new Headers(init.headers);
+    if (init.body && !headers.has("content-type")) headers.set("content-type", "application/json");
+    const pin = typeof window !== "undefined" ? window.sessionStorage.getItem(PIN_KEY) : null;
+    if (pin) headers.set("x-recruiter-pin", pin);
+    const r = await fetch(path, { ...init, headers, cache: "no-store" });
+    if (r.status === 403) {
+      const code = ((await r.clone().json().catch(() => ({}))) as { error?: string }).error;
+      if (code === "pin_required" || code === "bad_pin" || code === "forbidden") setNeedPin(code);
+    } else setNeedPin(null);
+    return r;
   }, []);
 
-  const loadOffers = useCallback(async (): Promise<OfferRow[]> => {
-    const r = await auth.apiFetch("/api/recruiter/offers");
+  const loadOffers = useCallback(async () => {
+    const r = await apiFetch("/api/recruiter/offers");
     if (!r.ok) throw new Error(`offers ${r.status}`);
-    const list = ((await r.json()) as { offers: OfferRow[] }).offers;
-    setOffers(list);
-    return list;
-  }, [auth]);
+    const j = (await r.json()) as { offers: OfferRow[]; meta?: Meta };
+    setOffers(j.offers);
+    if (j.meta) setMeta(j.meta);
+  }, [apiFetch]);
 
-  const postWithBackoff = useCallback(
-    async (path: string, body: unknown) => {
-      for (let i = 0; i < 4; i++) {
-        if (i > 0) {
-          say(`Retrying in ${2 ** (i - 1)}s…`);
-          await sleep(1000 * 2 ** (i - 1));
-        }
-        try {
-          const r = await auth.apiFetch(path, { method: "POST", body: JSON.stringify(body) });
-          if (r.ok || (r.status >= 400 && r.status < 500)) return r;
-        } catch {
-          /* network: retry */
-        }
-      }
-      return null;
-    },
-    [auth, say],
-  );
-
-  const processOffer = useCallback(
-    async (o: OfferRow) => {
-      const c = o.candidate;
-      if (!c?.email) return;
-      const name = `${c.firstName} ${c.lastName}`;
-      say(`${name} accepted the offer for ${o.jobTitle}.`);
-      say(approved() ? "Sending a real Microsoft Entra guest invitation…" : "External invites are not approved here: simulating the invitation (no Graph call).");
-      const outcome = await runInvite({
-        fetch,
-        getToken: auth.acquireInviteToken,
-        approved: approved(),
-        email: c.email,
-        firstName: c.firstName,
-        lastName: c.lastName,
-        redirectUrl: publicUrl(),
-      });
-      let payload: { inviteStatus: string; guestObjectId?: string; error?: string };
-      if (outcome.status === "invited") {
-        say("Guest invited. Microsoft is emailing the candidate.");
-        if (outcome.inviteRedeemUrl) {
-          const url = outcome.inviteRedeemUrl;
-          setRedeem((p) => ({ ...p, [o.id]: url }));
-          say("Fallback invitation link available on the offer (recruiter only).");
-        }
-        payload = { inviteStatus: "invited", guestObjectId: outcome.guestObjectId };
-      } else if (outcome.status === "simulated") {
-        say(`Invite simulated: ${outcome.message}`);
-        setPreviews((p) => ({ ...p, [o.id]: outcome.message }));
-        payload = { inviteStatus: "simulated" };
-      } else {
-        say(`Invite failed: ${outcome.error}`);
-        payload = { inviteStatus: "failed", error: outcome.error };
-      }
-      say("Telling MyJourney to start the journey…");
-      const r = await postWithBackoff(`/api/recruiter/offers/${o.id}/invite-result`, payload);
-      if (!r || !r.ok) say("Could not record the result. Use Retry on the offer.");
-      else {
-        const j = (await r.json()) as { offer: OfferRow | null };
-        if (j.offer?.status === "onboarded") say("MyJourney created the starter and their journey. Done.");
-        else if (j.offer?.status === "failed") say(`MyJourney step failed: ${j.offer.error ?? "unknown"}. Use Retry.`);
-      }
-    },
-    [auth.acquireInviteToken, postWithBackoff, say],
-  );
-
-  // Directory for the create form.
+  // Directory for the create form (reloads after a PIN is entered).
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const r = await auth.apiFetch("/api/recruiter/directory");
+      const r = await apiFetch("/api/recruiter/directory");
       if (cancelled) return;
-      if (r.ok) setDirectory((await r.json()) as Directory);
-      else setDirError(((await r.json().catch(() => ({}))) as { message?: string }).message ?? `Could not load teams (${r.status})`);
+      if (r.ok) {
+        setDirectory((await r.json()) as Directory);
+        setDirError(null);
+      } else setDirError(((await r.json().catch(() => ({}))) as { message?: string }).message ?? `Could not load teams (${r.status})`);
     })().catch(() => !cancelled && setDirError("Could not load teams."));
     return () => {
       cancelled = true;
     };
-  }, [auth]);
+  }, [apiFetch, pinTick]);
 
-  // Auto-invite loop: poll every 3s, process each accepted offer once at a time.
-  const tick = useRef<() => Promise<void>>(async () => {});
-  useEffect(() => {
-    tick.current = async () => {
-      const list = await loadOffers();
-      for (const o of list) {
-        if (o.status !== "accepted_pending_invite" || processing.current.has(o.id)) continue;
-        processing.current.add(o.id);
-        try {
-          await processOffer(o);
-          await loadOffers();
-        } finally {
-          processing.current.delete(o.id);
-        }
-      }
-    };
-  }, [loadOffers, processOffer]);
+  // Live status: the server runs the invite and the MyJourney call; this page only polls.
   useEffect(() => {
     let stopped = false;
-    let busy = false;
-    const run = async () => {
-      if (busy || stopped) return;
-      busy = true;
-      try {
-        await tick.current();
-      } catch {
-        /* transient: next tick */
-      } finally {
-        busy = false;
-      }
+    const run = () => {
+      if (!stopped) loadOffers().catch(() => undefined);
     };
-    void run();
+    run();
     const h = setInterval(run, 3000);
     return () => {
       stopped = true;
       clearInterval(h);
     };
-  }, []);
+  }, [loadOffers, pinTick]);
+
+  const log = useMemo(
+    () =>
+      offers
+        .flatMap((o) => (o.events ?? []).map((e) => ({ at: e.at, msg: e.msg, who: o.candidate ? `${o.candidate.firstName} ${o.candidate.lastName}` : o.jobTitle })))
+        .sort((a, b) => b.at.localeCompare(a.at))
+        .slice(0, 50),
+    [offers],
+  );
 
   async function retry(id: string) {
-    say("Retrying…");
-    const r = await auth.apiFetch(`/api/recruiter/offers/${id}/retry`, { method: "POST" });
-    if (!r.ok) say("Retry was refused.");
+    const r = await apiFetch(`/api/recruiter/offers/${id}/retry`, { method: "POST" });
+    if (!r.ok) setNote("Retry was refused.");
     await loadOffers().catch(() => {});
   }
 
+  const real = meta?.invites === "real";
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">Recruiter console</h1>
         <div className="flex items-center gap-3 text-sm text-slate-600">
-          <span>{approved() ? "Real Entra invites ON" : "Invites simulated"}</span>
+          <span>{real ? "Real Entra invites ON" : "Invites simulated"}</span>
           <button
             onClick={async () => {
               if (!window.confirm("Reset demo data? This deletes all offers and candidate emails held by this mock HR app.")) return;
-              const r = await auth.apiFetch("/api/recruiter/reset", { method: "POST" });
-              if (!r.ok) return say("Reset was refused.");
+              const r = await apiFetch("/api/recruiter/reset", { method: "POST" });
+              if (!r.ok) return setNote("Reset was refused.");
               setOffers([]);
               setCreated(null);
-              setPreviews({});
-              setRedeem({});
-              say("Demo data reset. To remove the created journey from MyJourney, run `npm run db:seed` in MyJourney (it works while the dev server is running).");
+              setNote(null);
               setResetNote(true);
             }}
             className="rounded border border-red-300 bg-white px-3 py-1 text-red-900 hover:bg-red-50"
           >
             Reset demo data
           </button>
-          <button onClick={() => void auth.signOut()} className="rounded border border-slate-300 bg-white px-3 py-1 hover:bg-slate-50">
-            Sign out
-          </button>
         </div>
       </div>
 
-      {approved() && isLocalUrl(publicUrl()) && (
+      {needPin && <PinPrompt reason={needPin} onSubmit={(pin) => { window.sessionStorage.setItem(PIN_KEY, pin); setPinTick((t) => t + 1); }} />}
+
+      {note && (
+        <p role="status" className="rounded border border-slate-300 bg-slate-50 p-3 text-sm">
+          {note}
+        </p>
+      )}
+
+      {meta?.invites === "simulated_no_credentials" && (
         <p role="alert" className="rounded border border-amber-400 bg-amber-50 p-3 text-sm text-amber-950">
-          Real invites are on, but the public MyJourney URL is {publicUrl()}. Candidates on another device can&apos;t open localhost; set NEXT_PUBLIC_MYJOURNEY_PUBLIC_URL to a tunnel URL.
+          Real invites are approved, but WORKDAY_GRAPH_TENANT_ID, WORKDAY_GRAPH_CLIENT_ID and WORKDAY_GRAPH_CLIENT_SECRET are not all set in this app&apos;s .env, so invites are simulated.
+        </p>
+      )}
+
+      {real && meta && isLocalUrl(meta.myJourneyPublicUrl) && (
+        <p role="alert" className="rounded border border-amber-400 bg-amber-50 p-3 text-sm text-amber-950">
+          Real invites are on, but the public MyJourney URL is {meta.myJourneyPublicUrl}. Candidates on another device can&apos;t open localhost; set NEXT_PUBLIC_MYJOURNEY_PUBLIC_URL to a tunnel URL.
         </p>
       )}
 
@@ -281,11 +222,10 @@ export default function Console() {
         directory={directory}
         dirError={dirError}
         onCreate={async (input) => {
-          const r = await auth.apiFetch("/api/recruiter/offers", { method: "POST", body: JSON.stringify(input) });
+          const r = await apiFetch("/api/recruiter/offers", { method: "POST", body: JSON.stringify(input) });
           const j = (await r.json().catch(() => ({}))) as { offer?: OfferRow; message?: string };
           if (!r.ok || !j.offer) return j.message ?? `Could not create the offer (${r.status})`;
           setCreated(j.offer);
-          say(`Offer created for ${j.offer.jobTitle}. Waiting for the candidate to accept.`);
           await loadOffers().catch(() => {});
           return null;
         }}
@@ -311,8 +251,7 @@ export default function Console() {
                     {o.candidate ? `${o.candidate.firstName} ${o.candidate.lastName}` : "Awaiting candidate"} · LM {o.lineManagerName} · starts {o.startDate}
                   </p>
                   <p className="text-sm text-slate-600">{JOB_FAMILY_LABELS[o.jobFamily] ?? o.jobFamily}</p>
-                  {redeem[o.id] && <RedeemLink url={redeem[o.id]} />}
-                  {o.status === "invite_simulated" && previews[o.id] && <p className="mt-1 text-sm text-violet-900">Invite simulated: {previews[o.id].slice(0, 140)}…</p>}
+                  {o.redeemUrl && <RedeemLink url={o.redeemUrl} />}
                   {o.status === "failed" && <p className="mt-1 text-sm text-red-800">{o.error}</p>}
                   {o.status === "sent" && (
                     <button onClick={() => setCreated(o)} className="mt-1 text-sm text-blue-800 underline">
@@ -342,15 +281,42 @@ export default function Console() {
           Activity
         </h2>
         <ol aria-live="polite" className="mt-3 space-y-1 font-mono text-sm text-slate-800">
-          {log.length === 0 && <li className="text-slate-500">Waiting for activity. Keep this page open: it sends invitations automatically.</li>}
-          {log.map((l) => (
-            <li key={l.id}>
-              <span className="text-slate-500">{l.t}</span> {l.msg}
+          {log.length === 0 && <li className="text-slate-500">Waiting for activity. The server sends invitations automatically when a candidate accepts.</li>}
+          {log.map((l, i) => (
+            <li key={`${l.at}-${i}`}>
+              <span className="text-slate-500">{new Date(l.at).toLocaleTimeString("en-GB")}</span> [{l.who}] {l.msg}
             </li>
           ))}
         </ol>
       </section>
     </div>
+  );
+}
+
+function PinPrompt({ reason, onSubmit }: { reason: "pin_required" | "bad_pin" | "forbidden"; onSubmit: (pin: string) => void }) {
+  const [pin, setPin] = useState("");
+  if (reason === "forbidden")
+    return (
+      <p role="alert" className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-900">
+        The recruiter console is limited to this computer (open it on http://localhost:3001), or set RECRUITER_PIN in .env to allow other hosts.
+      </p>
+    );
+  return (
+    <form
+      role="alert"
+      className="rounded border border-amber-400 bg-amber-50 p-3 text-sm text-amber-950"
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit(pin);
+        setPin("");
+      }}
+    >
+      <label className="font-medium">
+        {reason === "bad_pin" ? "That PIN is not correct. " : ""}Recruiter PIN
+        <input type="password" autoComplete="off" value={pin} onChange={(e) => setPin(e.target.value)} className="ml-2 rounded border border-slate-400 bg-white px-2 py-1" />
+      </label>
+      <button className="ml-2 rounded bg-blue-700 px-3 py-1 font-medium text-white hover:bg-blue-800">Unlock</button>
+    </form>
   );
 }
 
@@ -520,7 +486,7 @@ function RedeemLink({ url }: { url: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <div className="mt-2 rounded border border-slate-300 bg-slate-50 p-2 text-sm">
-      <p className="font-medium">Fallback invitation link (recruiter only, do not show the candidate)</p>
+      <p className="font-medium">Fallback invitation link (recruiter only, do not show the candidate; held in server memory, not stored)</p>
       <p className="mt-1 break-all font-mono text-xs">{url}</p>
       <button
         onClick={async () => {

@@ -40,6 +40,10 @@ export interface Offer {
   inviteStatus?: InviteStatus;
   journeyId?: string;
   error?: string;
+  /** Set once, atomically, when the server starts the invite step: guarantees at most one real invite per offer. */
+  inviteClaimedAt?: string;
+  /** Server-side activity for the recruiter console. Never holds emails, tokens or secrets. */
+  events?: { at: string; msg: string }[];
 }
 
 export const OFFER_TTL_MS = 14 * 24 * 60 * 60 * 1000;
@@ -146,7 +150,23 @@ export function updateOffer(id: string, patch: (o: Offer) => void): Promise<Offe
   });
 }
 
-/** Records the invite result from the recruiter's browser (guest id and status only). */
+/** Atomically claims the invite step. Returns the offer only for the single caller that wins the claim. */
+export function claimInvite(id: string): Promise<Offer | null> {
+  return tx((offers) => {
+    const o = offers.find((x) => x.id === id);
+    if (!o || o.status !== "accepted_pending_invite" || o.inviteStatus || o.inviteClaimedAt || !o.candidate) return null;
+    o.inviteClaimedAt = new Date().toISOString();
+    return { ...o };
+  });
+}
+
+/** Appends a short, secret-free line to the offer's activity list (newest last, capped). */
+export const addEvent = (id: string, msg: string) =>
+  updateOffer(id, (o) => {
+    o.events = [...(o.events ?? []), { at: new Date().toISOString(), msg: msg.slice(0, 400) }].slice(-40);
+  });
+
+/** Records the invite result (guest id and status only). */
 export function recordInvite(id: string, r: { guestObjectId: string | null; inviteStatus: InviteStatus; error?: string }) {
   return updateOffer(id, (o) => {
     if (o.status !== "accepted_pending_invite" && o.status !== "failed") return;
@@ -186,6 +206,7 @@ export const resetForRetry = (id: string) =>
     else {
       o.status = "accepted_pending_invite";
       o.inviteStatus = undefined;
+      o.inviteClaimedAt = undefined; // explicit recruiter retry after a failed invite: allow one more attempt
     }
   });
 

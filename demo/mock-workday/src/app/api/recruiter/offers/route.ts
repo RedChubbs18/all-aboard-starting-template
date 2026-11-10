@@ -1,13 +1,25 @@
 import { recruiterRoute } from "@/lib/guard";
 import { webhookSecret } from "@/lib/hmac";
-import { recruiterView } from "@/lib/pipeline";
+import { externalInvitesApproved, graphCredentials } from "@/lib/graphAuth";
+import { myJourneyPublicUrl, recruiterView } from "@/lib/pipeline";
 import { createOffer, listOffers } from "@/lib/store";
 import { validateOfferInput } from "@/lib/validation";
 import { fetchDirectory } from "@/lib/webhook";
 
 export const dynamic = "force-dynamic";
 
-export const GET = recruiterRoute(async () => Response.json({ offers: (await listOffers()).map(recruiterView) }));
+export const GET = recruiterRoute(async () =>
+  Response.json(
+    {
+      offers: (await listOffers()).map(recruiterView),
+      meta: {
+        invites: externalInvitesApproved() && graphCredentials() ? "real" : externalInvitesApproved() ? "simulated_no_credentials" : "simulated",
+        myJourneyPublicUrl: myJourneyPublicUrl(),
+      },
+    },
+    { headers: { "Cache-Control": "no-store" } },
+  ),
+);
 
 export const POST = recruiterRoute(async (req) => {
   const v = validateOfferInput(await req.json().catch(() => null));

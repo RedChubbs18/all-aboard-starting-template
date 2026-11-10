@@ -1,4 +1,5 @@
 import { clientIp, csrfCheck, rateLimit, tooMany } from "@/lib/guard";
+import { runAcceptPipeline } from "@/lib/pipeline";
 import { acceptOffer, candidateView } from "@/lib/store";
 import { validateCandidate } from "@/lib/validation";
 
@@ -21,5 +22,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ token: string 
     const [status, message] = map[r.reason];
     return Response.json({ error: r.reason, message }, { status });
   }
+  // Invite + MyJourney webhook run after this response; the candidate page polls for the result.
+  void runAcceptPipeline(r.offer.id);
   return Response.json({ offer: candidateView(r.offer) }, { status: 201 });
 }

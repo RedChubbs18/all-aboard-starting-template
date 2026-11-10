@@ -1,4 +1,4 @@
-import { createRemoteJWKSet, jwtVerify, type JWTPayload, type JWTVerifyGetKey } from "jose";
+import { timingSafeEqual } from "node:crypto";
 
 // ---------------------------------------------------------------- CSRF
 
@@ -47,66 +47,78 @@ export const clientIp = (req: Request): string => (req.headers.get("x-forwarded-
 
 export const tooMany = () => Response.json({ error: "rate_limited", message: "Too many requests. Please wait a moment." }, { status: 429 });
 
-// ---------------------------------------------------------------- Entra (copied from MyJourney src/lib/auth/server.ts)
+// ---------------------------------------------------------------- recruiter access (no sign-in)
 
-export class AuthError extends Error {
-  constructor(public status: 401 | 403, public code: string, message?: string) {
-    super(message ?? code);
-  }
-}
-
-let jwksCache: { tenant: string; keys: JWTVerifyGetKey } | null = null;
-function tenantJwks(tenantId: string): JWTVerifyGetKey {
-  if (jwksCache?.tenant !== tenantId) {
-    jwksCache = { tenant: tenantId, keys: createRemoteJWKSet(new URL(`https://login.microsoftonline.com/${tenantId}/discovery/v2.0/keys`)) };
-  }
-  return jwksCache.keys;
-}
-
-export interface EntraVerifyOptions {
-  tenantId: string;
-  clientId: string;
-  keys?: JWTVerifyGetKey;
-}
-
-/** Verifies signature (RS256), issuer, audience, expiry and tid. */
-export async function verifyEntraToken(token: string, o: EntraVerifyOptions): Promise<JWTPayload & { oid: string }> {
+/** True for localhost, 127.x.x.x and ::1 (with or without a port). */
+export function isLoopbackHost(hostHeader: string | null | undefined): boolean {
+  if (!hostHeader) return false;
+  let h: string;
   try {
-    const { payload } = await jwtVerify(token, o.keys ?? tenantJwks(o.tenantId), {
-      issuer: `https://login.microsoftonline.com/${o.tenantId}/v2.0`,
-      audience: [o.clientId, `api://${o.clientId}`],
-      algorithms: ["RS256"],
-    });
-    if (payload.tid !== o.tenantId) throw new Error("tid mismatch");
-    if (typeof payload.oid !== "string" || !payload.oid) throw new Error("missing oid");
-    return payload as JWTPayload & { oid: string };
+    h = new URL(`http://${hostHeader.trim()}`).hostname.toLowerCase();
   } catch {
-    throw new AuthError(401, "invalid_token", "Invalid or expired token");
+    return false;
   }
+  h = h.replace(/^\[|\]$/g, "");
+  return h === "localhost" || h.endsWith(".localhost") || h === "::1" || /^127(\.\d{1,3}){3}$/.test(h);
 }
 
-/** Any signed-in member of the hackathon tenant acts as the recruiter. */
-export async function requireRecruiter(req: Request): Promise<{ oid: string }> {
-  const m = /^Bearer\s+(.+)$/i.exec(req.headers.get("authorization") ?? "");
-  if (!m) throw new AuthError(401, "unauthenticated");
-  const tenantId = process.env.NEXT_PUBLIC_ENTRA_TENANT_ID;
-  const clientId = process.env.NEXT_PUBLIC_ENTRA_CLIENT_ID;
-  if (!tenantId || !clientId) throw new Error("NEXT_PUBLIC_ENTRA_TENANT_ID and NEXT_PUBLIC_ENTRA_CLIENT_ID must be set");
-  const claims = await verifyEntraToken(m[1], { tenantId, clientId });
-  return { oid: claims.oid };
+const isLoopbackIp = (ip: string): boolean => /^(::1|(::ffff:)?127(\.\d{1,3}){3})$/i.test(ip.replace(/^\[|\]$/g, ""));
+
+/**
+ * The request counts as local only when the Host header is loopback and no proxy header points elsewhere
+ * (a tunnel or reverse proxy adds x-forwarded-* / forwarded). This defeats DNS rebinding and tunnels.
+ * It is not a defence against a LAN peer who forges the Host header: set RECRUITER_PIN whenever the app
+ * listens beyond this machine.
+ */
+export function isLocalRequest(req: Request): boolean {
+  const host = req.headers.get("host") ?? (() => { try { return new URL(req.url).host; } catch { return ""; } })();
+  if (!isLoopbackHost(host)) return false;
+  const fwdHost = req.headers.get("x-forwarded-host");
+  if (fwdHost && !isLoopbackHost(fwdHost.split(",")[0])) return false;
+  const fwdFor = req.headers.get("x-forwarded-for");
+  if (fwdFor && !fwdFor.split(",").every((ip) => isLoopbackIp(ip.trim()))) return false;
+  if (req.headers.get("forwarded")) return false;
+  return true;
 }
 
-/** Wraps a recruiter route: CSRF check, Entra auth, JSON errors. */
+function pinMatches(given: string, expected: string): boolean {
+  const a = Buffer.from(given);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+/**
+ * Recruiter access rule. Local requests pass (and must match RECRUITER_PIN too, if one is set and the PIN header
+ * is sent wrong). Any non-local request needs RECRUITER_PIN to be set and sent in x-recruiter-pin; with no PIN
+ * configured it fails closed.
+ */
+export function recruiterAccess(req: Request): Response | null {
+  const pin = process.env.RECRUITER_PIN ?? "";
+  const given = req.headers.get("x-recruiter-pin") ?? "";
+  if (isLocalRequest(req)) {
+    if (given && pin && !pinMatches(given, pin)) return denied("bad_pin");
+    return null;
+  }
+  if (!pin) return Response.json({ error: "forbidden", message: "The recruiter console is limited to this computer. Set RECRUITER_PIN to allow other hosts." }, { status: 403 });
+  if (!given) return denied("pin_required");
+  if (!rateLimit(`pin:${clientIp(req)}`, 10, 60_000)) return tooMany();
+  return pinMatches(given, pin) ? null : denied("bad_pin");
+}
+
+const denied = (code: "pin_required" | "bad_pin") =>
+  Response.json({ error: code, message: code === "pin_required" ? "Enter the recruiter PIN." : "That PIN is not correct." }, { status: 403 });
+
+/** Wraps a recruiter route: CSRF check, loopback/PIN rule, JSON errors. */
 export function recruiterRoute<C = unknown>(handler: (req: Request, ctx: C) => Promise<Response> | Response) {
   return async (req: Request, ctx: C): Promise<Response> => {
     const csrf = csrfCheck(req);
     if (csrf) return csrf;
+    const access = recruiterAccess(req);
+    if (access) return access;
     try {
-      await requireRecruiter(req);
       return await handler(req, ctx);
     } catch (e) {
-      if (e instanceof AuthError) return Response.json({ error: e.code, message: e.message }, { status: e.status });
-      console.error("[recruiter api]", e instanceof Error ? e.message : "error");
+      console.error("[recruiter api]", e instanceof Error ? e.name : "error");
       return Response.json({ error: "server_error" }, { status: 500 });
     }
   };
