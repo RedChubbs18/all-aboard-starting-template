@@ -52,10 +52,10 @@
     "key": "buddy-say-hello",
     "title": "Say hello to your new starter",
     "description": "You have been picked as a buddy. Send a short Teams message to say hello before they start.",
-    "stage": "CONDITIONAL_OFFER",
+    "stage": "UNCONDITIONAL_OFFER",
     "owner": "BUDDY",
     "type": "ACTION",
-    "dueOffsetDays": -23,
+    "dueOffsetDays": -19,
     "dependsOn": [
       "allocate-buddy",
       "guest-sign-in"
@@ -106,10 +106,10 @@
     "key": "meet-your-team",
     "title": "Meet your team",
     "description": "See who is in your team, their roles and your buddy's profile.",
-    "stage": "CONDITIONAL_OFFER",
+    "stage": "UNCONDITIONAL_OFFER",
     "owner": "STARTER",
     "type": "INFO",
-    "dueOffsetDays": -24,
+    "dueOffsetDays": -20,
     "dependsOn": [
       "allocate-buddy"
     ],
@@ -124,10 +124,10 @@
     "key": "say-hello-on-teams",
     "title": "Say hello to your buddy on Teams",
     "description": "Open a Teams chat with your buddy, your LM or the team. A short hello is enough.",
-    "stage": "CONDITIONAL_OFFER",
+    "stage": "UNCONDITIONAL_OFFER",
     "owner": "STARTER",
     "type": "ACTION",
-    "dueOffsetDays": -24,
+    "dueOffsetDays": -20,
     "dependsOn": [
       "allocate-buddy"
     ],
