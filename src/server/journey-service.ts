@@ -360,8 +360,9 @@ export async function settleForTime(journey: JourneyState, now: Date = new Date(
 }
 
 /**
- * Demo only ("Jump to Day 0"): moves the start date and shifts every due date by the same amount, then re-settles,
- * so the timing rule (D31) lets the journey reach Day 0.
+ * Demo only ("Jump to Day 0"): moves the start date and shifts every open task's due date by the same amount, then
+ * re-settles, so the timing rule (D31) lets the journey reach Day 0. DONE tasks keep their due date, so completions
+ * made before the move are not turned into "completed late" by it.
  */
 export async function moveStartDate(journeyId: string, startDate: Date, ctx: Ctx = {}): Promise<JourneyState> {
   return mutateJourney(journeyId, (j) => {
@@ -369,7 +370,7 @@ export async function moveStartDate(journeyId: string, startDate: Date, ctx: Ctx
     const moved: JourneyState = {
       ...j,
       startDate,
-      tasks: j.tasks.map((t) => ({ ...t, dueDate: new Date(t.dueDate.getTime() + delta) })),
+      tasks: j.tasks.map((t) => (t.status === "DONE" ? t : { ...t, dueDate: new Date(t.dueDate.getTime() + delta) })),
     };
     const e: NewEvent = {
       journeyId: j.id, actorId: ctx.actorId ?? null, type: "START_DATE_MOVED", entity: "Journey", entityId: j.id,

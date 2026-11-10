@@ -192,7 +192,7 @@ describe("withdraw comment (item 7) and reasons (item 12)", () => {
 });
 
 describe("demo steps (items 8, 9, 13, 14)", () => {
-  it("reset also clears Day 0, goals, check-ins and events, leaving only DEMO_RESET", async () => {
+  it("reset also clears Day 0, goals, check-ins and events, leaving only JOURNEY_CREATED and DEMO_RESET", async () => {
     await js.proposeDay0(ALEX, { where: "Reception", whenAt: new Date("2026-12-07T09:00:00Z"), who: "Dana" }, "dana-sample");
     await js.addGoal(ALEX, { horizon: "SEVEN", text: "Meet the team" } as never, "dana-sample");
     await js.upsertCheckIn(ALEX, { cadence: "WEEKLY", scheduledAt: new Date("2026-12-14T10:00:00Z") }, "dana-sample");
@@ -201,7 +201,7 @@ describe("demo steps (items 8, 9, 13, 14)", () => {
     expect(await prisma.day0Arrangement.count({ where: { journeyId: ALEX } })).toBe(0);
     expect(await prisma.goal.count({ where: { journeyId: ALEX } })).toBe(0);
     expect(await prisma.checkIn.count({ where: { journeyId: ALEX } })).toBe(0);
-    expect(await types(ALEX)).toEqual(["DEMO_RESET"]);
+    expect(await types(ALEX)).toEqual(["JOURNEY_CREATED", "DEMO_RESET"]); // JOURNEY_CREATED is kept so the MI funnel still counts the journey
   });
 
   it("system_tasks still works when identity is REAL (direct completion with DEMO_SIMULATED) and completes Eptura Engage", async () => {

@@ -453,7 +453,7 @@
     "dueOffsetDays": -11,
     "dependsOn": [],
     "source": "CORE",
-    "adapterKey": "photocheck",
+    "adapterKey": null,
     "gating": false,
     "contentSlug": "photo-id-pass-guide",
     "condition": "photo-check-failed"

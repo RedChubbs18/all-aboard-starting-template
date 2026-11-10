@@ -13,7 +13,7 @@
 import { prisma } from "./db";
 import { getAdapter, getAdapterMode, isSimulatable, type AdapterMode } from "@/adapters/registry";
 import type { AdapterKey } from "@/adapters/types";
-import { ADAPTER_KEYS, stageIndex, type JourneyState, type Stage, type TemplateInput } from "@/domain/types";
+import { ADAPTER_KEYS, stageIndex, type JourneyState, type NewEvent, type Stage, type TemplateInput } from "@/domain/types";
 import { createJourney as engCreate, setTaskStatus as engSetStatus } from "@/domain/engine";
 import type { NotificationInput } from "@/adapters/notification/types";
 import { entitledModels } from "@/adapters/equipment/catalogue";
@@ -509,7 +509,7 @@ async function ensureGuestSignedIn(journeyId: string, ctx: ActorCtx): Promise<st
 }
 
 /** A demo journey is the seeded demo starter's, or one created by the mock Workday webhook (it has a `workday-offer` IntegrationState row). */
-async function isDemoJourney(journeyId: string): Promise<boolean> {
+export async function isDemoJourney(journeyId: string): Promise<boolean> {
   const j = await prisma.journey.findUnique({ where: { id: journeyId }, select: { starterId: true } });
   if (!j) return false;
   if (j.starterId === DEMO_STARTER_ID) return true;
@@ -595,11 +595,12 @@ export async function runDemoStep(step: DemoStep, ctx: ActorCtx = {}, journeyId?
 export async function jumpToDay0(journeyId: string, ctx: ActorCtx = {}): Promise<string[]> {
   const before = await loadOrThrow(journeyId);
   if (before.status !== "active") throw new SimulationError(`Journey is ${before.status}`, 409);
-  // D31: Day 0 never opens before the start date, so the demo moves the start date to today first.
+  // D31: Day 0 never opens before the start date, so the demo moves the start date to today. It does so AFTER the
+  // pre-Day-0 tasks are completed (below): moving first would pull their due dates into the past and record
+  // every completion as late.
   const now = ctx.now ?? new Date();
   const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   const moved = before.startDate.getTime() > today.getTime();
-  if (moved) await js.moveStartDate(journeyId, today, ctx);
   const hv = await getAdapter("firstadvantage");
   if (isSimulatable(hv)) await hv.simulate(journeyId, "cleared");
   const identity = await getAdapter("identity");
@@ -621,6 +622,7 @@ export async function jumpToDay0(journeyId: string, ctx: ActorCtx = {}): Promise
     if (!todo.length) break;
     for (const t of todo) await js.completeTask(journeyId, t.key, { actorId: ctx.actorId ?? null, now: ctx.now });
   }
+  if (moved) await js.moveStartDate(journeyId, today, ctx);
   const after = await loadOrThrow(journeyId);
   const changes = diff(before, after).filter((c) => c.startsWith("Stage") || c.startsWith("Journey"));
   if (moved) changes.unshift("Start date moved to today (demo)");
@@ -653,12 +655,15 @@ export async function resetDemoStarter(journeyId: string, ctx: ActorCtx = {}): P
   // D31: "Jump to Day 0" moved the start date; a reset puts the original (offer) start date back.
   const moved = await prisma.event.findFirst({ where: { journeyId, type: "START_DATE_MOVED" }, orderBy: { createdAt: "asc" } });
   const originalStart = moved?.from ? new Date(moved.from) : current.startDate;
+  // Keep the journey's original JOURNEY_CREATED event (the MI funnel's first stage counts it); recreate it if it is missing.
+  const createdRow = await prisma.event.findFirst({ where: { journeyId, type: "JOURNEY_CREATED" }, orderBy: { createdAt: "asc" } });
   const created = engCreate(templates, {
     id: current.id, starterId: current.starterId, lmId: current.lmId, buddyId: current.buddyId, teamId: current.teamId,
     startDate: originalStart, now, actorId: ctx.actorId ?? null,
   });
   let fresh = created.journey;
-  for (const key of ["guest-invite-sent", "allocate-buddy"]) {
+  // allocate-buddy is only done when the journey actually has a buddy (a webhook-created journey has none).
+  for (const key of ["guest-invite-sent", ...(current.buddyId ? ["allocate-buddy"] : [])]) {
     const t = fresh.tasks.find((x) => x.key === key);
     if (t && OPEN.has(t.status)) fresh = engSetStatus(fresh, key, "DONE", { now, actorId: ctx.actorId ?? null }).journey;
   }
@@ -677,6 +682,9 @@ export async function resetDemoStarter(journeyId: string, ctx: ActorCtx = {}): P
     await tx.checkIn.deleteMany({ where: { journeyId } });
     await tx.event.deleteMany({ where: { journeyId } });
     await js.persistEngineResult(tx, { ...current, tasks: [] }, { journey: fresh, events: [] }, [
+      createdRow
+        ? { journeyId, actorId: createdRow.actorId, type: "JOURNEY_CREATED", entity: "Journey", entityId: journeyId, from: createdRow.from, to: createdRow.to, data: (createdRow.data ?? null) as NewEvent["data"], createdAt: createdRow.createdAt }
+        : (created.events.find((e) => e.type === "JOURNEY_CREATED") as NewEvent),
       { journeyId, actorId: ctx.actorId ?? null, type: "DEMO_RESET", entity: "Journey", entityId: journeyId, from: current.currentStage, to: fresh.currentStage, data: null, createdAt: now },
     ]);
     // Keep the mock Workday link row: it is what marks a live-onboarded journey as a demo journey.
