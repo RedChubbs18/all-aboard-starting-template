@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { accessInstructions } from "@/lib/graph";
+import { deviceEntitlement, JOB_FAMILY_LABELS, type JobFamily } from "@/lib/jobFamily";
 
 interface OfferView {
   jobTitle: string;
+  jobFamily: JobFamily;
   teamName: string;
   lineManagerName: string;
   startDate: string;
@@ -127,6 +129,8 @@ function Letter({ token, offer, onAccepted, onGone }: { token: string; offer: Of
       <dl className="mt-4 grid gap-2 sm:grid-cols-2">
         <div><dt className="text-sm text-slate-600">Start date</dt><dd className="font-medium">{fmtDate(offer.startDate)}</dd></div>
         <div><dt className="text-sm text-slate-600">Salary</dt><dd className="font-medium">{offer.salary}</dd></div>
+        <div><dt className="text-sm text-slate-600">Job family</dt><dd className="font-medium">{JOB_FAMILY_LABELS[offer.jobFamily] ?? offer.jobFamily}</dd></div>
+        <div><dt className="text-sm text-slate-600">Device entitlement</dt><dd className="font-medium">{deviceEntitlement(offer.jobFamily)}</dd></div>
       </dl>
       {offer.conditions.length > 0 && (
         <>
@@ -179,7 +183,7 @@ function Confirmation({ offer }: { offer: OfferView }) {
           ? "Setting up your access…"
           : offer.phase === "simulated"
             ? "Demo: the invitation from Microsoft was simulated, so no email was sent. In a live run, this is where you would check your email."
-            : "Check your email for an invitation from Microsoft to access MyJourney."}
+            : "Check your email for an invitation from Microsoft to access MyJourney. Open the email from Microsoft on behalf of Lloyds Banking Group (MyJourney), select Accept invitation, then sign in with the same personal email. You may receive a one-time passcode by email."}
       </p>
       <h2 className="mt-6 font-semibold">How to access MyJourney</h2>
       <ol className="mt-2 list-decimal space-y-1 pl-5">

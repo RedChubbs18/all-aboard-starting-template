@@ -2,13 +2,13 @@ import { mkdtempSync, rmSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import { acceptOffer, candidateView, createOffer, getOfferByToken, listOffers, markFailed, markOnboarded, recordInvite, resetForRetry } from "./store";
+import { acceptOffer, candidateView, createOffer, getOfferByToken, listOffers, markFailed, markOnboarded, purgeData, recordInvite, resetForRetry } from "./store";
 
 const dir = mkdtempSync(path.join(tmpdir(), "wd-store-"));
 process.env.MOCK_WORKDAY_DATA_DIR = dir;
 afterAll(() => rmSync(dir, { recursive: true, force: true }));
 
-const input = { jobTitle: "Engineer", teamKey: "dwe", teamName: "DWE", lineManagerKey: "dana", lineManagerName: "Dana", startDate: "2027-01-11", conditions: ["References"] };
+const input = { jobTitle: "Engineer", jobFamily: "ENGINEERING" as const, teamKey: "dwe", teamName: "DWE", lineManagerKey: "dana", lineManagerName: "Dana", startDate: "2027-01-11", conditions: ["References"] };
 const cand = { firstName: "Jo", lastName: "Bloggs", email: "jo@example.com" };
 
 beforeEach(() => rmSync(path.join(dir, "offers.json"), { force: true }));
@@ -67,5 +67,13 @@ describe("offer store", () => {
     const found = await getOfferByToken(o.token);
     expect(JSON.stringify(candidateView(found!))).not.toContain("example.com");
     expect(await getOfferByToken("x".repeat(32))).toBeNull();
+  });
+});
+
+describe("purgeData", () => {
+  it("removes all offers", async () => {
+    await createOffer(input);
+    await purgeData();
+    expect(await listOffers()).toEqual([]);
   });
 });

@@ -18,8 +18,8 @@ export function guestDisplayName(first: string, last: string): string {
 
 export function accessInstructions(myJourneyUrl: string): string[] {
   return [
-    "Open the invitation email from Microsoft (it may be in your junk folder) and accept the invitation.",
-    "Sign in with the same email address the invitation was sent to.",
+    "Open the email from Microsoft on behalf of Lloyds Banking Group (MyJourney) (it may be in your junk folder) and select Accept invitation.",
+    "Sign in with the same personal email address the invitation was sent to. You may receive a one-time passcode by email: enter it when asked.",
     `Open MyJourney at ${myJourneyUrl} and sign in to start your onboarding.`,
   ];
 }
@@ -39,7 +39,7 @@ export function buildInvitationBody(i: { email: string; firstName: string; lastN
 }
 
 export type InviteOutcome =
-  | { status: "invited"; guestObjectId: string }
+  | { status: "invited"; guestObjectId: string; inviteRedeemUrl?: string }
   | { status: "simulated"; message: string; displayName: string }
   | { status: "failed"; error: string };
 
@@ -68,9 +68,9 @@ export async function runInvite(i: InviteInput): Promise<InviteOutcome> {
     });
     if (res.status === 401 || res.status === 403) return { status: "failed", error: "Not permitted to invite guests (consent or role missing)." };
     if (!res.ok) return { status: "failed", error: `Microsoft Graph returned ${res.status}.` };
-    const j = (await res.json()) as { invitedUser?: { id?: string } };
+    const j = (await res.json()) as { invitedUser?: { id?: string }; inviteRedeemUrl?: string };
     const id = j.invitedUser?.id;
-    return id ? { status: "invited", guestObjectId: id } : { status: "failed", error: "Graph response had no guest id." };
+    return id ? { status: "invited", guestObjectId: id, inviteRedeemUrl: typeof j.inviteRedeemUrl === "string" ? j.inviteRedeemUrl : undefined } : { status: "failed", error: "Graph response had no guest id." };
   } catch {
     return { status: "failed", error: "Microsoft Graph could not be reached." };
   }

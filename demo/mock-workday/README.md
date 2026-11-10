@@ -30,11 +30,15 @@ Scripts: `dev`, `build`, `start`, `lint`, `typecheck`, `test`, `reset` (purges `
 ## Demo script
 
 1. Open `http://localhost:3001/recruiter` and sign in. **Leave this tab open**: it sends the invitations.
-2. Create an offer (job title, team, line manager, start date, conditions). Copy the link or show the QR code.
+2. Create an offer (job title, job family, team, line manager, start date, conditions). The start date defaults to a random Monday 2 weeks to 3 months out (**Pick another Monday** re-rolls it; the server only accepts Mondays within 3 months). The job family sets the device entitlement shown on the offer letter. Copy the link or show the QR code.
 3. On a phone or another tab, open the link, read the conditional offer, enter a name and personal email, tick the box and press **Accept offer**.
 4. Watch the recruiter console activity log: invite (real or simulated, with the message preview), then "MyJourney created the starter and their journey". The offer chip moves `accepted_pending_invite` to `invite_sent` or `invite_simulated` to `onboarded`.
 5. The candidate page changes from "Setting up your access…" to "Check your email for an invitation from Microsoft to access MyJourney" with the step-by-step instructions.
 6. In MyJourney, the new starter and journey (conditional offer) appear. The candidate accepts the invite, signs in to MyJourney and `guest-sign-in` completes.
+
+Real invites to personal (for example Gmail) addresses: the candidate opens the email from Microsoft on behalf of Lloyds Banking Group (MyJourney), selects Accept invitation and signs in with the same personal email (a one-time passcode may be emailed). If the email does not arrive, the recruiter console shows the `inviteRedeemUrl` with a Copy button (recruiter only, kept in browser memory, never shown to the candidate).
+
+**Rehearsal reset**: the console's **Reset demo data** button (with confirm) purges `.data/`, same as `npm run reset`. It does not touch MyJourney: run `npm run db:reset` in MyJourney to remove the created journey.
 
 If a step fails, the chip shows `failed` with the reason and a **Retry** button.
 

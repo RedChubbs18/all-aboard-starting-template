@@ -1,3 +1,6 @@
+import { isJobFamily, type JobFamily } from "./jobFamily";
+import { startDateError } from "./startDate";
+
 const EMAIL = /^[A-Za-z0-9._%+'-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/;
 export const isValidEmail = (e: string): boolean => e.length <= 254 && EMAIL.test(e);
 
@@ -34,23 +37,27 @@ export function validateCandidate(raw: unknown): { ok: true; value: { firstName:
 /** Recruiter's create-offer input. Team and line manager are checked against MyJourney's directory by the route. */
 export interface OfferInput {
   jobTitle: string;
+  jobFamily: JobFamily;
   teamKey: string;
   lineManagerKey: string;
   startDate: string;
   conditions: string[];
 }
 
-export function validateOfferInput(raw: unknown): { ok: true; value: OfferInput } | { ok: false; error: string } {
+export function validateOfferInput(raw: unknown, now: Date = new Date()): { ok: true; value: OfferInput } | { ok: false; error: string } {
   const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
   const s = (k: string) => (typeof r[k] === "string" ? (r[k] as string).trim() : "");
   const jobTitle = s("jobTitle");
+  const jobFamily = r.jobFamily;
   const teamKey = s("teamKey");
   const lineManagerKey = s("lineManagerKey");
   const startDate = s("startDate");
   const conditions = Array.isArray(r.conditions) ? r.conditions.filter((c): c is string => typeof c === "string").map((c) => c.trim()).filter(Boolean) : [];
   if (!jobTitle || jobTitle.length > 100) return { ok: false, error: "Job title is required (up to 100 characters)." };
+  if (!isJobFamily(jobFamily)) return { ok: false, error: "Job family is required." };
   if (!teamKey || !lineManagerKey) return { ok: false, error: "Team and line manager are required." };
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || Number.isNaN(Date.parse(startDate))) return { ok: false, error: "Start date must be a valid date." };
+  const dateErr = startDateError(startDate, now);
+  if (dateErr) return { ok: false, error: dateErr };
   if (conditions.length > 12 || conditions.some((c) => c.length > 120)) return { ok: false, error: "Too many or too long conditions." };
-  return { ok: true, value: { jobTitle, teamKey, lineManagerKey, startDate, conditions } };
+  return { ok: true, value: { jobTitle, jobFamily, teamKey, lineManagerKey, startDate, conditions } };
 }

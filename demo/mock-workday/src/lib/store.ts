@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import type { JobFamily } from "./jobFamily";
 import type { OfferInput } from "./validation";
 
 /**
@@ -20,6 +21,7 @@ export interface Offer {
   id: string;
   token: string;
   jobTitle: string;
+  jobFamily: JobFamily;
   teamKey: string;
   teamName: string;
   lineManagerKey: string;
@@ -32,6 +34,8 @@ export interface Offer {
   expiresAt: string;
   candidate?: Candidate;
   acceptedAt?: string;
+  inviteAt?: string;
+  onboardedAt?: string;
   guestObjectId?: string | null;
   inviteStatus?: InviteStatus;
   journeyId?: string;
@@ -41,6 +45,12 @@ export interface Offer {
 export const OFFER_TTL_MS = 14 * 24 * 60 * 60 * 1000;
 
 const dataDir = () => process.env.MOCK_WORKDAY_DATA_DIR || path.join(process.cwd(), ".data");
+/** Rehearsal reset: removes the whole data dir (same as `npm run reset`). */
+export async function purgeData(): Promise<void> {
+  await (g.__wdQueue ?? Promise.resolve());
+  await rm(dataDir(), { recursive: true, force: true });
+}
+
 const file = () => path.join(dataDir(), "offers.json");
 
 const g = globalThis as unknown as { __wdQueue?: Promise<unknown> };
@@ -86,6 +96,7 @@ export function createOffer(input: CreateOfferInput, now: Date = new Date()): Pr
     id: newId(),
     token: newToken(),
     jobTitle: input.jobTitle,
+    jobFamily: input.jobFamily,
     teamKey: input.teamKey,
     teamName: input.teamName,
     lineManagerKey: input.lineManagerKey,
@@ -140,6 +151,7 @@ export function recordInvite(id: string, r: { guestObjectId: string | null; invi
   return updateOffer(id, (o) => {
     if (o.status !== "accepted_pending_invite" && o.status !== "failed") return;
     o.guestObjectId = r.guestObjectId;
+    o.inviteAt = new Date().toISOString();
     o.inviteStatus = r.inviteStatus;
     if (r.inviteStatus === "failed") {
       o.status = "failed";
@@ -154,6 +166,7 @@ export function recordInvite(id: string, r: { guestObjectId: string | null; invi
 export const markOnboarded = (id: string, journeyId: string) =>
   updateOffer(id, (o) => {
     o.status = "onboarded";
+    o.onboardedAt = new Date().toISOString();
     o.journeyId = journeyId;
     o.error = undefined;
   });
@@ -181,6 +194,7 @@ export function candidateView(o: Offer) {
   const phase = o.status === "sent" ? "open" : o.status === "accepted_pending_invite" || o.status === "failed" ? "setting_up" : o.inviteStatus === "simulated" ? "simulated" : "invited";
   return {
     jobTitle: o.jobTitle,
+    jobFamily: o.jobFamily,
     teamName: o.teamName,
     lineManagerName: o.lineManagerName,
     startDate: o.startDate,
