@@ -31,6 +31,12 @@ export default defineConfig({
       DEMO_PIN: "",
       ALLOWED_DEV_ORIGINS: "",
       SEED_SKIP_LOCAL: "1",
+      GUEST_CONVERSION: "",
+      MYJOURNEY_GRAPH_CLIENT_ID: "",
+      MYJOURNEY_GRAPH_CLIENT_SECRET: "",
+      MYJOURNEY_MAIL_SENDER_UPN: "",
+      MEMBER_UPN_DOMAIN: "",
+      WORKDAY_WEBHOOK_SECRET: "",
     },
   },
 });
