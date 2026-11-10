@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: { default: "MyJourney", template: "%s | MyJourney" },
   description: "Your onboarding journey, from offer to day 30.",
   manifest: "/manifest.webmanifest",
-  icons: { icon: BRAND.favicon },
+  icons: { icon: [...BRAND.icons.icon], apple: [...BRAND.icons.apple] },
   appleWebApp: { capable: true, title: "MyJourney", statusBarStyle: "default" },
 };
 

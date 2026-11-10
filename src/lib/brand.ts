@@ -14,6 +14,15 @@ export const BRAND = {
     ? { src: "/brand/official/horse-mark.svg", width: 46, height: 43 }
     : { src: "/brand/horse.svg", width: 120, height: 80 },
   favicon: official ? "/brand/official/favicon.ico" : "/favicon.ico",
+  /** App icons (the official horse mark rasterised, see public/icons). Used by the layout metadata. */
+  icons: {
+    icon: [
+      { url: "/icons/icon.svg", type: "image/svg+xml" },
+      { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: official ? "/brand/official/favicon.ico" : "/favicon.ico", sizes: "any" },
+    ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
 } as const;
 
 export const PLACEHOLDER_LOGO_TEXT = "Your bank";
