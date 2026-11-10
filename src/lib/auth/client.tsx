@@ -40,7 +40,6 @@ export interface SessionValue {
 export type GraphTokenResult = { ok: true; accessToken: string; upn: string } | { ok: false; reason: "no_token" | "consent_required" };
 
 const GRAPH_REDIRECT_FLAG = "graph-consent-redirect";
-const TOKEN_REDIRECT_FLAG = "token-renew-redirect";
 
 const Ctx = createContext<SessionValue | null>(null);
 
@@ -88,25 +87,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const msal = useRef<PublicClientApplication | null>(null);
   const modeRef = useRef<"demo" | "entra" | null>(null);
 
+  // One in-flight silent request shared by concurrent API calls (parallel fetches used to race).
+  const tokenInFlight = useRef<Promise<string | null> | null>(null);
   const getToken = useCallback(async (): Promise<string | null> => {
     const app = msal.current;
     const account = app?.getActiveAccount() ?? app?.getAllAccounts()[0];
     if (!app || !account) return null;
-    try {
-      const r = await app.acquireTokenSilent({ scopes: LOGIN_SCOPES, account });
-      sessionStorage.removeItem(TOKEN_REDIRECT_FLAG);
-      return r.idToken;
-    } catch {
-      // At most one interactive redirect per failure; if we're already back from one, give up
-      // (the caller then sees 401 and shows the sign-in screen) instead of looping.
-      if (sessionStorage.getItem(TOKEN_REDIRECT_FLAG)) {
-        sessionStorage.removeItem(TOKEN_REDIRECT_FLAG);
-        return null;
-      }
-      sessionStorage.setItem(TOKEN_REDIRECT_FLAG, "1");
-      await app.acquireTokenRedirect({ ...buildLoginRequest(), account });
-      return null;
+    if (!tokenInFlight.current) {
+      tokenInFlight.current = app
+        .acquireTokenSilent({ scopes: LOGIN_SCOPES, account })
+        .then((r) => r.idToken)
+        // Never redirect automatically when silent renewal fails: an automatic redirect, combined with an
+        // existing Microsoft session, signs straight back in and fails again, looping forever. Instead the
+        // caller gets no token → 401 → the sign-in screen, and the user chooses to sign in again.
+        .catch(() => null)
+        .finally(() => {
+          tokenInFlight.current = null;
+        });
     }
+    return tokenInFlight.current;
   }, []);
 
   const acquireGraphToken = useCallback(async (scopes: string[]): Promise<GraphTokenResult> => {

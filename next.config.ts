@@ -11,15 +11,16 @@ const allowedDevOrigins = (process.env.ALLOWED_DEV_ORIGINS ?? "")
 /**
  * Baseline security headers (L7). The CSP deliberately has no script-src/style-src yet: Next dev (inline
  * runtime, eval for HMR), the production build's inline bootstrap scripts and the MSAL redirect flow would
- * all need verifying with nonces first. frame-ancestors 'none' + X-Frame-Options DENY stop clickjacking;
- * frame-src allows only YouTube (privacy-enhanced host) for the FR-4.6 welcome video; the IFrame API script
+ * all need verifying with nonces first. frame-ancestors 'self' + X-Frame-Options SAMEORIGIN stop cross-site clickjacking;
+ * frame-src allows our own origin and login.microsoftonline.com (MSAL silent token renewal uses a hidden
+ * iframe that returns to our redirect URI; blocking it caused a sign-in redirect loop) plus YouTube for the FR-4.6 video; the IFrame API script
  * loads under the absent script-src. MSAL's hidden-iframe silent renewal is then blocked too, and the app already falls back to a redirect.
  */
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "same-origin" },
-  { key: "X-Frame-Options", value: "DENY" },
-  { key: "Content-Security-Policy", value: "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src https://www.youtube-nocookie.com https://www.youtube.com" },
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  { key: "Content-Security-Policy", value: "frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'self' https://login.microsoftonline.com https://www.youtube-nocookie.com https://www.youtube.com" },
 ];
 
 const nextConfig: NextConfig = {
